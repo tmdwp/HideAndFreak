@@ -1,0 +1,70 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace GuardVsMannequin.Audio
+{
+    /// <summary>
+    /// 소음 종류별 소리와 전달 거리 설정.
+    /// 클립이 비어 있으면 <see cref="ProceduralNoiseClips"/>의 임시 소리를 사용한다.
+    /// </summary>
+    [CreateAssetMenu(fileName = "NoiseLibrary", menuName = "GuardVsMannequin/Noise Library")]
+    public class NoiseLibrary : ScriptableObject
+    {
+        /// <summary>
+        /// 소음 한 종류의 설정.
+        /// </summary>
+        [Serializable]
+        public class Entry
+        {
+            public NoiseType type;
+
+            [Tooltip("비어 있으면 임시 합성음을 사용한다.")]
+            public AudioClip clip;
+
+            [Range(0f, 1f)] public float volume = 1f;
+
+            [Tooltip("이 거리 밖에서는 들리지 않는다.")]
+            public float maxDistance = 25f;
+        }
+
+        [SerializeField] private List<Entry> entries = new();
+
+        /// <summary>
+        /// 소음 종류의 설정을 찾는다. 없으면 기본값을 만든다.
+        /// </summary>
+        public Entry Get(NoiseType type)
+        {
+            foreach (Entry entry in entries)
+            {
+                if (entry.type == type)
+                    return entry;
+            }
+            return new Entry { type = type };
+        }
+
+        /// <summary>
+        /// 소음 종류의 클립을 반환한다. 지정된 클립이 없으면 임시 합성음을 반환한다.
+        /// </summary>
+        public AudioClip GetClip(NoiseType type)
+        {
+            AudioClip clip = Get(type).clip;
+            return clip != null ? clip : ProceduralNoiseClips.Get(type);
+        }
+
+        /// <summary>
+        /// 모든 소음 종류의 기본 설정을 채운다. (에디터 툴 전용)
+        /// </summary>
+        public void ResetToDefaults()
+        {
+            entries = new List<Entry>
+            {
+                new Entry { type = NoiseType.GunShot, volume = 1f, maxDistance = 60f },
+                new Entry { type = NoiseType.DetectorPing, volume = 0.6f, maxDistance = 20f },
+                new Entry { type = NoiseType.MannequinDetected, volume = 1f, maxDistance = 25f },
+                new Entry { type = NoiseType.DisguiseCreak, volume = 0.8f, maxDistance = 18f },
+                new Entry { type = NoiseType.GeneratorDestroyed, volume = 1f, maxDistance = 70f }
+            };
+        }
+    }
+}

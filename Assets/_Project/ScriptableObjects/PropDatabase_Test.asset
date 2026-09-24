@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8be2d9f6aea79948acb38d47c6c0c70, type: 3}
+  m_Name: PropDatabase_Test
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.PropDatabase
+  definitions:
+  - displayName: Cube_00
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 1, y: 1, z: 1}
+  - displayName: Cube_01
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 2, y: 1.5, z: 1}
+  - displayName: Cube_02
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 1.5, y: 0.8, z: 0.8}
+  - displayName: Cube_03
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 3, y: 2, z: 0.6}
+  - displayName: Cylinder_04
+    mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 0.6, y: 0.6, z: 0.6}
+  - displayName: Cylinder_05
+    mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 1, y: 1, z: 1}
+  - displayName: Cylinder_06
+    mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 0.5, y: 0.5, z: 0.5}
+  - displayName: Sphere_07
+    mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 0.8, y: 0.8, z: 0.8}
+  - displayName: Sphere_08
+    mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 0.6, y: 0.6, z: 0.6}
+  - displayName: Cube_09
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: adc409d2ac746ba4498c949d413a3546, type: 2}
+    scale: {x: 1.2, y: 1.8, z: 0.6}
+  - displayName: WallPiece
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: 9622c6918d110e14aa9189aec155a21a, type: 2}
+    scale: {x: 1.2, y: 2, z: 0.25}
