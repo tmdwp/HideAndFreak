@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7f6506b82daa82348be14fb6c81c641a
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Walkthrough/2 - Controlling a Character/2.3 - Player Input
+    Third Person/Player Input Third Person Example Scene.unity
+  uploadId: 771903

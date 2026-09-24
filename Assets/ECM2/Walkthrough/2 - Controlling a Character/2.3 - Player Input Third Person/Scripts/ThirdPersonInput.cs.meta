@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 6baa13809475a0b4e8c754503a48fcd6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Walkthrough/2 - Controlling a Character/2.3 - Player Input
+    Third Person/Scripts/ThirdPersonInput.cs
+  uploadId: 771903

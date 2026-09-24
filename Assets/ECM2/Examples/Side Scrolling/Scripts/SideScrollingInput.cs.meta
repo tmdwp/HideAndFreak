@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 8f138cba3d2dc7146817f32230b4f5b5
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Examples/Side Scrolling/Scripts/SideScrollingInput.cs
+  uploadId: 771903

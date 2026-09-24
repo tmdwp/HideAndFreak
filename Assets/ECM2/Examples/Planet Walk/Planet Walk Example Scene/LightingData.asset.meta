@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b200f749d8db4954d8599e6772165940
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Examples/Planet Walk/Planet Walk Example Scene/LightingData.asset
+  uploadId: 771903

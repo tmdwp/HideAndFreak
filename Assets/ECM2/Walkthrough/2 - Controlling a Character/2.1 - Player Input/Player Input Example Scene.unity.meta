@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f8ae32dc088988e4a8c1bc3aa94e1980
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Walkthrough/2 - Controlling a Character/2.1 - Player Input/Player
+    Input Example Scene.unity
+  uploadId: 771903

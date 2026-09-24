@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: aae1b8010de5d4a4ea1f944d9fe09bcc
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Walkthrough/4 - Extending a Character/4.1 - Custom Character/Scripts/SprintableCharacterInput.cs
+  uploadId: 771903

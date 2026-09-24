@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 6169cf0ce08c6a44a8fcfdecee15e1e6
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Examples/Twin-Stick Movement/Scripts/TwinStickInput.cs
+  uploadId: 771903

@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 8e33907e14463d146a0fb34c9baaa320
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Shared Assets/Scripts/CharacterInput.cs
+  uploadId: 771903

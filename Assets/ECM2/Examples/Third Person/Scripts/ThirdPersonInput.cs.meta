@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: e0f254751279cd34487e0e6ed6bea863
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Examples/Third Person/Scripts/ThirdPersonInput.cs
+  uploadId: 771903

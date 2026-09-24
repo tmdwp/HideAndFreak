@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: cbbf3b9b979aa9d46901c3742b3c1230
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Examples/First Person Fly/Scripts/FirstPersonFlyInput.cs
+  uploadId: 771903

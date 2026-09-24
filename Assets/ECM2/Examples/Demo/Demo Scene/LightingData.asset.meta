@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 57066912f8758f14b9bf7d2ece477e69
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193614
+  packageName: Easy Character Movement 2
+  packageVersion: 1.4.3
+  assetPath: Assets/ECM2/Examples/Demo/Demo Scene/LightingData.asset
+  uploadId: 771903
