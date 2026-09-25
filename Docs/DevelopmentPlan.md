@@ -314,17 +314,30 @@ public interface ITransformable { int PropId { get; } }
 
 ### Phase 5 — Steam 연동과 로비/룸 씬
 
-- [ ] Steamworks.NET, FishySteamworks 설치 (FishNet 버전 호환 확인)
-- [ ] `TransportSelector`: 에디터/개발 빌드는 Tugboat, 릴리스는 FishySteamworks (DIP: 접속 로직은 트랜스포트에 의존하지 않음)
-- [ ] **로비 씬**: 방 만들기(Steam 로비 생성 + 호스트 시작), 방 코드 참가(코드 = 로비 ID), 친구 초대/친구 방 참가
-- [ ] **룸 씬**
+- [x] Steamworks.NET(2025.164.1), FishySteamworks(4.1.1) 설치 (중복 steam_api 플러그인 정리)
+- [x] 트랜스포트 선택: Multipass(Tugboat + FishySteamworks). Steam 방은 두 트랜스포트로 서버를 열고, 직접 방(개발/LAN)은 Tugboat만 사용 (`TransportConnector`)
+- [x] **로비 씬**: 방 만들기(Steam 로비 생성 + 호스트 시작), 방 코드 참가(코드 = 로비 ID), 친구 초대/친구 방 참가, 직접 접속(개발용)
+- [x] **룸 씬**
   - 호스트: 시작 버튼 (전원 준비 + 인원 조건 충족 시 활성화)
   - 게스트: 준비 / 준비 해제
   - 게임 설정 UI (호스트만 편집, 전원 열람): 맵, 대기 시간, 제한 시간, 사냥 시간, 가드·마네킹 수, 목표 수행 횟수(0 ~ 마네킹 수 + 2), 도구 쿨타임, 체력, **사냥 시간 체력 배율**
-- [ ] 호스트 이탈 시 모든 게스트를 로비 씬으로 퇴출
-- [ ] 게임 종료 후 같은 방으로 룸 씬 복귀
+- [x] 호스트 이탈 시 모든 게스트를 로비 씬으로 퇴출
+- [x] 게임 종료 후 같은 방으로 룸 씬 복귀
+
+**상태:** 🧪 한 PC(직접 방) 테스트 완료 (2026-09-25) / Steam 2PC 테스트 대기
 
 **완료 기준:** 서로 다른 PC의 Steam 친구끼리 초대/코드로 접속해 설정을 바꾸고 한 판을 끝까지 진행한다.
+
+**구현 메모**
+- 씬 흐름: `Lobby`(시작, 오프라인) → 서버 시작 시 FishNet `DefaultScene`이 `Room`을 전역 로드 → 호스트가 시작하면 `RoomState`가 `Game_Test`를 전역 로드 → 결과 후 `Room`으로 복귀. 연결이 끊기면 `DefaultScene`이 `Lobby`를 불러온다.
+- `Lobby` 씬의 **NetworkRoot**(NetworkManager, Multipass, DefaultScene, Steam/세션 서비스)는 DontDestroyOnLoad로 유지된다. 로비로 돌아왔을 때 생기는 중복은 NetworkManager가 제거하고, 서비스는 "먼저 등록된 것이 유지" 규칙으로 등록한다. **Play는 반드시 Lobby 씬에서** 시작한다. (게임 씬에는 NetworkManager가 없음)
+- `SessionService`(`ISessionService`): Steam 로비와 연결을 묶는다. Steam 방 = 로비 생성 → 서버(Tugboat + Steam) 시작 → 로컬 클라이언트는 Tugboat localhost로 접속. 참가 = 로비 입장 → 로비 데이터의 호스트 SteamID로 FishySteamworks 접속. 게임 실행 중 초대 수락(`GameLobbyJoinRequested_t`)과 초대로 실행(`+connect_lobby`)을 모두 처리한다.
+- `RoomState`: 전역 네트워크 오브젝트. 참가자(이름·준비·호스트), 게임 설정을 동기화한다. 설정은 `GameSettingDefinitions`(항목·단위·범위)로 조정하고 인원 변화에 맞춰 `GameSettingsValidator`로 다시 보정한다. 게임 중에는 Steam 로비 참가를 막는다.
+- 게임 씬은 `IRoomInfo`/`ISceneFlow`(Core 인터페이스)로만 룸에 접근한다. `MatchSessionBridge`가 모든 플레이어의 씬 로드를 기다려(최대 15초) 판을 시작하고, 결과 후 룸으로 돌려보낸다.
+- NetworkManager의 `ObserverManager`에 **SceneCondition**을 기본 조건으로 둔다. 씬 오브젝트가 그 씬을 불러온 클라이언트에게만 스폰되게 해, 게스트가 게임 씬 로딩 중에 스폰 정보를 받아 `GameSystems`를 찾지 못하는 문제(SceneId not found)를 막는다. 전역 오브젝트(`RoomState`)는 조건에서 제외된다.
+- 닉네임: 각 클라이언트가 접속 후 자신의 Steam 이름을 서버에 알린다. Steam이 없으면 "Player N".
+- UI는 **uGUI**(에디터 툴로 씬에 생성, 인스펙터에서 편집 가능). 기본 폰트에 한글이 없어 `OsFontApplier`가 실행 시 OS 한글 폰트(맑은 고딕)를 적용한다. (Phase 6에서 TMP + 한글 폰트 에셋으로 교체 검토)
+- 한 PC에서는 같은 Steam 계정으로 호스트/게스트를 동시에 실행할 수 없으므로, 한 PC 테스트는 **직접 방**으로, Steam 테스트는 PC 2대 + Steam 계정 2개로 한다.
 
 ---
 
