@@ -123,7 +123,9 @@ namespace GuardVsMannequin.Core
                 return false;
             }
 
-            GameSettings baseSettings = settingsPreset != null ? settingsPreset.Settings : GameSettings.CreateDefault();
+            // 룸에서 호스트가 정한 설정을 우선 사용하고, 룸 없이 실행하면 프리셋을 쓴다.
+            GameSettings baseSettings = GameServices.Room?.Settings
+                                        ?? (settingsPreset != null ? settingsPreset.Settings : GameSettings.CreateDefault());
             currentSettings.Value = GameSettingsValidator.Validate(baseSettings, playerCount);
 
             ChangeState(GameState.Preparation);

@@ -25,6 +25,33 @@ namespace GuardVsMannequin.Core
         /// <summary>현재 씬의 게임 상태 제공자. 없으면 null.</summary>
         public static IGameStateProvider State { get; private set; }
 
+        /// <summary>현재 룸 정보. 룸 없이 실행하면 null.</summary>
+        public static IRoomInfo Room { get; private set; }
+
+        /// <summary>룸 복귀 흐름. 룸 없이 실행하면 null.</summary>
+        public static ISceneFlow SceneFlow { get; private set; }
+
+        /// <summary>
+        /// 룸 정보와 흐름을 등록한다.
+        /// </summary>
+        public static void RegisterRoom(IRoomInfo room, ISceneFlow sceneFlow)
+        {
+            Room = room;
+            SceneFlow = sceneFlow;
+        }
+
+        /// <summary>
+        /// 등록된 룸과 같을 때만 해제한다.
+        /// </summary>
+        public static void UnregisterRoom(IRoomInfo room)
+        {
+            if (Room != room)
+                return;
+
+            Room = null;
+            SceneFlow = null;
+        }
+
         /// <summary>
         /// 게임 상태 제공자를 등록한다.
         /// </summary>

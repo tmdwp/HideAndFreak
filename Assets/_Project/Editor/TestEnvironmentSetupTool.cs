@@ -21,6 +21,7 @@ using GuardVsMannequin.Player.Guard;
 using GuardVsMannequin.Player.Emotes;
 using GuardVsMannequin.Player.Mannequin;
 using GuardVsMannequin.Props;
+using GuardVsMannequin.Room;
 using GuardVsMannequin.Rules;
 using GuardVsMannequin.UI;
 using Unity.AI.Navigation;
@@ -55,6 +56,9 @@ namespace GuardVsMannequin.Editor
         private const string FakeMannequinPrefabPath = PrefabFolder + "/FakeMannequin.prefab";
         private const string NoiseLibraryPath = SoFolder + "/NoiseLibrary.asset";
         private const string ScenePath = SceneFolder + "/Game_Test.unity";
+        private const string LobbyScenePath = SceneFolder + "/Lobby.unity";
+        private const string RoomScenePath = SceneFolder + "/Room.unity";
+        private const string RoomStatePrefabPath = PrefabFolder + "/RoomState.prefab";
         private const string DefaultPrefabObjectsPath = "Assets/DefaultPrefabObjects.asset";
 
         private const float MapHalfSize = 20f;
@@ -116,14 +120,37 @@ namespace GuardVsMannequin.Editor
                 generator = CreateGeneratorPrefab(materials, noiseLibrary),
                 fakeMannequin = CreateFakeMannequinPrefab(materials)
             };
-            RegisterSpawnablePrefabs(prefabs.guard, prefabs.mannequin, prefabs.generator, prefabs.fakeMannequin);
+            NetworkObject roomStatePrefab = CreateRoomStatePrefab();
+            RegisterSpawnablePrefabs(prefabs.guard, prefabs.mannequin, prefabs.generator, prefabs.fakeMannequin, roomStatePrefab);
 
+            // 게임 씬 → 룸 씬 → 로비 씬(시작 씬) 순서로 만든다. 마지막에 로비 씬이 열린 상태로 끝난다.
             CreateTestScene(preset, prefabs, materials, layoutPropIds, wallPieceId, noiseLibrary);
-            AddSceneToBuildSettings(ScenePath);
+            MenuSceneBuilder.BuildRoomScene(RoomScenePath, AssetDatabase.LoadAssetAtPath<NetworkObject>(RoomStatePrefabPath));
+            MenuSceneBuilder.BuildLobbyScene(LobbyScenePath, RoomScenePath,
+                AssetDatabase.LoadAssetAtPath<DefaultPrefabObjects>(DefaultPrefabObjectsPath));
+
+            SetBuildScenes(LobbyScenePath, RoomScenePath, ScenePath);
             KeepLinearFogShaderVariants();
 
             AssetDatabase.SaveAssets();
-            Debug.Log("[TestSetup] 테스트 환경 생성 완료: " + ScenePath);
+            Debug.Log("[TestSetup] 테스트 환경 생성 완료. 로비 씬에서 Play 하세요: " + LobbyScenePath);
+        }
+
+        /// <summary>
+        /// 룸 상태 프리팹을 만든다. 전역(Global) 네트워크 오브젝트라 씬이 바뀌어도 유지된다.
+        /// </summary>
+        private static NetworkObject CreateRoomStatePrefab()
+        {
+            var root = new GameObject("RoomState");
+            NetworkObject networkObject = root.AddComponent<NetworkObject>();
+            var serialized = new SerializedObject(networkObject);
+            serialized.FindProperty("_isGlobal").boolValue = true;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            RoomState roomState = root.AddComponent<RoomState>();
+            SetField(roomState, "defaultSettings", AssetDatabase.LoadAssetAtPath<GameSettingsPreset>(PresetPath));
+
+            return SavePrefab(root, RoomStatePrefabPath);
         }
 
         #region 에셋
@@ -775,9 +802,8 @@ namespace GuardVsMannequin.Editor
             CreateGeneratorSpawnPoints(mapRoot);
             NavMeshSurface navMeshSurface = CreateNavMeshSurface(mapRoot);
 
-            NetworkManager networkManager = CreateNetworkManager();
             GameSystemsRefs systems = CreateGameSystems(preset, prefabs, navMeshSurface);
-            CreateUi(networkManager, systems, spectator);
+            CreateUi(systems, spectator);
 
             // 경로가 없는 새 씬에서는 FishNet이 씬 ID를 만들지 않으므로, 먼저 저장해 경로를 확정한 뒤 ID를 생성한다.
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -1039,22 +1065,6 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// FishNet NetworkManager와 Tugboat 트랜스포트를 만든다.
-        /// </summary>
-        private static NetworkManager CreateNetworkManager()
-        {
-            var managerObject = new GameObject("NetworkManager");
-            NetworkManager networkManager = managerObject.AddComponent<NetworkManager>();
-            TransportManager transportManager = managerObject.AddComponent<TransportManager>();
-            transportManager.Transport = managerObject.AddComponent<Tugboat>();
-
-            var prefabs = AssetDatabase.LoadAssetAtPath<DefaultPrefabObjects>(DefaultPrefabObjectsPath);
-            if (prefabs != null)
-                networkManager.SpawnablePrefabs = prefabs;
-            return networkManager;
-        }
-
-        /// <summary>
         /// GameSystems에서 UI가 참조할 컴포넌트 묶음.
         /// </summary>
         private struct GameSystemsRefs
@@ -1082,6 +1092,8 @@ namespace GuardVsMannequin.Editor
             MatchResult matchResult = systems.AddComponent<MatchResult>();
             MatchRules matchRules = systems.AddComponent<MatchRules>();
             FakeMannequinSpawner fakeSpawner = systems.AddComponent<FakeMannequinSpawner>();
+            MatchSessionBridge sessionBridge = systems.AddComponent<MatchSessionBridge>();
+            SetField(sessionBridge, "stateMachine", stateMachine);
 
             // 새 씬을 만들 때 아무 프리팹도 참조하지 않는 에셋은 메모리에서 내려가므로 경로로 다시 불러온다.
             // (이전 버전에서 이 때문에 프리셋 참조가 비어 SO 설정이 반영되지 않았음)
@@ -1118,19 +1130,12 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 접속 서비스, 임시 접속 HUD, 게임 HUD를 만든다.
+        /// 게임 HUD와 저체력 효과 볼륨을 만든다. (접속은 로비/룸 씬에서 처리하므로 게임 씬에는 NetworkManager가 없다)
         /// 씬 네트워크 오브젝트는 클라이언트에서 스폰 전까지 비활성이므로 별도 오브젝트에 둔다.
         /// </summary>
-        private static void CreateUi(NetworkManager networkManager, GameSystemsRefs systems, SpectatorController spectator)
+        private static void CreateUi(GameSystemsRefs systems, SpectatorController spectator)
         {
             var uiObject = new GameObject("UI");
-
-            DirectConnectionService connection = uiObject.AddComponent<DirectConnectionService>();
-            SetField(connection, "networkManager", networkManager);
-
-            DebugNetworkHud debugHud = uiObject.AddComponent<DebugNetworkHud>();
-            SetField(debugHud, "connectionServiceComponent", connection);
-            SetField(debugHud, "stateMachine", systems.stateMachine);
 
             GameHud gameHud = uiObject.AddComponent<GameHud>();
             SetField(gameHud, "stateMachine", systems.stateMachine);
@@ -1203,12 +1208,14 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 빌드 설정의 첫 번째 씬으로 등록한다.
+        /// 빌드 설정의 씬 순서를 정한다. (로비 → 룸 → 게임)
         /// </summary>
-        private static void AddSceneToBuildSettings(string path)
+        private static void SetBuildScenes(params string[] orderedPaths)
         {
-            List<EditorBuildSettingsScene> scenes = EditorBuildSettings.scenes.Where(s => s.path != path).ToList();
-            scenes.Insert(0, new EditorBuildSettingsScene(path, true));
+            // 지정한 씬을 순서대로 앞에 두고(첫 번째가 시작 씬), 나머지 기존 씬은 뒤에 유지한다.
+            List<EditorBuildSettingsScene> others = EditorBuildSettings.scenes.Where(s => !orderedPaths.Contains(s.path)).ToList();
+            List<EditorBuildSettingsScene> scenes = orderedPaths.Select(path => new EditorBuildSettingsScene(path, true)).ToList();
+            scenes.AddRange(others);
             EditorBuildSettings.scenes = scenes.ToArray();
         }
 
@@ -1219,7 +1226,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// private 직렬화 필드에 오브젝트 참조를 지정한다.
         /// </summary>
-        private static void SetField(Object target, string fieldName, Object value)
+        internal static void SetField(Object target, string fieldName, Object value)
         {
             var serialized = new SerializedObject(target);
             SerializedProperty property = serialized.FindProperty(fieldName);
@@ -1239,7 +1246,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// private 직렬화 배열 필드에 오브젝트 참조 목록을 지정한다.
         /// </summary>
-        private static void SetArray(Object target, string fieldName, Object[] values)
+        internal static void SetArray(Object target, string fieldName, Object[] values)
         {
             var serialized = new SerializedObject(target);
             SerializedProperty property = serialized.FindProperty(fieldName);

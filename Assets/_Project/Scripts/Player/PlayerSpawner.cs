@@ -90,7 +90,7 @@ namespace GuardVsMannequin.Player
             }
 
             NetworkObject avatar = Instantiate(prefab, position, rotation);
-            string displayName = $"Player {conn.ClientId}";
+            string displayName = GameServices.Room?.GetDisplayName(conn.ClientId) ?? $"Player {conn.ClientId}";
             avatar.GetComponent<PlayerIdentity>().ServerInitialize(role, displayName);
 
             GameSettings settings = stateMachine.Settings;

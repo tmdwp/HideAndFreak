@@ -84,6 +84,8 @@ namespace GuardVsMannequin.UI
             if (state == GameState.Waiting)
             {
                 lastLocalRole = PlayerRole.None;
+                EnsureStyles();
+                GUI.Label(new Rect(0f, Screen.height * 0.5f - 20f, Screen.width, 40f), "다른 플레이어를 기다리는 중...", centerStyle);
                 return;
             }
 
@@ -265,10 +267,10 @@ namespace GuardVsMannequin.UI
             }
 
             GUILayout.FlexibleSpace();
-            GUILayout.Label($"{Mathf.CeilToInt(stateMachine.RemainingTime)}초 후 자동으로 다음 판 대기 상태로 돌아갑니다.", centerStyle);
+            GUILayout.Label($"{Mathf.CeilToInt(stateMachine.RemainingTime)}초 후 자동으로 룸으로 돌아갑니다.", centerStyle);
 
-            // 서버(호스트)만 상태를 바꿀 수 있다. (Phase 5에서 룸 씬 이동으로 대체)
-            if (stateMachine.IsServerReady() && GUILayout.Button("바로 다음 판 준비", GUILayout.Height(36f)))
+            // 서버(호스트)만 상태를 바꿀 수 있다. 대기 상태로 바뀌면 MatchSessionBridge가 모두를 룸으로 보낸다.
+            if (stateMachine.IsServerReady() && GUILayout.Button("룸으로 이동", GUILayout.Height(36f)))
                 stateMachine.ChangeState(GameState.Waiting);
 
             GUILayout.EndArea();
