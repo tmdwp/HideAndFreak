@@ -61,11 +61,10 @@ namespace GuardVsMannequin.Rules
         /// </summary>
         private bool ShouldStartHunting(IGameStateContext context)
         {
-            if (context.Settings.objectiveCount > 0)
+            if (!HuntTiming.IsTimedHunt(context.Settings))
                 return objectiveTracker.IsComplete;
 
-            float elapsed = context.Settings.playTime - context.RemainingTime;
-            return elapsed >= GameConstants.ZeroObjectiveHuntDelay;
+            return HuntTiming.GetProtectionRemaining(context.Settings, context.RemainingTime) <= 0f;
         }
 
         /// <summary>

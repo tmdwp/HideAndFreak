@@ -18,6 +18,15 @@ namespace GuardVsMannequin.Audio
         DisguiseCreak = 3,
 
         /// <summary>전원 장치 파괴.</summary>
-        GeneratorDestroyed = 4
+        GeneratorDestroyed = 4,
+
+        /// <summary>사냥 시간 진입 시 맵 전체 전원 차단. (2D로 전원에게 재생)</summary>
+        PowerDown = 5,
+
+        /// <summary>사냥 시간 마네킹의 공격.</summary>
+        MannequinAttack = 6,
+
+        /// <summary>손전등 스위치.</summary>
+        FlashlightClick = 7
     }
 }

@@ -52,5 +52,23 @@ namespace GuardVsMannequin.Player
             base.OnStopServer();
             ServerDespawned?.Invoke(this);
         }
+
+        /// <summary>
+        /// 클라이언트 생존자 목록에 등록한다. (관전 대상)
+        /// </summary>
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+            ClientPlayerList.Add(this);
+        }
+
+        /// <summary>
+        /// 클라이언트 생존자 목록에서 뺀다.
+        /// </summary>
+        public override void OnStopClient()
+        {
+            base.OnStopClient();
+            ClientPlayerList.Remove(this);
+        }
     }
 }

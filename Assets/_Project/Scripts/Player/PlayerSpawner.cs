@@ -17,6 +17,7 @@ namespace GuardVsMannequin.Player
         [SerializeField] private SpawnPointRegistry spawnPoints;
         [SerializeField] private NetworkObject guardPrefab;
         [SerializeField] private NetworkObject mannequinPrefab;
+        [SerializeField] private MatchResult matchResult;
 
         private readonly RoleAssigner roleAssigner = new();
         private readonly List<NetworkObject> spawnedAvatars = new();
@@ -57,6 +58,7 @@ namespace GuardVsMannequin.Player
         {
             DespawnAll();
             spawnPoints.ResetAssignments();
+            matchResult.ResetParticipants();
 
             List<int> clientIds = new List<int>(ServerManager.Clients.Keys);
             Dictionary<int, PlayerRole> roles = roleAssigner.Assign(clientIds, stateMachine.Settings.guardCount);
@@ -88,7 +90,8 @@ namespace GuardVsMannequin.Player
             }
 
             NetworkObject avatar = Instantiate(prefab, position, rotation);
-            avatar.GetComponent<PlayerIdentity>().ServerInitialize(role, $"Player {conn.ClientId}");
+            string displayName = $"Player {conn.ClientId}";
+            avatar.GetComponent<PlayerIdentity>().ServerInitialize(role, displayName);
 
             GameSettings settings = stateMachine.Settings;
             PlayerHealth health = avatar.GetComponent<PlayerHealth>();
@@ -96,6 +99,7 @@ namespace GuardVsMannequin.Player
             health.ServerDied += OnAvatarDied;
 
             ServerManager.Spawn(avatar, conn);
+            matchResult.RegisterParticipant(displayName, role, avatar);
             spawnedAvatars.Add(avatar);
         }
 

@@ -28,6 +28,9 @@ namespace GuardVsMannequin.Audio
                 NoiseType.MannequinDetected => Create("MannequinDetected", 0.6f, Creak),
                 NoiseType.DisguiseCreak => Create("DisguiseCreak", 0.3f, ShortCreak),
                 NoiseType.GeneratorDestroyed => Create("GeneratorDestroyed", 1.0f, Boom),
+                NoiseType.PowerDown => Create("PowerDown", 1.8f, PowerDown),
+                NoiseType.MannequinAttack => Create("MannequinAttack", 0.25f, Swipe),
+                NoiseType.FlashlightClick => Create("FlashlightClick", 0.05f, Click),
                 _ => Create("Default", 0.2f, DetectorPing)
             };
 
@@ -77,6 +80,27 @@ namespace GuardVsMannequin.Audio
             float frequency = 320f - t * 400f;
             float saw = 2f * (t * frequency - Mathf.Floor(t * frequency + 0.5f));
             return saw * Mathf.Sin(Mathf.PI * t / length) * 0.4f;
+        }
+
+        /// <summary>전원 차단: "쿵" 하는 저음과 함께 낮아지며 사라지는 험 노이즈.</summary>
+        private static float PowerDown(float t, float length)
+        {
+            float thump = Mathf.Sin(2f * Mathf.PI * 45f * t) * Mathf.Exp(-t * 6f);
+            float frequency = Mathf.Lerp(120f, 30f, t / length);
+            float hum = Mathf.Sin(2f * Mathf.PI * frequency * t) * (1f - t / length) * 0.4f;
+            return thump * 0.8f + hum;
+        }
+
+        /// <summary>마네킹 공격: 짧게 휘두르는 바람 소리.</summary>
+        private static float Swipe(float t, float length)
+        {
+            return (Random.value * 2f - 1f) * Mathf.Sin(Mathf.PI * t / length) * 0.6f;
+        }
+
+        /// <summary>손전등 스위치: 아주 짧은 클릭.</summary>
+        private static float Click(float t, float length)
+        {
+            return Mathf.Sin(2f * Mathf.PI * 2500f * t) * Mathf.Exp(-t * 120f) * 0.5f;
         }
 
         /// <summary>전원 장치 파괴: 저음 폭발 + 잡음.</summary>

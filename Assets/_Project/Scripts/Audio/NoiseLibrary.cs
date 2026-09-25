@@ -53,17 +53,38 @@ namespace GuardVsMannequin.Audio
         }
 
         /// <summary>
-        /// 모든 소음 종류의 기본 설정을 채운다. (에디터 툴 전용)
+        /// 아직 설정이 없는 소음 종류만 기본값으로 추가한다. 기존 설정(지정한 클립 등)은 유지한다. (에디터 툴 전용)
         /// </summary>
-        public void ResetToDefaults()
+        /// <returns>추가된 항목이 있는지 여부.</returns>
+        public bool AddMissingDefaults()
         {
-            entries = new List<Entry>
+            bool added = false;
+            foreach (Entry defaultEntry in CreateDefaults())
+            {
+                if (entries.Exists(entry => entry.type == defaultEntry.type))
+                    continue;
+
+                entries.Add(defaultEntry);
+                added = true;
+            }
+            return added;
+        }
+
+        /// <summary>
+        /// 모든 소음 종류의 기본 설정 목록을 만든다.
+        /// </summary>
+        private static List<Entry> CreateDefaults()
+        {
+            return new List<Entry>
             {
                 new Entry { type = NoiseType.GunShot, volume = 1f, maxDistance = 60f },
                 new Entry { type = NoiseType.DetectorPing, volume = 0.6f, maxDistance = 20f },
                 new Entry { type = NoiseType.MannequinDetected, volume = 1f, maxDistance = 25f },
                 new Entry { type = NoiseType.DisguiseCreak, volume = 0.8f, maxDistance = 18f },
-                new Entry { type = NoiseType.GeneratorDestroyed, volume = 1f, maxDistance = 70f }
+                new Entry { type = NoiseType.GeneratorDestroyed, volume = 1f, maxDistance = 70f },
+                new Entry { type = NoiseType.PowerDown, volume = 1f, maxDistance = 500f },
+                new Entry { type = NoiseType.MannequinAttack, volume = 0.9f, maxDistance = 15f },
+                new Entry { type = NoiseType.FlashlightClick, volume = 0.5f, maxDistance = 8f }
             };
         }
     }

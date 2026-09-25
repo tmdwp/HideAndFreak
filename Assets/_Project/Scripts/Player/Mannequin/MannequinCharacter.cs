@@ -5,8 +5,9 @@ using UnityEngine;
 namespace GuardVsMannequin.Player.Mannequin
 {
     /// <summary>
-    /// 3인칭 마네킹 캐릭터.
-    /// 카메라는 추적 대상을 중심으로 궤도 회전하고, 몸체는 이동 방향을 바라본다.
+    /// 마네킹 캐릭터.
+    /// - 3인칭(기본): 카메라는 추적 대상을 중심으로 궤도 회전하고, 몸체는 이동 방향을 바라본다.
+    /// - 1인칭(사냥 시간): 카메라가 눈 위치에 붙고, 좌우 시점이 몸체를 회전시킨다.
     /// </summary>
     public class MannequinCharacter : Character, ILookControllable
     {
@@ -24,9 +25,15 @@ namespace GuardVsMannequin.Player.Mannequin
         [SerializeField] private LayerMask cameraCollisionMask = ~0;
         [SerializeField] private float cameraCollisionRadius = 0.2f;
 
+        [Tooltip("1인칭에서의 상하 시점 제한(도).")]
+        [SerializeField] private float firstPersonPitchLimit = 80f;
+
         private float cameraYaw;
         private float cameraPitch = 15f;
         private IMovementPlaneProvider movementPlaneProvider;
+
+        /// <summary>1인칭 시점인지 여부. (사냥 시간)</summary>
+        public bool IsFirstPerson { get; private set; }
 
         /// <summary>
         /// 마네킹 이동 속도와 회전 방식을 적용한다.
@@ -46,10 +53,29 @@ namespace GuardVsMannequin.Player.Mannequin
         }
 
         /// <summary>
-        /// 시점 입력을 카메라 궤도 각도에 반영한다.
+        /// 1인칭/3인칭 시점을 전환한다. 1인칭에서는 몸의 정면을 바라보도록 시점을 초기화한다.
+        /// 몸체 회전 방식은 <see cref="DisguiseRotationAbility"/>가 이 값을 보고 결정한다.
+        /// </summary>
+        public void SetFirstPerson(bool firstPerson)
+        {
+            IsFirstPerson = firstPerson;
+            cameraPitch = firstPerson ? 0f : 15f;
+            cameraYaw = transform.eulerAngles.y;
+        }
+
+        /// <summary>
+        /// 시점 입력을 반영한다. 3인칭은 카메라 궤도 각도, 1인칭은 몸체 Yaw와 카메라 Pitch에 적용한다.
         /// </summary>
         public void AddLookInput(Vector2 lookDelta)
         {
+            if (IsFirstPerson)
+            {
+                if (lookDelta.x != 0f)
+                    AddYawInput(lookDelta.x);
+                cameraPitch = MathLib.ClampAngle(cameraPitch - lookDelta.y, -firstPersonPitchLimit, firstPersonPitchLimit);
+                return;
+            }
+
             cameraYaw = MathLib.ClampAngle(cameraYaw + lookDelta.x, -180f, 180f);
             cameraPitch = MathLib.ClampAngle(cameraPitch - lookDelta.y, minPitch, maxPitch);
         }
@@ -70,6 +96,14 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private void UpdateCamera()
         {
+            if (IsFirstPerson)
+            {
+                // 눈 위치(추적 대상)에서 몸의 정면 + 상하 시점을 바라본다.
+                Quaternion viewRotation = Quaternion.Euler(cameraPitch, transform.eulerAngles.y, 0f);
+                cameraTransform.SetPositionAndRotation(followTarget.position, viewRotation);
+                return;
+            }
+
             ClampOrbitToSurface();
 
             Quaternion orbitRotation = Quaternion.Euler(cameraPitch, cameraYaw, 0f);

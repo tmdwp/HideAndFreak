@@ -29,6 +29,12 @@ namespace GuardVsMannequin.Core
         /// <summary>전원 장치와 상호작용할 수 있는 최대 거리.</summary>
         public const float InteractRange = 2.2f;
 
+        /// <summary>사냥 시간 마네킹 공격 쿨타임(초).</summary>
+        public const float MannequinAttackCooldown = 1f;
+
+        /// <summary>마네킹 공격 판정의 구체 반경. 근접 공격이 너무 정밀하지 않도록 한다.</summary>
+        public const float MannequinAttackRadius = 0.35f;
+
         /// <summary>감정 표현 개수(1~6번 키).</summary>
         public const int EmoteCount = 6;
 
@@ -46,7 +52,7 @@ namespace GuardVsMannequin.Core
         public const int FakeMannequinMinCount = 6;
         public const int FakeMannequinMaxCount = 12;
 
-        /// <summary>결과 화면을 보여준 뒤 대기 상태로 돌아가기까지의 시간(Phase 4에서 룸 씬 이동으로 대체).</summary>
-        public const float ResultDisplayDuration = 5.0f;
+        /// <summary>결과 화면을 보여준 뒤 대기 상태로 돌아가기까지의 시간(Phase 5에서 룸 씬 이동으로 대체).</summary>
+        public const float ResultDisplayDuration = 10.0f;
     }
 }

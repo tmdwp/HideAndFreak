@@ -77,7 +77,8 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private void OnPrimaryPressed()
         {
-            if (transformer.IsDisguised)
+            // 전원 장치 파괴는 탐색 단계에서만 가능하다. (사냥 시간의 좌클릭은 MannequinAttackTool이 처리)
+            if (transformer.IsDisguised || GameServices.CurrentStateOrWaiting != GameState.Playing)
                 return;
 
             Ray aim = aimProvider.GetAimRay();

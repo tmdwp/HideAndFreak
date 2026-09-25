@@ -29,6 +29,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 namespace GuardVsMannequin.Editor
@@ -117,8 +118,9 @@ namespace GuardVsMannequin.Editor
             };
             RegisterSpawnablePrefabs(prefabs.guard, prefabs.mannequin, prefabs.generator, prefabs.fakeMannequin);
 
-            CreateTestScene(preset, prefabs, materials, layoutPropIds, wallPieceId);
+            CreateTestScene(preset, prefabs, materials, layoutPropIds, wallPieceId, noiseLibrary);
             AddSceneToBuildSettings(ScenePath);
+            KeepLinearFogShaderVariants();
 
             AssetDatabase.SaveAssets();
             Debug.Log("[TestSetup] 테스트 환경 생성 완료: " + ScenePath);
@@ -164,6 +166,15 @@ namespace GuardVsMannequin.Editor
             var result = new Dictionary<string, Material>();
             CreateMaterialSet(litColors, Shader.Find("Universal Render Pipeline/Lit"), result);
             CreateMaterialSet(unlitColors, Shader.Find("Universal Render Pipeline/Unlit"), result);
+
+            // 조명 기구 전구: 켜짐은 발광, 꺼짐은 어두운 유리
+            CreateMaterialSet(new Dictionary<string, Color> { { "LampOff", new Color(0.2f, 0.2f, 0.22f) } }, Shader.Find("Universal Render Pipeline/Lit"), result);
+            CreateMaterialSet(new Dictionary<string, Color> { { "LampOn", new Color(1f, 0.97f, 0.9f) } }, Shader.Find("Universal Render Pipeline/Lit"), result);
+            Material lampOn = result["LampOn"];
+            lampOn.EnableKeyword("_EMISSION");
+            lampOn.SetColor("_EmissionColor", new Color(1f, 0.95f, 0.85f) * 3f);
+            lampOn.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            EditorUtility.SetDirty(lampOn);
             return result;
         }
 
@@ -214,17 +225,19 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 소음 라이브러리를 만든다. 이미 있으면 사용자가 지정한 클립과 값을 유지한다.
+        /// 소음 라이브러리를 만든다. 이미 있으면 사용자가 지정한 클립과 값은 유지하고 새 소음 종류만 추가한다.
         /// </summary>
         private static NoiseLibrary CreateNoiseLibrary()
         {
             NoiseLibrary library = AssetDatabase.LoadAssetAtPath<NoiseLibrary>(NoiseLibraryPath);
-            if (library != null)
-                return library;
+            if (library == null)
+            {
+                library = ScriptableObject.CreateInstance<NoiseLibrary>();
+                AssetDatabase.CreateAsset(library, NoiseLibraryPath);
+            }
 
-            library = ScriptableObject.CreateInstance<NoiseLibrary>();
-            library.ResetToDefaults();
-            AssetDatabase.CreateAsset(library, NoiseLibraryPath);
+            if (library.AddMissingDefaults())
+                EditorUtility.SetDirty(library);
             return library;
         }
 
@@ -352,7 +365,33 @@ namespace GuardVsMannequin.Editor
             DetectorTool detector = root.AddComponent<DetectorTool>();
             SetField(detector, "pulseView", CreateDetectorPulse(root.transform, materials["Tracer"]));
 
+            // Phase 3: 상하 시선 동기화, 사냥 시간 손전등
+            AddViewSync(root, cameraPivot, cameraPivot, isThirdPerson: false);
+            FlashlightTool flashlight = root.AddComponent<FlashlightTool>();
+            SetField(flashlight, "spotLight", CreateFlashlight(cameraPivot));
+
             return SavePrefab(root, GuardPrefabPath);
+        }
+
+        /// <summary>
+        /// 카메라 피벗 아래에 손전등용 스포트라이트를 만든다. (기본 꺼짐)
+        /// </summary>
+        private static Light CreateFlashlight(Transform cameraPivot)
+        {
+            var flashlightObject = new GameObject("Flashlight");
+            flashlightObject.transform.SetParent(cameraPivot, false);
+            flashlightObject.transform.localPosition = new Vector3(0.2f, -0.15f, 0.2f);
+
+            Light spot = flashlightObject.AddComponent<Light>();
+            spot.type = LightType.Spot;
+            spot.range = 25f;
+            spot.spotAngle = 55f;
+            spot.innerSpotAngle = 30f;
+            spot.intensity = 8f;
+            spot.color = new Color(1f, 0.95f, 0.85f);
+            spot.shadows = LightShadows.Soft;
+            spot.enabled = false;
+            return spot;
         }
 
         /// <summary>
@@ -392,7 +431,56 @@ namespace GuardVsMannequin.Editor
             root.AddComponent<DisguiseRotationAbility>();
             AddEmotes(root, visual);
 
+            // Phase 3: 사냥 시간 모드(1인칭, 체력 배율, 속도), 근접 공격
+            MannequinHuntingMode huntingMode = root.AddComponent<MannequinHuntingMode>();
+            SetArray(huntingMode, "bodyRenderers", new Object[] { body, face });
+
+            // 사냥 시간 시야: 눈 높이의 개인 조명(본인 화면에만 켜짐) + 로컬 안개
+            HuntVisionEffect huntVision = root.AddComponent<HuntVisionEffect>();
+            SetField(huntVision, "visionLight", CreateHuntVisionLight(followTarget));
+            root.AddComponent<MannequinAttackTool>();
+
+            // Phase 4: 시선 동기화와 관전 시점 (상하 시선을 적용할 피벗은 없음)
+            AddViewSync(root, null, followTarget, isThirdPerson: true);
+
             return SavePrefab(root, MannequinPrefabPath);
+        }
+
+        /// <summary>
+        /// 시선 동기화(PlayerViewSync)와 관전 시점(SpectatorViewPoint)을 추가한다.
+        /// </summary>
+        /// <param name="root">아바타 루트.</param>
+        /// <param name="pitchPivot">원격 피어에서 상하 시선을 적용할 피벗. (가드의 카메라 피벗, 없으면 null)</param>
+        /// <param name="eyePoint">관전 카메라의 눈 위치.</param>
+        /// <param name="isThirdPerson">평소 3인칭으로 보는 역할인지 여부.</param>
+        private static void AddViewSync(GameObject root, Transform pitchPivot, Transform eyePoint, bool isThirdPerson)
+        {
+            PlayerViewSync viewSync = root.AddComponent<PlayerViewSync>();
+            SetField(viewSync, "pitchPivot", pitchPivot);
+
+            SpectatorViewPoint viewPoint = root.AddComponent<SpectatorViewPoint>();
+            SetField(viewPoint, "eyePoint", eyePoint);
+            var serialized = new SerializedObject(viewPoint);
+            serialized.FindProperty("isThirdPerson").boolValue = isThirdPerson;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// 사냥 시간 마네킹의 개인 조명을 만든다. 그림자 없이 주변만 은은하게 비춘다. (기본 꺼짐)
+        /// </summary>
+        private static Light CreateHuntVisionLight(Transform followTarget)
+        {
+            var lightObject = new GameObject("HuntVisionLight");
+            lightObject.transform.SetParent(followTarget, false);
+
+            Light point = lightObject.AddComponent<Light>();
+            point.type = LightType.Point;
+            point.range = 8f;
+            point.intensity = 1.5f;
+            point.color = new Color(0.65f, 0.75f, 0.95f);
+            point.shadows = LightShadows.None;
+            point.enabled = false;
+            return point;
         }
 
         /// <summary>
@@ -641,6 +729,7 @@ namespace GuardVsMannequin.Editor
             Camera playerCamera = cameraObject.AddComponent<Camera>();
             playerCamera.nearClipPlane = 0.05f;
             playerCamera.fieldOfView = 70f;
+            playerCamera.GetUniversalAdditionalCameraData().renderPostProcessing = true; // 저체력 시야 효과
             cameraObject.AddComponent<AudioListener>();
 
             cameraObject.SetActive(false);
@@ -665,14 +754,14 @@ namespace GuardVsMannequin.Editor
         /// 테스트 씬을 새로 만들어 저장한다.
         /// </summary>
         private static void CreateTestScene(GameSettingsPreset preset, ScenePrefabs prefabs, Dictionary<string, Material> materials,
-            int[] layoutPropIds, int wallPieceId)
+            int[] layoutPropIds, int wallPieceId, NoiseLibrary noiseLibrary)
         {
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-            CreateLighting();
-            CreateSceneCamera();
+            SpectatorController spectator = CreateSceneCamera();
 
             Transform mapRoot = new GameObject("Map").transform;
+            CreateLighting(mapRoot, materials, noiseLibrary);
             MapInfo mapInfo = mapRoot.gameObject.AddComponent<MapInfo>();
             var mapInfoSerialized = new SerializedObject(mapInfo);
             mapInfoSerialized.FindProperty("ceilingHeight").floatValue = WallHeight;
@@ -688,7 +777,7 @@ namespace GuardVsMannequin.Editor
 
             NetworkManager networkManager = CreateNetworkManager();
             GameSystemsRefs systems = CreateGameSystems(preset, prefabs, navMeshSurface);
-            CreateUi(networkManager, systems);
+            CreateUi(networkManager, systems, spectator);
 
             // 경로가 없는 새 씬에서는 FishNet이 씬 ID를 만들지 않으므로, 먼저 저장해 경로를 확정한 뒤 ID를 생성한다.
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -732,29 +821,82 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 방향광을 만든다. (Phase 3에서 맵 조명 시스템으로 대체)
+        /// 맵 조명을 만든다. 방향광과 천장 조명 기구 모두 사냥 시간에 꺼지는 MapLight이다.
+        /// 조명 기구는 충돌체가 없고 변신 대상이 아니다.
         /// </summary>
-        private static void CreateLighting()
+        private static void CreateLighting(Transform mapRoot, Dictionary<string, Material> materials, NoiseLibrary noiseLibrary)
         {
-            var lightObject = new GameObject("Directional Light");
-            Light light = lightObject.AddComponent<Light>();
-            light.type = LightType.Directional;
-            light.intensity = 1.2f;
-            light.shadows = LightShadows.Soft;
-            lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+            Transform lightsRoot = new GameObject("Lights").transform;
+            lightsRoot.SetParent(mapRoot, false);
+
+            var sunObject = new GameObject("Directional Light");
+            sunObject.transform.SetParent(lightsRoot, false);
+            sunObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+            Light sun = sunObject.AddComponent<Light>();
+            sun.type = LightType.Directional;
+            sun.intensity = 1.2f;
+            sun.shadows = LightShadows.Soft;
+            sunObject.AddComponent<MapLight>();
+
+            // 천장 조명 4x4 (대기실 포함)
+            float[] grid = { -15f, -5f, 5f, 15f };
+            foreach (float x in grid)
+            {
+                foreach (float z in grid)
+                    CreateCeilingLamp(lightsRoot, new Vector3(x, WallHeight - 0.05f, z), materials["LampOn"], materials["LampOff"]);
+            }
+
+            HuntingLightingController controller = lightsRoot.gameObject.AddComponent<HuntingLightingController>();
+            SetField(controller, "noiseLibrary", noiseLibrary);
         }
 
         /// <summary>
-        /// 아바타가 없을 때 맵을 내려다보는 씬 카메라를 만든다.
+        /// 발광 전구와 포인트 라이트로 된 천장 조명 기구 하나를 만든다.
         /// </summary>
-        private static void CreateSceneCamera()
+        private static void CreateCeilingLamp(Transform parent, Vector3 position, Material onMaterial, Material offMaterial)
+        {
+            var lamp = new GameObject("CeilingLamp");
+            lamp.transform.SetParent(parent, false);
+            lamp.transform.localPosition = position;
+
+            Renderer bulb = CreateVisual(lamp.transform, PrimitiveType.Cube, "Bulb", Vector3.zero, new Vector3(0.8f, 0.08f, 0.8f), onMaterial);
+            bulb.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            var lightObject = new GameObject("PointLight");
+            lightObject.transform.SetParent(lamp.transform, false);
+            lightObject.transform.localPosition = Vector3.down * 0.2f;
+            Light point = lightObject.AddComponent<Light>();
+            point.type = LightType.Point;
+            point.range = 12f;
+            point.intensity = 3f;
+            point.color = new Color(1f, 0.96f, 0.88f);
+            point.shadows = LightShadows.None;
+
+            MapLight mapLight = lamp.AddComponent<MapLight>();
+            SetField(mapLight, "bulbRenderer", bulb);
+            SetField(mapLight, "onMaterial", onMaterial);
+            SetField(mapLight, "offMaterial", offMaterial);
+        }
+
+        /// <summary>
+        /// 아바타가 없을 때 쓰는 씬 카메라를 만든다.
+        /// 대기 중에는 맵을 내려다보고, 사망/미참가 상태에서는 생존자의 시야로 관전한다.
+        /// </summary>
+        private static SpectatorController CreateSceneCamera()
         {
             var cameraObject = new GameObject("SceneCamera");
             cameraObject.tag = "MainCamera";
-            cameraObject.AddComponent<Camera>();
+            cameraObject.transform.SetPositionAndRotation(new Vector3(0f, 30f, -28f), Quaternion.Euler(50f, 0f, 0f));
+
+            Camera sceneCamera = cameraObject.AddComponent<Camera>();
+            sceneCamera.nearClipPlane = 0.05f;
+            sceneCamera.fieldOfView = 70f;
             cameraObject.AddComponent<AudioListener>();
             cameraObject.AddComponent<SceneCameraSwitcher>();
-            cameraObject.transform.SetPositionAndRotation(new Vector3(0f, 30f, -28f), Quaternion.Euler(50f, 0f, 0f));
+
+            SpectatorController spectator = cameraObject.AddComponent<SpectatorController>();
+            SetField(spectator, "inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
+            return spectator;
         }
 
         /// <summary>
@@ -941,13 +1083,16 @@ namespace GuardVsMannequin.Editor
             MatchRules matchRules = systems.AddComponent<MatchRules>();
             FakeMannequinSpawner fakeSpawner = systems.AddComponent<FakeMannequinSpawner>();
 
-            SetField(stateMachine, "settingsPreset", preset);
+            // 새 씬을 만들 때 아무 프리팹도 참조하지 않는 에셋은 메모리에서 내려가므로 경로로 다시 불러온다.
+            // (이전 버전에서 이 때문에 프리셋 참조가 비어 SO 설정이 반영되지 않았음)
+            SetField(stateMachine, "settingsPreset", AssetDatabase.LoadAssetAtPath<GameSettingsPreset>(PresetPath));
             SetField(stateMachine, "matchRulesComponent", matchRules);
 
             SetField(playerSpawner, "stateMachine", stateMachine);
             SetField(playerSpawner, "spawnPoints", spawnPoints);
             SetField(playerSpawner, "guardPrefab", prefabs.guard);
             SetField(playerSpawner, "mannequinPrefab", prefabs.mannequin);
+            SetField(playerSpawner, "matchResult", matchResult);
 
             SetField(generatorSpawner, "stateMachine", stateMachine);
             SetField(generatorSpawner, "objectiveTracker", objectiveTracker);
@@ -976,7 +1121,7 @@ namespace GuardVsMannequin.Editor
         /// 접속 서비스, 임시 접속 HUD, 게임 HUD를 만든다.
         /// 씬 네트워크 오브젝트는 클라이언트에서 스폰 전까지 비활성이므로 별도 오브젝트에 둔다.
         /// </summary>
-        private static void CreateUi(NetworkManager networkManager, GameSystemsRefs systems)
+        private static void CreateUi(NetworkManager networkManager, GameSystemsRefs systems, SpectatorController spectator)
         {
             var uiObject = new GameObject("UI");
 
@@ -992,6 +1137,10 @@ namespace GuardVsMannequin.Editor
             SetField(gameHud, "playerRegistry", systems.playerRegistry);
             SetField(gameHud, "objectiveTracker", systems.objectiveTracker);
             SetField(gameHud, "matchResult", systems.matchResult);
+            SetField(gameHud, "spectator", spectator);
+
+            // 저체력 시야 효과용 전역 볼륨 (런타임에 프로필 생성)
+            new GameObject("LowHealthVolume").AddComponent<LowHealthVignette>();
         }
 
         /// <summary>
@@ -1034,6 +1183,26 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
+        /// 빌드에 선형 안개 셰이더 변형이 포함되도록 Graphics 설정의 안개 스트리핑을 Custom(Linear 유지)으로 바꾼다.
+        /// 기본값(Automatic)은 씬에서 안개를 쓰지 않으면 빌드에서 안개 셰이더를 제거해,
+        /// 런타임에 켜는 사냥 시간 시야 안개가 빌드에서만 동작하지 않는다.
+        /// </summary>
+        private static void KeepLinearFogShaderVariants()
+        {
+            Object graphicsSettings = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset").FirstOrDefault();
+            if (graphicsSettings == null)
+            {
+                Debug.LogWarning("[TestSetup] GraphicsSettings를 찾지 못했습니다. Project Settings > Graphics > Fog Modes를 Custom(Linear)으로 설정하세요.");
+                return;
+            }
+
+            var serialized = new SerializedObject(graphicsSettings);
+            serialized.FindProperty("m_FogStripping").intValue = 1; // 1 = Custom
+            serialized.FindProperty("m_FogKeepLinear").boolValue = true;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
         /// 빌드 설정의 첫 번째 씬으로 등록한다.
         /// </summary>
         private static void AddSceneToBuildSettings(string path)
@@ -1059,6 +1228,10 @@ namespace GuardVsMannequin.Editor
                 Debug.LogError($"[TestSetup] {target.GetType().Name}.{fieldName} 필드를 찾을 수 없습니다.");
                 return;
             }
+            // C# 참조는 있지만 Unity 오브젝트가 이미 내려간(파괴된) 경우 참조가 조용히 비는 것을 막는다.
+            if (value == null && !ReferenceEquals(value, null))
+                Debug.LogError($"[TestSetup] {target.GetType().Name}.{fieldName}에 연결할 오브젝트가 이미 해제되었습니다. 경로로 다시 불러와야 합니다.");
+
             property.objectReferenceValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }

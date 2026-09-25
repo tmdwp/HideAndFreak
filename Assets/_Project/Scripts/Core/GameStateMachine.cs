@@ -71,6 +71,9 @@ namespace GuardVsMannequin.Core
         public override void OnStartServer()
         {
             base.OnStartServer();
+            if (settingsPreset == null)
+                Debug.LogWarning("[GameStateMachine] settingsPreset이 연결되지 않아 코드 기본값(GameSettings.CreateDefault)을 사용합니다.", this);
+
             currentSettings.Value = settingsPreset != null ? settingsPreset.Settings : GameSettings.CreateDefault();
             handlers[GameState.Waiting].Enter(this);
         }

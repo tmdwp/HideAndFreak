@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using UnityEngine;
@@ -30,8 +31,16 @@ namespace GuardVsMannequin.Core
         AllGuardsEliminated = 4
     }
 
+    /// <summary>참가자 한 명의 판 결과.</summary>
+    public struct ParticipantResult
+    {
+        public string displayName;
+        public PlayerRole role;
+        public bool survived;
+    }
+
     /// <summary>
-    /// 이번 판의 승패 결과를 동기화한다.
+    /// 이번 판의 승패 결과와 참가자별 결과를 동기화한다.
     /// </summary>
     public class MatchResult : NetworkBehaviour
     {
@@ -39,6 +48,34 @@ namespace GuardVsMannequin.Core
 
         private readonly SyncVar<MatchWinner> winner = new(MatchWinner.None);
         private readonly SyncVar<WinReason> reason = new(WinReason.None);
+
+        /// <summary>판이 끝났을 때 공개되는 참가자 결과. (진행 중에는 비어 있어 사망 정보가 새지 않음)</summary>
+        private readonly SyncList<ParticipantResult> publishedParticipants = new();
+
+        /// <summary>서버에서만 관리하는 이번 판 참가자와 아바타.</summary>
+        private readonly List<(string name, PlayerRole role, NetworkObject avatar)> serverParticipants = new();
+
+        /// <summary>공개된 참가자 결과. 판이 끝나기 전에는 비어 있다.</summary>
+        public IReadOnlyList<ParticipantResult> Participants => publishedParticipants;
+
+        /// <summary>
+        /// 새 판을 위해 참가자 목록을 비운다. (서버 전용, 스폰 직전에 호출)
+        /// </summary>
+        [Server]
+        public void ResetParticipants()
+        {
+            serverParticipants.Clear();
+            publishedParticipants.Clear();
+        }
+
+        /// <summary>
+        /// 이번 판 참가자를 등록한다. 결과 공개 시점에 아바타가 남아 있으면 생존으로 본다. (서버 전용)
+        /// </summary>
+        [Server]
+        public void RegisterParticipant(string displayName, PlayerRole role, NetworkObject avatar)
+        {
+            serverParticipants.Add((displayName, role, avatar));
+        }
 
         /// <summary>
         /// 서버에서 상태 변경을 구독한다.
@@ -81,15 +118,38 @@ namespace GuardVsMannequin.Core
         {
             winner.Value = newWinner;
             reason.Value = newReason;
+
+            if (newWinner != MatchWinner.None)
+                PublishParticipants();
         }
 
         /// <summary>
-        /// 새 판을 위해 결과를 지운다. (서버 전용)
+        /// 새 판을 위해 승패와 공개된 결과를 지운다. (서버 전용, 참가자 등록은 유지)
         /// </summary>
         [Server]
         public void Clear()
         {
-            SetResult(MatchWinner.None, WinReason.None);
+            winner.Value = MatchWinner.None;
+            reason.Value = WinReason.None;
+            publishedParticipants.Clear();
+        }
+
+        /// <summary>
+        /// 참가자별 생존 여부를 확정해 모든 클라이언트에 공개한다.
+        /// 사망하거나 접속을 끊은 참가자는 아바타가 제거되어 탈락으로 표시된다.
+        /// </summary>
+        private void PublishParticipants()
+        {
+            publishedParticipants.Clear();
+            foreach ((string name, PlayerRole role, NetworkObject avatar) in serverParticipants)
+            {
+                publishedParticipants.Add(new ParticipantResult
+                {
+                    displayName = name,
+                    role = role,
+                    survived = avatar != null && avatar.IsSpawned
+                });
+            }
         }
     }
 }

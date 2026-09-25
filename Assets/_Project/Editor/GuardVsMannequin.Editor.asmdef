@@ -7,7 +7,9 @@
         "GameKit.Dependencies",
         "ECM2",
         "Unity.InputSystem",
-        "Unity.AI.Navigation"
+        "Unity.AI.Navigation",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [
         "Editor"
