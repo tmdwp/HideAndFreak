@@ -353,11 +353,12 @@ public interface ITransformable { int PropId { get; } }
 - [x] 룸 설정에 가드/마네킹 이동 속도 추가 (마네킹 사냥 시간 속도 = 기본 × 1.5)
 - [x] 사람이 관리하기 쉬운 데이터를 텍스트 파일로 분리 (문장, 크레딧, 게임 설정 기본값·범위)
 - [x] 사냥 시간에도 마네킹 변신 허용 (진입 시 강제 해제는 유지, 변신 중 공격 불가)
+- [x] 보안 보강: Steam 방 Tugboat 루프백 바인딩, 접속 검증(`RoomAuthenticator`), 로비 공개 범위 설정, 닉네임 정리, 서버 이동 검증(`MovementValidator`)
 - [ ] 정식 맵 제작 (천장 개방 맵은 투명 천장, 프롭 실루엣 문제는 의도된 재미로 유지) — 3D 에셋 준비 후 진행
 - [ ] 밸런스 조정, 최적화 (실시간 조명 개수, 네트워크 전송량)
 - [ ] (검토) TextMeshPro + 한글 폰트 에셋으로 UI 폰트 교체
 
-**상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리·다국어·이동 속도 검증 완료 (2026-09-26) / 데이터 파일 분리·사냥 시간 변신 검증 전
+**상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리·다국어·이동 속도 검증 완료 (2026-09-26) / 데이터 파일 분리·사냥 시간 변신·보안 보강 검증 전
 
 **구현 메모**
 - 개인 설정(`GameOptions`: 감도 배율, 전체/배경 음악/효과음 음량)과 키 바인딩은 `OptionsStore`가 **PlayerPrefs**(이 PC)에 저장한다. 호스트가 정하는 게임 설정(`GameSettings`)과는 별개다.
@@ -379,6 +380,12 @@ public interface ITransformable { int PropId { get; } }
   - 한국어·영어 외에 한자/가나 등을 쓰는 언어는 `OsFontApplier`의 폰트가 글자를 지원하는지 확인해야 한다.
 - **이동 속도**: `MoveSpeedController`(가드/마네킹 프리팹)가 동기화된 이번 판 설정으로 `maxWalkSpeed`/`maxFlySpeed`(벽타기)를 맞추고, 마네킹은 사냥 시간에 1.5배로 바꾼다. 가짜 마네킹(NavMeshAgent)도 마네킹 기본 속도를 따른다.
 - **사냥 시간 변신**: `MannequinTransformer.CanTransformIn`에 `Hunting`을 추가했다. 진입 순간의 강제 해제(`MannequinHuntingMode`)는 그대로 두어 사냥 시간 시작 시 모두 본모습이 드러난다. 변신 중에는 탐색 단계의 상호작용처럼 공격도 막는다(`MannequinAttackTool`). 1인칭에서 사물 메시가 시야를 가리지 않도록 본인 화면에서는 변신 외형도 그림자만 그린다(`PropDisguiseView.SetDisguiseShadowsOnly`). 해제 쿨타임 5초는 동일하다.
+- **보안** (호스트 = 서버인 P2P 구조라 호스트의 조작과 위치 정보를 이용한 월핵은 막을 수 없다. 게스트 쪽 부정행위와 무단 접속을 줄이는 것이 목표)
+  - Steam 방에서는 Tugboat를 `127.0.0.1`/`::1`에만 연다(`TransportConnector`). 호스트 자신의 로컬 접속용이며, 방 코드 없이 IP로 들어오는 경로를 막는다. 직접 방은 인스펙터의 바인드 주소를 그대로 쓴다.
+  - `RoomAuthenticator`(FishNet Authenticator, `SessionService`가 실행 시 등록): 판 진행 중 접속, 인원 초과, Steam 방의 비로비 SteamID·외부 IP 접속을 거부한다. 로비 멤버 목록 갱신이 늦을 수 있어 최대 5초 기다린다. `RoomState`는 **인증을 통과한 연결만** 참가자로 등록한다.
+  - 로비 공개 범위는 `SteamLobbyService.lobbyType`(기본 FriendsOnly). Public은 코드를 아는 누구나 들어올 수 있고 AppID 480에서는 로비 검색에 보일 수 있다. **정식 AppID로 교체 전까지 FriendsOnly 권장.**
+  - 닉네임은 서버에서 `<`, `>`, 제어 문자를 제거한다(리치 텍스트 태그로 UI를 깨뜨리는 것 방지).
+  - `MovementValidator`(가드·마네킹 프리팹): 소유자 권한 이동을 서버가 검증한다. 최대 속도 × 1.3으로 이동 예산을 쌓고(최대 1.5초분 + 1m), 수평 이동·상승이 예산을 넘으면 마지막 정상 위치로 되돌린다(`TargetRpc`). 가드 대기 시간에는 가드가 `WaitingRoomArea`(대기실 오브젝트, 로컬 상자) 밖으로 나가면 되돌린다. 낙하는 검사하지 않는다. 새 맵에는 대기실에 `WaitingRoomArea`를 붙여야 한다.
 - 인스펙터 툴팁·개발용 로그는 한국어로 유지한다. (플레이어에게 보이지 않음)
 - HUD(`GameHud`)는 같은 표시 로직을 uGUI Text/패널로 옮겼다. UI는 모두 에디터 툴(`SharedUiBuilder`, `MenuSceneBuilder`)로 씬에 생성되어 인스펙터에서 편집할 수 있다.
 

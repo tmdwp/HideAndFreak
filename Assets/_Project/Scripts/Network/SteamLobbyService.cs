@@ -15,6 +15,11 @@ namespace GuardVsMannequin.Network
 
         [SerializeField] private int maxMembers = 10;
 
+        [Tooltip("로비 공개 범위. FriendsOnly = Steam 친구와 초대받은 사람만 참가(방 코드도 친구만 통함), " +
+                 "Public = 방 코드를 아는 누구나 참가(테스트용 AppID 480에서는 다른 게임의 로비 검색에 보일 수 있음), " +
+                 "Private = 초대로만 참가.")]
+        [SerializeField] private ELobbyType lobbyType = ELobbyType.k_ELobbyTypeFriendsOnly;
+
         private CallResult<LobbyCreated_t> lobbyCreatedResult;
         private Callback<LobbyEnter_t> lobbyEnterCallback;
         private Callback<GameLobbyJoinRequested_t> joinRequestedCallback;
@@ -51,7 +56,7 @@ namespace GuardVsMannequin.Network
         }
 
         /// <summary>
-        /// 로비를 만든다. 공개 로비지만 목록 검색을 하지 않으므로 코드나 초대로만 들어올 수 있다.
+        /// 인스펙터에서 정한 공개 범위로 로비를 만든다.
         /// </summary>
         public void CreateLobby()
         {
@@ -62,7 +67,7 @@ namespace GuardVsMannequin.Network
             }
 
             isCreatingLobby = true;
-            SteamAPICall_t call = SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, maxMembers);
+            SteamAPICall_t call = SteamMatchmaking.CreateLobby(lobbyType, maxMembers);
             lobbyCreatedResult.Set(call);
         }
 
@@ -97,6 +102,24 @@ namespace GuardVsMannequin.Network
         {
             if (CurrentLobbyId != 0 && SteamBootstrap.IsInitialized)
                 SteamMatchmaking.SetLobbyJoinable(new CSteamID(CurrentLobbyId), joinable);
+        }
+
+        /// <summary>
+        /// 해당 SteamID가 현재 로비의 멤버인지 확인한다. (호스트가 접속자를 검증할 때 사용)
+        /// </summary>
+        public bool IsLobbyMember(ulong steamId)
+        {
+            if (CurrentLobbyId == 0 || !SteamBootstrap.IsInitialized)
+                return false;
+
+            CSteamID lobby = new CSteamID(CurrentLobbyId);
+            int memberCount = SteamMatchmaking.GetNumLobbyMembers(lobby);
+            for (int i = 0; i < memberCount; i++)
+            {
+                if (SteamMatchmaking.GetLobbyMemberByIndex(lobby, i).m_SteamID == steamId)
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>

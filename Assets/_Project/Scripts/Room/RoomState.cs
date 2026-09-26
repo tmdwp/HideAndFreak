@@ -17,6 +17,8 @@ namespace GuardVsMannequin.Room
     /// </summary>
     public class RoomState : NetworkBehaviour, IRoomInfo, ISceneFlow
     {
+        private const int MaxDisplayNameLength = 24;
+
         [Tooltip("룸 씬 이름. (빌드 설정에 등록되어 있어야 함)")]
         [SerializeField] private string roomSceneName = "Room";
 
@@ -47,9 +49,14 @@ namespace GuardVsMannequin.Room
             // 방의 초기 설정은 Resources/Data/default_game_settings.json을 따른다.
             settings.Value = DefaultGameSettings.Load();
 
+            // 접속 검증(RoomAuthenticator)을 통과한 연결만 참가자로 등록한다.
             foreach (NetworkConnection conn in ServerManager.Clients.Values)
-                AddMember(conn);
+            {
+                if (conn.IsAuthenticated)
+                    AddMember(conn);
+            }
 
+            ServerManager.OnAuthenticationResult += OnAuthenticationResult;
             ServerManager.OnRemoteConnectionState += OnRemoteConnectionState;
             ApplySettings(settings.Value);
         }
@@ -60,6 +67,7 @@ namespace GuardVsMannequin.Room
         public override void OnStopServer()
         {
             base.OnStopServer();
+            ServerManager.OnAuthenticationResult -= OnAuthenticationResult;
             ServerManager.OnRemoteConnectionState -= OnRemoteConnectionState;
         }
 
@@ -188,22 +196,52 @@ namespace GuardVsMannequin.Room
             if (caller == null || !members.TryGetValue(caller.ClientId, out RoomMember member))
                 return;
 
-            string trimmed = string.IsNullOrWhiteSpace(displayName) ? string.Empty : displayName.Trim();
-            member.displayName = trimmed.Length > 24 ? trimmed.Substring(0, 24) : trimmed;
+            string trimmed = SanitizeDisplayName(displayName);
+            member.displayName = trimmed.Length > MaxDisplayNameLength ? trimmed.Substring(0, MaxDisplayNameLength) : trimmed;
             members[caller.ClientId] = member;
         }
 
         /// <summary>
-        /// 접속/종료에 맞춰 참가자를 추가/제거하고, 인원에 맞게 설정을 다시 보정한다.
+        /// 표시 이름에서 UI 리치 텍스트 태그로 쓰일 수 있는 꺾쇠와 제어 문자를 제거한다.
+        /// (이름에 &lt;size=200&gt; 같은 태그를 넣어 다른 사람의 화면을 깨뜨리는 것을 막는다)
+        /// </summary>
+        private static string SanitizeDisplayName(string displayName)
+        {
+            if (string.IsNullOrWhiteSpace(displayName))
+                return string.Empty;
+
+            var builder = new System.Text.StringBuilder(displayName.Length);
+            foreach (char c in displayName)
+            {
+                if (c == '<' || c == '>' || char.IsControl(c))
+                    continue;
+                builder.Append(c);
+            }
+            return builder.ToString().Trim();
+        }
+
+        /// <summary>
+        /// 접속 검증을 통과하면 참가자로 등록하고, 인원에 맞게 설정을 다시 보정한다.
+        /// </summary>
+        private void OnAuthenticationResult(NetworkConnection conn, bool authenticated)
+        {
+            if (!authenticated)
+                return;
+
+            AddMember(conn);
+            ApplySettings(settings.Value);
+        }
+
+        /// <summary>
+        /// 접속이 끊기면 참가자에서 제거하고, 인원에 맞게 설정을 다시 보정한다.
         /// </summary>
         private void OnRemoteConnectionState(NetworkConnection conn, RemoteConnectionStateArgs args)
         {
-            if (args.ConnectionState == RemoteConnectionState.Started)
-                AddMember(conn);
-            else if (args.ConnectionState == RemoteConnectionState.Stopped)
-                members.Remove(conn.ClientId);
+            if (args.ConnectionState != RemoteConnectionState.Stopped)
+                return;
 
-            ApplySettings(settings.Value);
+            if (members.Remove(conn.ClientId))
+                ApplySettings(settings.Value);
         }
 
         /// <summary>

@@ -11,18 +11,23 @@ namespace GuardVsMannequin.Network
     /// - 서버: Tugboat(직접 접속)는 항상, Steam(FishySteamworks)은 Steam 방일 때만 연다.
     /// - 호스트의 로컬 클라이언트: 항상 Tugboat로 자기 자신(localhost)에 접속한다.
     /// - 참가자: Steam 방이면 FishySteamworks(호스트 SteamID), 직접 접속이면 Tugboat(IP 주소).
+    /// Steam 방에서는 Tugboat를 루프백에만 열어, 방 코드 없이 IP로 직접 들어오는 경로를 막는다.
     /// FishySteamworks는 Assembly-CSharp에 있어 타입 이름으로 찾는다.
     /// </summary>
     public class TransportConnector : MonoBehaviour
     {
         private const string SteamTransportTypeName = "FishySteamworks";
-        private const string LocalAddress = "localhost";
+        private const string LocalAddress = "127.0.0.1";
+        private const string LoopbackIpv4 = "127.0.0.1";
+        private const string LoopbackIpv6 = "::1";
 
         [SerializeField] private NetworkManager networkManager;
 
         private Multipass multipass;
         private Transport tugboat;
         private Transport steamTransport;
+        private string defaultIpv4BindAddress;
+        private string defaultIpv6BindAddress;
 
         /// <summary>서버가 실행 중인지 여부.</summary>
         public bool IsServerRunning => networkManager.IsServerStarted;
@@ -75,21 +80,37 @@ namespace GuardVsMannequin.Network
 
             if (tugboat == null)
                 Debug.LogError("[TransportConnector] Multipass에 Tugboat가 없습니다.");
+            else
+            {
+                // 직접 방에서 되돌릴 수 있도록 인스펙터에 설정된 바인드 주소를 기억한다.
+                defaultIpv4BindAddress = tugboat.GetServerBindAddress(IPAddressType.IPv4);
+                defaultIpv6BindAddress = tugboat.GetServerBindAddress(IPAddressType.IPv6);
+            }
             if (steamTransport == null)
                 Debug.LogWarning("[TransportConnector] Multipass에 FishySteamworks가 없어 Steam 방을 만들 수 없습니다.");
         }
 
         /// <summary>
-        /// 서버를 시작한다. Steam 방이면 Steam 트랜스포트도 함께 연다.
+        /// 서버를 시작한다. Steam 방이면 Steam 트랜스포트도 함께 열고, Tugboat는 호스트 전용(루프백)으로 연다.
         /// </summary>
         /// <returns>서버 시작 요청에 성공했는지 여부.</returns>
         public bool StartServer(bool withSteam)
         {
             EnsureTransports();
+            ApplyTugboatBinding(loopbackOnly: withSteam);
             bool started = multipass.StartConnection(true, tugboat.Index);
             if (withSteam && steamTransport != null)
                 started &= multipass.StartConnection(true, steamTransport.Index);
             return started;
+        }
+
+        /// <summary>
+        /// Tugboat 서버의 바인드 주소를 정한다. 루프백 전용이면 같은 PC(호스트 자신)만 접속할 수 있다.
+        /// </summary>
+        private void ApplyTugboatBinding(bool loopbackOnly)
+        {
+            tugboat.SetServerBindAddress(loopbackOnly ? LoopbackIpv4 : defaultIpv4BindAddress, IPAddressType.IPv4);
+            tugboat.SetServerBindAddress(loopbackOnly ? LoopbackIpv6 : defaultIpv6BindAddress, IPAddressType.IPv6);
         }
 
         /// <summary>

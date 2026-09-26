@@ -475,6 +475,9 @@ namespace GuardVsMannequin.Editor
             var serialized = new SerializedObject(speedController);
             serialized.FindProperty("role").enumValueIndex = (int)role;
             serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            // 소유자 권한 이동을 서버에서 검증한다. (스피드핵, 순간이동, 대기실 탈출 방지)
+            root.AddComponent<MovementValidator>();
         }
 
         /// <summary>
@@ -989,6 +992,14 @@ namespace GuardVsMannequin.Editor
             GameObject door = CreateBlock(room, "Door", new Vector3(roomMin, wallY, doorCenterZ), new Vector3(WallThickness * 0.8f, WallHeight, doorWidth), materials["Door"]);
             door.isStatic = false;
             door.AddComponent<WaitingRoomDoor>();
+
+            // 가드 대기 시간 동안 가드가 머물러야 하는 영역 (서버 이동 검증용). 벽 두께만큼 여유를 둔다.
+            float roomCenter = (roomMin + MapHalfSize) * 0.5f;
+            float roomSize = MapHalfSize - roomMin + WallThickness * 2f;
+            var area = new SerializedObject(room.gameObject.AddComponent<WaitingRoomArea>());
+            area.FindProperty("center").vector3Value = new Vector3(roomCenter, WallHeight * 0.5f, roomCenter);
+            area.FindProperty("size").vector3Value = new Vector3(roomSize, WallHeight + 2f, roomSize);
+            area.ApplyModifiedPropertiesWithoutUndo();
 
             // 가드 최대 인원(5명)만큼 스폰 지점
             for (int i = 0; i < GameConstants.MaxPlayers / 2; i++)

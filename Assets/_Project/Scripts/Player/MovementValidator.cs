@@ -1,0 +1,147 @@
+using ECM2;
+using FishNet.Connection;
+using FishNet.Object;
+using GuardVsMannequin.Core;
+using GuardVsMannequin.Map;
+using UnityEngine;
+
+namespace GuardVsMannequin.Player
+{
+    /// <summary>
+    /// 소유자 권한으로 움직이는 아바타의 위치를 서버에서 검증한다.
+    /// - 이동 거리: 현재 최대 속도로 갈 수 있는 거리를 "예산"으로 쌓아 두고, 그보다 멀리 움직이면 되돌린다.
+    ///   (네트워크 지연으로 위치가 몰려 도착해도 쌓인 예산 안이면 통과하므로 정상 플레이를 막지 않는다)
+    /// - 가드 대기 시간: 가드는 대기실 영역(<see cref="WaitingRoomArea"/>) 밖으로 나갈 수 없다.
+    /// 위반하면 마지막으로 정상이던 위치로 소유자에게 되돌림을 보낸다.
+    /// 떨어지는 움직임(아래 방향)은 검사하지 않는다. 호스트 자신의 아바타는 검사하지 않는다.
+    /// </summary>
+    [RequireComponent(typeof(Character))]
+    public class MovementValidator : NetworkBehaviour
+    {
+        private const float CorrectionInterval = 0.25f;
+
+        [Tooltip("최대 속도에 곱하는 여유 배율.")]
+        [SerializeField] private float speedTolerance = 1.3f;
+
+        [Tooltip("몰아서 쓸 수 있는 이동 예산(초). 지연 후 위치가 한꺼번에 도착하는 경우를 허용한다.")]
+        [SerializeField] private float maxBurstSeconds = 1.5f;
+
+        [Tooltip("예산에 더하는 고정 여유 거리(m).")]
+        [SerializeField] private float extraSlack = 1f;
+
+        [Tooltip("점프·계단 등으로 올라갈 수 있는 추가 높이(m).")]
+        [SerializeField] private float riseAllowance = 2f;
+
+        private Character character;
+        private PlayerIdentity identity;
+        private Vector3 lastValidPosition;
+        private float horizontalBudget;
+        private float riseBudget;
+        private float nextCorrectionTime;
+        private bool isTracking;
+
+        /// <summary>
+        /// 구성 요소를 캐시한다.
+        /// </summary>
+        private void Awake()
+        {
+            character = GetComponent<Character>();
+            identity = GetComponent<PlayerIdentity>();
+        }
+
+        /// <summary>
+        /// 서버에서 스폰 위치를 기준으로 검증을 시작한다.
+        /// </summary>
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+            lastValidPosition = transform.position;
+            horizontalBudget = GetMaxBudget(GetAllowedSpeed());
+            riseBudget = horizontalBudget + riseAllowance;
+            isTracking = true;
+        }
+
+        /// <summary>
+        /// 서버에서 매 프레임 위치 변화를 검사한다.
+        /// </summary>
+        private void Update()
+        {
+            if (!isTracking || !IsServerInitialized || Owner == null || Owner.IsLocalClient)
+                return;
+
+            float speed = GetAllowedSpeed();
+            float maxBudget = GetMaxBudget(speed);
+            horizontalBudget = Mathf.Min(horizontalBudget + speed * Time.deltaTime, maxBudget);
+            riseBudget = Mathf.Min(riseBudget + speed * Time.deltaTime, maxBudget + riseAllowance);
+
+            Vector3 current = transform.position;
+            Vector3 delta = current - lastValidPosition;
+            float horizontal = new Vector2(delta.x, delta.z).magnitude;
+            float rise = Mathf.Max(0f, delta.y);
+
+            if (horizontal <= horizontalBudget && rise <= riseBudget && IsInAllowedArea(current))
+            {
+                horizontalBudget -= horizontal;
+                riseBudget -= rise;
+                lastValidPosition = current;
+                return;
+            }
+
+            Correct(horizontal, rise);
+        }
+
+        /// <summary>
+        /// 현재 설정의 걷기/비행(벽타기) 속도 중 큰 값에 여유 배율을 곱한다. (MoveSpeedController가 서버에도 적용)
+        /// </summary>
+        private float GetAllowedSpeed()
+        {
+            return Mathf.Max(character.maxWalkSpeed, character.maxFlySpeed) * speedTolerance;
+        }
+
+        /// <summary>
+        /// 쌓을 수 있는 최대 이동 예산(m).
+        /// </summary>
+        private float GetMaxBudget(float speed)
+        {
+            return speed * maxBurstSeconds + extraSlack;
+        }
+
+        /// <summary>
+        /// 가드 대기 시간에는 가드가 대기실 안에 있어야 한다. 그 외에는 제한이 없다.
+        /// </summary>
+        private bool IsInAllowedArea(Vector3 position)
+        {
+            if (identity == null || identity.Role != PlayerRole.Guard)
+                return true;
+            if (GameServices.CurrentStateOrWaiting != GameState.Preparation)
+                return true;
+
+            WaitingRoomArea area = WaitingRoomArea.Current;
+            return area == null || area.Contains(position);
+        }
+
+        /// <summary>
+        /// 서버 위치를 되돌리고, 소유자에게 되돌림을 보낸다. (너무 잦은 전송은 막는다)
+        /// </summary>
+        private void Correct(float horizontal, float rise)
+        {
+            transform.position = lastValidPosition;
+            if (Time.time < nextCorrectionTime)
+                return;
+
+            nextCorrectionTime = Time.time + CorrectionInterval;
+            Debug.LogWarning($"[MovementValidator] 비정상 이동 되돌림: 연결 {Owner.ClientId}, 수평 {horizontal:F1}m / 예산 {horizontalBudget:F1}m, 상승 {rise:F1}m, 상태 {GameServices.CurrentStateOrWaiting}");
+            CorrectPositionTargetRpc(Owner, lastValidPosition);
+        }
+
+        /// <summary>
+        /// 소유자 클라이언트에서 캐릭터를 서버가 인정한 위치로 옮기고 속도를 없앤다.
+        /// </summary>
+        [TargetRpc]
+        private void CorrectPositionTargetRpc(NetworkConnection target, Vector3 position)
+        {
+            character.SetPosition(position);
+            character.SetVelocity(Vector3.zero);
+        }
+    }
+}

@@ -8,6 +8,9 @@ namespace GuardVsMannequin.Core
         /// <summary>호스트가 룸에서 정한 게임 설정.</summary>
         GameSettings Settings { get; }
 
+        /// <summary>게임 씬에서 판이 진행 중인지 여부. (진행 중에는 새 참가를 받지 않음)</summary>
+        bool IsInGame { get; }
+
         /// <summary>
         /// 클라이언트의 표시 이름을 반환한다. 모르면 "Player N".
         /// </summary>

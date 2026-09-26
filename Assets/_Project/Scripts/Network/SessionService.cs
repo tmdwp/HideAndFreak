@@ -48,12 +48,28 @@ namespace GuardVsMannequin.Network
         }
 
         /// <summary>
-        /// 클라이언트 연결 상태를 구독한다. (NetworkManager의 하위 매니저는 NetworkManager.Awake 이후에 준비됨)
+        /// 클라이언트 연결 상태를 구독하고 접속 검증기를 서버에 연결한다.
+        /// (NetworkManager의 하위 매니저는 NetworkManager.Awake 이후에 준비됨)
         /// </summary>
         private void Start()
         {
-            if (isRegistered)
-                connector.NetworkManager.ClientManager.OnClientConnectionState += OnClientConnectionState;
+            if (!isRegistered)
+                return;
+
+            connector.NetworkManager.ClientManager.OnClientConnectionState += OnClientConnectionState;
+            SetupAuthenticator();
+        }
+
+        /// <summary>
+        /// 새 접속을 검증하는 <see cref="RoomAuthenticator"/>를 준비해 서버에 등록한다.
+        /// </summary>
+        private void SetupAuthenticator()
+        {
+            if (!TryGetComponent(out RoomAuthenticator authenticator))
+                authenticator = gameObject.AddComponent<RoomAuthenticator>();
+
+            authenticator.Configure(this, steamLobby);
+            connector.NetworkManager.ServerManager.SetAuthenticator(authenticator);
         }
 
         /// <summary>
