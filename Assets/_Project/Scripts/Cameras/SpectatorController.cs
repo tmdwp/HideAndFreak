@@ -1,5 +1,6 @@
 using GuardVsMannequin.Core;
 using GuardVsMannequin.Player;
+using GuardVsMannequin.Settings;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -54,6 +55,7 @@ namespace GuardVsMannequin.Cameras
             overviewRotation = transform.rotation;
 
             runtimeActions = Instantiate(inputActions);
+            OptionsStore.ApplyBindings(runtimeActions);
             InputActionMap map = runtimeActions.FindActionMap(PlayerMapName, true);
             previousAction = map.FindAction("SpectatePrevious", true);
             nextAction = map.FindAction("SpectateNext", true);

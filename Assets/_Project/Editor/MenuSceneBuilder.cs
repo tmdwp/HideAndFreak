@@ -160,55 +160,65 @@ namespace GuardVsMannequin.Editor
         #region 로비 UI
 
         /// <summary>
-        /// 로비 화면(제목, Steam 방, 직접 접속, 기타 메뉴, 안내 문구)을 만든다.
+        /// 로비 화면을 만든다. 제목 아래에 Steam 패널(왼쪽)과 직접 접속 패널(오른쪽)을 나란히 두고,
+        /// 하단 패널에 안내 문구와 공용 메뉴(설정, 크레딧, 종료)를 둔다.
         /// </summary>
         private static void CreateLobbyUi()
         {
             Canvas canvas = EditorUiFactory.CreateCanvas("LobbyCanvas");
             canvas.gameObject.AddComponent<OsFontApplier>();
 
-            Text title = EditorUiFactory.CreateText(canvas.transform, "Title", "가드 vs 마네킹", 72, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
+            Text title = EditorUiFactory.CreateText(canvas.transform, "Title", "lobby.title", 72, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
             title.rectTransform.anchorMin = new Vector2(0f, 0.82f);
             title.rectTransform.anchorMax = new Vector2(1f, 0.97f);
             title.rectTransform.offsetMin = title.rectTransform.offsetMax = Vector2.zero;
 
-            RectTransform panel = EditorUiFactory.CreatePanel(canvas.transform, "MenuPanel", new Vector2(0.3f, 0.06f), new Vector2(0.7f, 0.8f), EditorUiFactory.PanelColor);
-            EditorUiFactory.AddVerticalLayout(panel, 14f, 32);
+            // 왼쪽: Steam 패널
+            RectTransform steamPanel = EditorUiFactory.CreatePanel(canvas.transform, "SteamPanel", new Vector2(0.08f, 0.3f), new Vector2(0.49f, 0.8f), EditorUiFactory.PanelColor);
+            EditorUiFactory.AddVerticalLayout(steamPanel, 14f, 32);
 
-            // Steam
-            AddHeader(panel, "Steam");
-            Text steamStatus = AddLine(panel, "SteamStatus", "Steam 상태", 20, EditorUiFactory.TextColor);
-            Button hostSteam = EditorUiFactory.CreateButton(panel, "HostSteamButton", "방 만들기", EditorUiFactory.AccentColor);
-            EditorUiFactory.SetHeight(hostSteam, 60f);
+            AddHeader(steamPanel, "lobby.steam.header");
+            Text steamStatus = AddLine(steamPanel, "SteamStatus", string.Empty, 20, EditorUiFactory.TextColor);
+            Button hostSteam = EditorUiFactory.CreateButton(steamPanel, "HostSteamButton", "lobby.steam.host", EditorUiFactory.AccentColor);
+            EditorUiFactory.SetHeight(hostSteam, 64f);
 
-            RectTransform codeRow = EditorUiFactory.CreateRow(panel, "RoomCodeRow", 56f, 10f);
-            InputField roomCode = EditorUiFactory.CreateInputField(codeRow, "RoomCodeInput", "방 코드 입력");
+            RectTransform codeRow = EditorUiFactory.CreateRow(steamPanel, "RoomCodeRow", 56f, 10f);
+            InputField roomCode = EditorUiFactory.CreateInputField(codeRow, "RoomCodeInput", "lobby.steam.codePlaceholder");
             EditorUiFactory.SetFlexibleWidth(roomCode);
-            Button joinSteam = EditorUiFactory.CreateButton(codeRow, "JoinSteamButton", "코드로 참가", EditorUiFactory.ButtonColor);
+            Button joinSteam = EditorUiFactory.CreateButton(codeRow, "JoinSteamButton", "lobby.steam.join", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(joinSteam, 200f);
-            AddLine(panel, "InviteHint", "친구 초대는 Steam 친구 목록이나 오버레이에서 수락하면 자동으로 참가합니다.", 18, new Color(0.7f, 0.7f, 0.7f));
 
-            // 직접 접속
-            AddHeader(panel, "직접 접속 (개발 / LAN)");
-            Button hostDirect = EditorUiFactory.CreateButton(panel, "HostDirectButton", "직접 방 만들기", EditorUiFactory.ButtonColor);
-            EditorUiFactory.SetHeight(hostDirect, 52f);
+            Text inviteHint = AddLine(steamPanel, "InviteHint", "lobby.steam.inviteHint", 18, new Color(0.7f, 0.7f, 0.7f));
+            EditorUiFactory.SetHeight(inviteHint, 56f);
 
-            RectTransform addressRow = EditorUiFactory.CreateRow(panel, "AddressRow", 52f, 10f);
-            InputField address = EditorUiFactory.CreateInputField(addressRow, "AddressInput", "호스트 IP (비우면 localhost)");
+            // 오른쪽: 직접 접속 패널 (개발 / LAN)
+            RectTransform directPanel = EditorUiFactory.CreatePanel(canvas.transform, "DirectPanel", new Vector2(0.51f, 0.3f), new Vector2(0.92f, 0.8f), EditorUiFactory.PanelColor);
+            EditorUiFactory.AddVerticalLayout(directPanel, 14f, 32);
+
+            AddHeader(directPanel, "lobby.direct.header");
+            AddLine(directPanel, "DirectHint", "lobby.direct.hint", 20, EditorUiFactory.TextColor);
+            Button hostDirect = EditorUiFactory.CreateButton(directPanel, "HostDirectButton", "lobby.direct.host", EditorUiFactory.ButtonColor);
+            EditorUiFactory.SetHeight(hostDirect, 64f);
+
+            RectTransform addressRow = EditorUiFactory.CreateRow(directPanel, "AddressRow", 56f, 10f);
+            InputField address = EditorUiFactory.CreateInputField(addressRow, "AddressInput", "lobby.direct.addressPlaceholder");
             EditorUiFactory.SetFlexibleWidth(address);
-            Button joinDirect = EditorUiFactory.CreateButton(addressRow, "JoinDirectButton", "IP로 참가", EditorUiFactory.ButtonColor);
+            Button joinDirect = EditorUiFactory.CreateButton(addressRow, "JoinDirectButton", "lobby.direct.join", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(joinDirect, 200f);
 
-            // 기타
-            RectTransform menuRow = EditorUiFactory.CreateRow(panel, "MenuRow", 52f, 10f);
-            Button settingsButton = EditorUiFactory.CreateButton(menuRow, "SettingsButton", "설정", EditorUiFactory.ButtonColor);
-            Button creditsButton = EditorUiFactory.CreateButton(menuRow, "CreditsButton", "크레딧", EditorUiFactory.ButtonColor);
-            Button quitButton = EditorUiFactory.CreateButton(menuRow, "QuitButton", "종료", EditorUiFactory.ButtonColor);
+            // 하단: 공용 메뉴(설정, 크레딧, 종료)와 안내 문구
+            RectTransform bottomPanel = EditorUiFactory.CreatePanel(canvas.transform, "BottomPanel", new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.27f), EditorUiFactory.PanelColor);
+            EditorUiFactory.AddVerticalLayout(bottomPanel, 12f, 24);
+
+            Text notice = AddLine(bottomPanel, "Notice", string.Empty, 22, EditorUiFactory.NoticeColor);
+            EditorUiFactory.SetHeight(notice, 56f);
+
+            RectTransform menuRow = EditorUiFactory.CreateRow(bottomPanel, "MenuRow", 56f, 12f);
+            Button settingsButton = EditorUiFactory.CreateButton(menuRow, "SettingsButton", "lobby.settings", EditorUiFactory.ButtonColor);
+            Button creditsButton = EditorUiFactory.CreateButton(menuRow, "CreditsButton", "lobby.credits", EditorUiFactory.ButtonColor);
+            Button quitButton = EditorUiFactory.CreateButton(menuRow, "QuitButton", "lobby.quit", EditorUiFactory.ButtonColor);
             foreach (Button button in new[] { settingsButton, creditsButton, quitButton })
                 EditorUiFactory.SetFlexibleWidth(button);
-
-            Text notice = AddLine(panel, "Notice", string.Empty, 22, EditorUiFactory.NoticeColor);
-            EditorUiFactory.SetHeight(notice, 60f);
 
             LobbyView view = canvas.gameObject.AddComponent<LobbyView>();
             TestEnvironmentSetupTool.SetField(view, "hostSteamButton", hostSteam);
@@ -222,6 +232,10 @@ namespace GuardVsMannequin.Editor
             TestEnvironmentSetupTool.SetField(view, "creditsButton", creditsButton);
             TestEnvironmentSetupTool.SetField(view, "quitButton", quitButton);
             TestEnvironmentSetupTool.SetField(view, "noticeText", notice);
+
+            // 설정과 크레딧 화면 (메뉴 위에 그려지도록 마지막에 만든다)
+            TestEnvironmentSetupTool.SetField(view, "settingsPanel", SharedUiBuilder.CreateSettingsPanel(canvas.transform));
+            TestEnvironmentSetupTool.SetField(view, "creditsPanel", SharedUiBuilder.CreateCreditsPanel(canvas.transform));
         }
 
         #endregion
@@ -239,21 +253,22 @@ namespace GuardVsMannequin.Editor
             // 왼쪽: 참가자와 방 코드
             RectTransform left = EditorUiFactory.CreatePanel(canvas.transform, "MembersPanel", new Vector2(0.03f, 0.16f), new Vector2(0.45f, 0.95f), EditorUiFactory.PanelColor);
             EditorUiFactory.AddVerticalLayout(left, 14f, 28);
-            AddHeader(left, "참가자");
+            AddHeader(left, "room.members.header");
             Text memberList = AddLine(left, "MemberList", string.Empty, 26, EditorUiFactory.TextColor);
             EditorUiFactory.SetHeight(memberList, 420f);
 
-            Text roomCode = AddLine(left, "RoomCode", "방 코드:", 22, EditorUiFactory.TextColor);
+            Text roomCode = AddLine(left, "RoomCode", string.Empty, 22, EditorUiFactory.TextColor);
             RectTransform codeRow = EditorUiFactory.CreateRow(left, "CodeButtons", 52f, 10f);
-            Button copyButton = EditorUiFactory.CreateButton(codeRow, "CopyCodeButton", "코드 복사", EditorUiFactory.ButtonColor);
-            Button inviteButton = EditorUiFactory.CreateButton(codeRow, "InviteButton", "친구 초대", EditorUiFactory.ButtonColor);
+            Button copyButton = EditorUiFactory.CreateButton(codeRow, "CopyCodeButton", "room.copyCode", EditorUiFactory.ButtonColor);
+            Button inviteButton = EditorUiFactory.CreateButton(codeRow, "InviteButton", "room.invite", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetFlexibleWidth(copyButton);
             EditorUiFactory.SetFlexibleWidth(inviteButton);
 
             // 오른쪽: 게임 설정
             RectTransform right = EditorUiFactory.CreatePanel(canvas.transform, "SettingsPanel", new Vector2(0.47f, 0.16f), new Vector2(0.97f, 0.95f), EditorUiFactory.PanelColor);
-            EditorUiFactory.AddVerticalLayout(right, 6f, 24);
-            Text settingsHint = AddLine(right, "SettingsHint", "게임 설정", 28, EditorUiFactory.TextColor);
+            // 항목이 16개라 줄 간격과 여백을 줄여 패널 안에 모두 들어가게 한다.
+            EditorUiFactory.AddVerticalLayout(right, 4f, 20);
+            Text settingsHint = AddLine(right, "SettingsHint", string.Empty, 26, EditorUiFactory.TextColor);
 
             SettingRowView[] rows = GameSettingDefinitions.All.Select(definition => CreateSettingRow(right, definition.id)).ToArray();
 
@@ -268,9 +283,10 @@ namespace GuardVsMannequin.Editor
 
             Text status = EditorUiFactory.CreateText(bottom, "Status", string.Empty, 24, TextAnchor.MiddleLeft, EditorUiFactory.NoticeColor);
             EditorUiFactory.SetFlexibleWidth(status);
-            Button leaveButton = EditorUiFactory.CreateButton(bottom, "LeaveButton", "나가기", EditorUiFactory.ButtonColor);
+            Button leaveButton = EditorUiFactory.CreateButton(bottom, "LeaveButton", "room.leave", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(leaveButton, 220f);
-            Button primaryButton = EditorUiFactory.CreateButton(bottom, "PrimaryButton", "준비", EditorUiFactory.AccentColor, out Text primaryLabel);
+            // 시작/준비/준비 해제로 바뀌는 버튼이라 RoomView가 문구를 채운다. (key를 넘기지 않음)
+            Button primaryButton = EditorUiFactory.CreateButton(bottom, "PrimaryButton", string.Empty, EditorUiFactory.AccentColor, out Text primaryLabel);
             EditorUiFactory.SetWidth(primaryButton, 320f);
 
             RoomView view = canvas.gameObject.AddComponent<RoomView>();
@@ -284,6 +300,9 @@ namespace GuardVsMannequin.Editor
             TestEnvironmentSetupTool.SetField(view, "primaryButtonLabel", primaryLabel);
             TestEnvironmentSetupTool.SetField(view, "leaveButton", leaveButton);
             TestEnvironmentSetupTool.SetField(view, "statusText", status);
+
+            // ESC 메뉴: 룸에서는 커서를 잠그지 않는다.
+            SharedUiBuilder.CreatePauseMenu(canvas.transform, lockCursorOnClose: false);
         }
 
         /// <summary>
@@ -291,16 +310,17 @@ namespace GuardVsMannequin.Editor
         /// </summary>
         private static SettingRowView CreateSettingRow(Transform parent, GameSettingId id)
         {
-            RectTransform row = EditorUiFactory.CreateRow(parent, $"Row_{id}", 40f, 8f);
+            RectTransform row = EditorUiFactory.CreateRow(parent, $"Row_{id}", 38f, 8f);
 
-            Text label = EditorUiFactory.CreateText(row, "Label", id.ToString(), 22, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
+            // 이름은 SettingRowView가 현재 언어로 채운다.
+            Text label = EditorUiFactory.CreateText(row, "Label", id.ToString(), 21, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
             EditorUiFactory.SetFlexibleWidth(label);
 
             Button decrease = EditorUiFactory.CreateButton(row, "Decrease", "-", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(decrease, 48f);
 
-            Text value = EditorUiFactory.CreateText(row, "Value", "-", 22, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
-            EditorUiFactory.SetWidth(value, 140f);
+            Text value = EditorUiFactory.CreateText(row, "Value", "-", 21, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
+            EditorUiFactory.SetWidth(value, 150f);
 
             Button increase = EditorUiFactory.CreateButton(row, "Increase", "+", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(increase, 48f);

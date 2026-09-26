@@ -1,4 +1,5 @@
 using ECM2;
+using GuardVsMannequin.Settings;
 using UnityEngine;
 
 namespace GuardVsMannequin.Player
@@ -10,7 +11,7 @@ namespace GuardVsMannequin.Player
     [RequireComponent(typeof(Character))]
     public class PlayerMovementDriver : MonoBehaviour
     {
-        [Tooltip("마우스 감도(픽셀당 회전 각도). Phase 6에서 설정 메뉴와 연결한다.")]
+        [Tooltip("기본 마우스 감도(픽셀당 회전 각도). 설정 화면의 감도 배율이 곱해진다.")]
         [SerializeField] private Vector2 lookSensitivity = new Vector2(0.1f, 0.1f);
 
         private Character character;
@@ -93,7 +94,9 @@ namespace GuardVsMannequin.Player
         private void ApplyLook()
         {
             Vector2 look = playerInput.Look;
-            lookControllable?.AddLookInput(Vector2.Scale(look, lookSensitivity));
+            // 설정 화면의 마우스 감도 배율을 적용한다.
+            float sensitivityScale = OptionsStore.Current.mouseSensitivity;
+            lookControllable?.AddLookInput(Vector2.Scale(look, lookSensitivity) * sensitivityScale);
         }
     }
 }

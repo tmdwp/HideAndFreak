@@ -1,0 +1,187 @@
+﻿# 화면에 보이는 모든 문장. 새 언어는 오른쪽에 열을 추가하세요. (머리글 = 언어 코드, 예: ja, zh)
+# 쉼표가 들어간 문장은 큰따옴표로 감쌉니다. 줄바꿈은 \n, {0} {1}은 코드가 채워 넣는 값입니다.
+# 번역이 비어 있으면 첫 번째 언어(ko)가 표시됩니다.
+key,ko,en
+language.name,한국어,English
+
+# 로비
+lobby.title,가드 vs 마네킹,Guard vs Mannequin
+lobby.steam.header,Steam,Steam
+lobby.steam.connected,Steam 연결됨,Steam connected
+lobby.steam.unavailable,Steam을 사용할 수 없습니다. (Steam을 실행하면 Steam 방을 만들 수 있습니다),Steam is unavailable. (Run Steam to create Steam rooms.)
+lobby.steam.host,방 만들기,Create Room
+lobby.steam.codePlaceholder,방 코드 입력,Enter room code
+lobby.steam.join,코드로 참가,Join by Code
+lobby.steam.inviteHint,친구 초대는 Steam 친구 목록이나 오버레이에서 수락하면 자동으로 참가합니다.,Accept an invite from your Steam friends list or overlay to join automatically.
+lobby.direct.header,직접 접속 (개발 / LAN),Direct Connect (Dev / LAN)
+lobby.direct.hint,Steam 없이 IP로 접속합니다. 한 PC에서 여러 개를 띄워 테스트할 때 사용하세요.,Connects by IP without Steam. Use this to test several instances on one PC.
+lobby.direct.host,직접 방 만들기,Create Direct Room
+lobby.direct.addressPlaceholder,호스트 IP (비우면 localhost),Host IP (blank = localhost)
+lobby.direct.join,IP로 참가,Join by IP
+lobby.settings,설정,Settings
+lobby.credits,크레딧,Credits
+lobby.quit,종료,Quit
+lobby.noService,네트워크 서비스를 찾을 수 없습니다.,Network service not found.
+
+# 연결 안내
+notice.steamUnavailable,Steam을 사용할 수 없습니다. Steam을 실행한 뒤 다시 시도하세요.,Steam is unavailable. Run Steam and try again.
+notice.steamNotRunning,Steam이 실행 중이 아닙니다.,Steam is not running.
+notice.creatingRoom,방을 만드는 중...,Creating room...
+notice.joiningRoom,방에 참가하는 중...,Joining room...
+notice.invalidCode,방 코드가 올바르지 않습니다. 숫자로 된 코드를 입력하세요.,Invalid room code. Enter the numeric code.
+notice.serverStartFailedPort,서버를 시작하지 못했습니다. 포트(7770)가 사용 중인지 확인하세요.,Could not start the server. Check whether port 7770 is in use.
+notice.serverStartFailed,서버를 시작하지 못했습니다.,Could not start the server.
+notice.alreadyInRoom,이미 방에 있거나 연결 중입니다.,You are already in a room or connecting.
+notice.hostConnectFailed,호스트에 접속하지 못했습니다.,Could not connect to the host.
+notice.inviteWhileInRoom,이미 다른 방에 있어 초대에 응할 수 없습니다. 방을 나간 뒤 다시 시도하세요.,You are already in another room. Leave it and try the invite again.
+notice.joinFailed,방에 접속하지 못했습니다.,Could not join the room.
+notice.hostDisconnected,호스트와의 연결이 끊겼습니다.,Disconnected from the host.
+notice.lobbyCreateFailed,방을 만들지 못했습니다. ({0}),Could not create the room. ({0})
+notice.lobbyEnterFailed,방에 들어갈 수 없습니다. (방이 가득 찼거나 게임이 진행 중일 수 있습니다),Cannot enter the room. (It may be full or a game is in progress.)
+notice.lobbyDataInvalid,방 정보를 읽을 수 없습니다.,Could not read the room information.
+session.directRoomCode,직접 접속 방 (호스트 IP로 참가),Direct room (join by host IP)
+
+# 룸
+room.members.header,참가자,Players
+room.members.count,참가자 {0} / {1},Players {0} / {1}
+room.member.host,★ 호스트,★ Host
+room.member.ready,준비 완료,Ready
+room.member.notReady,준비 중,Not ready
+room.code,방 코드: {0},Room code: {0}
+room.copyCode,코드 복사,Copy Code
+room.invite,친구 초대,Invite Friends
+room.settings.host,게임 설정 (호스트),Game Settings (Host)
+room.settings.guest,게임 설정 (호스트만 변경할 수 있습니다),Game Settings (only the host can change)
+room.start,게임 시작,Start Game
+room.ready,준비,Ready
+room.unready,준비 해제,Cancel Ready
+room.leave,나가기,Leave
+room.status.loading,방 정보를 불러오는 중...,Loading room...
+room.status.allReady,모든 준비가 끝났습니다.,Everyone is ready.
+room.status.waitingHost,호스트가 게임을 시작하기를 기다리는 중...,Waiting for the host to start...
+room.status.pressReady,준비를 눌러 주세요.,Press Ready.
+room.status.codeCopied,방 코드를 복사했습니다.,Room code copied.
+room.reason.playerCount,{0}~{1}명이 필요합니다. (현재 {2}명),{0}-{1} players required. (Now {2})
+room.reason.notAllReady,모든 참가자가 준비해야 합니다.,All players must be ready.
+room.reason.inGame,이미 게임이 진행 중입니다.,A game is already in progress.
+
+# 게임 설정 항목 (이름)
+setting.Map,맵,Map
+setting.PreparationTime,가드 대기 시간,Guard Wait Time
+setting.PlayTime,제한 시간,Time Limit
+setting.HuntTime,사냥 시간,Hunt Time
+setting.GuardCount,가드 수,Guards
+setting.ObjectiveCount,목표 수행 횟수,Objectives Required
+setting.GeneratorCount,전원 장치 수,Power Units
+setting.GeneratorDestroyTime,전원 장치 파괴 시간,Power Unit Destroy Time
+setting.GunCooldown,총 쿨타임,Gun Cooldown
+setting.DetectorCooldown,탐지기 쿨타임,Detector Cooldown
+setting.GuardMaxHealth,가드 체력,Guard Health
+setting.MannequinMaxHealth,마네킹 체력,Mannequin Health
+setting.HuntHealthMultiplier,사냥 시간 마네킹 체력 배율,Hunt Mannequin Health Multiplier
+setting.MannequinAttackRange,마네킹 공격 범위,Mannequin Attack Range
+setting.GuardMoveSpeed,가드 이동 속도,Guard Move Speed
+setting.MannequinMoveSpeed,마네킹 이동 속도 (사냥 시간 1.5배),Mannequin Move Speed (x1.5 in Hunt)
+
+# 단위 ({0} = 값)
+unit.seconds,{0}초,{0}s
+unit.people,{0}명,{0}
+unit.times,{0}회,{0}
+unit.count,{0}개,{0}
+unit.multiplier,{0}배,x{0}
+unit.meters,{0}m,{0}m
+unit.speed,{0}m/s,{0}m/s
+
+# 맵 이름 (map.<맵 번호>)
+map.0,테스트 맵,Test Map
+
+# 설정 화면
+options.title,설정,Settings
+options.language,언어,Language
+options.sensitivity,마우스 감도,Mouse Sensitivity
+options.masterVolume,전체 음량,Master Volume
+options.bgmVolume,배경 음악,Music
+options.sfxVolume,효과음,Sound Effects
+options.keyHeader,키 설정  (변경을 누른 뒤 원하는 키를 누르세요),Key Bindings  (press Change, then press a key)
+options.rebind,변경,Change
+options.reset,초기화,Reset
+options.resetAll,모두 기본값으로,Reset All
+options.close,닫기,Close
+options.pressKey,키를 누르세요 (ESC: 취소),Press a key (ESC: cancel)
+
+# 키 이름
+key.moveUp,앞으로 이동,Move Forward
+key.moveDown,뒤로 이동,Move Backward
+key.moveLeft,왼쪽 이동,Move Left
+key.moveRight,오른쪽 이동,Move Right
+key.primary,사격 / 파괴 / 공격,Fire / Destroy / Attack
+key.secondary,탐지기 / 변신,Detector / Disguise
+key.flashlight,손전등 (가드),Flashlight (Guard)
+key.rotateLeft,변신 중 왼쪽 회전,Rotate Left (Disguised)
+key.rotateRight,변신 중 오른쪽 회전,Rotate Right (Disguised)
+key.emote1,감정 표현 1,Emote 1
+key.emote2,감정 표현 2,Emote 2
+key.emote3,감정 표현 3,Emote 3
+key.emote4,감정 표현 4,Emote 4
+key.emote5,감정 표현 5,Emote 5
+key.emote6,감정 표현 6,Emote 6
+key.spectatePrevious,이전 관전 대상,Previous Spectate Target
+key.spectateNext,다음 관전 대상,Next Spectate Target
+
+# 크레딧
+credits.title,크레딧,Credits
+credits.missing,크레딧 파일을 찾을 수 없습니다.,Credits file not found.
+credits.close,닫기,Close
+
+# ESC 메뉴
+pause.title,메뉴,Menu
+pause.resume,계속하기,Resume
+pause.settings,설정,Settings
+pause.leave,방 나가기,Leave Room
+
+# 게임 HUD
+hud.waiting,다른 플레이어를 기다리는 중...,Waiting for other players...
+hud.phase.preparation,가드 대기 시간,Guard Wait
+hud.phase.ended,종료,Finished
+hud.remainingMannequins,남은 마네킹 {0},Mannequins left {0}
+hud.objective.progress,목표 {0} / {1},Objectives {0} / {1}
+hud.objective.none,목표 없음,No objectives
+hud.objective.none.preparation,"목표 없음 · 대기 시간 후 {0}초간 가드 보호, 이후 사냥 시간","No objectives · {0}s guard protection after the wait, then the hunt"
+hud.objective.none.playing,목표 없음 · 가드 보호 시간 {0}초 후 사냥 시간,No objectives · Hunt begins in {0}s
+hud.health,체력 {0} / {1},Health {0} / {1}
+hud.tool.ready,준비,Ready
+hud.tool.cooldown,{0}초,{0}s
+hud.tool.unavailable,-,-
+hud.spectating,관전 중,Spectating
+hud.spectatingDead,사망했습니다 · 관전 중,You died · Spectating
+hud.spectate.none,관전할 생존자가 없습니다.,No survivors to spectate.
+hud.spectate.target,{0} ({1})   ← / → : 관전 대상 전환,{0} ({1})   ← / → : Switch target
+hud.guide.guard.playing,"[가드] 숨어 있는 마네킹을 찾아 제거하세요.  (좌클릭: 사격, 우클릭: 탐지기)","[Guard] Find and eliminate hidden mannequins.  (LMB: Fire, RMB: Detector)"
+hud.guide.guard.hunting,"[가드] 살아남거나 마네킹을 모두 제거하세요.  (좌클릭: 사격, 우클릭: 탐지기, E: 손전등)","[Guard] Survive or eliminate every mannequin.  (LMB: Fire, RMB: Detector, E: Flashlight)"
+hud.guide.mannequin.playing,"[마네킹] 전원 장치를 찾아 파괴하세요.\n(좌클릭 유지: 파괴, 우클릭: 변신/해제, Q/E: 변신 중 회전, 1~6: 감정 표현)","[Mannequin] Find and destroy the power units.\n(Hold LMB: Destroy, RMB: Disguise, Q/E: Rotate while disguised, 1-6: Emotes)"
+hud.guide.mannequin.hunting,"[마네킹] 가드를 모두 제거하세요.  (좌클릭: 공격, 1~6: 감정 표현)","[Mannequin] Eliminate every guard.  (LMB: Attack, 1-6: Emotes)"
+
+# 역할과 도구
+role.guard,가드,Guard
+role.mannequin,마네킹,Mannequin
+role.none,-,-
+tool.gun,총,Gun
+tool.detector,탐지기,Detector
+tool.flashlight,손전등,Flashlight
+tool.disguise,변신,Disguise
+tool.attack,공격,Attack
+
+# 결과
+result.guardWin,가드 승리,Guards Win
+result.mannequinWin,마네킹 승리,Mannequins Win
+result.draw,무승부,Draw
+result.reason.allMannequins,모든 마네킹이 제거되었습니다.,All mannequins were eliminated.
+result.reason.objectiveFailed,마네킹이 제한 시간 내에 목표를 달성하지 못했습니다.,The mannequins failed to complete their objectives in time.
+result.reason.guardsSurvived,가드가 사냥 시간 동안 살아남았습니다.,The guards survived the hunt.
+result.reason.allGuards,모든 가드가 제거되었습니다.,All guards were eliminated.
+result.victory,승리!,Victory!
+result.defeat,패배,Defeat
+result.survived,생존,Survived
+result.eliminated,탈락,Eliminated
+result.countdown,{0}초 후 자동으로 룸으로 돌아갑니다.,Returning to the room in {0}s.
+result.returnToRoom,룸으로 이동,Return to Room

@@ -1,40 +1,69 @@
+using System.Text;
 using GuardVsMannequin.Cameras;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using GuardVsMannequin.Objectives;
 using GuardVsMannequin.Player;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace GuardVsMannequin.UI
 {
     /// <summary>
-    /// Phase 1 최소 HUD. (IMGUI 임시 구현, 정식 UI는 마무리 단계에서 교체)
-    /// 남은 시간, 남은 마네킹 수, 달성/목표 횟수, 역할별 목표, 내 체력, 도구 쿨타임, 결과를 표시한다.
+    /// 게임 HUD (uGUI).
+    /// 남은 시간, 남은 마네킹 수, 달성/목표 횟수, 역할별 목표, 내 체력, 도구 쿨타임, 관전 정보, 결과를 표시한다.
     /// 다른 플레이어의 체력과 킬 로그는 기획에 따라 표시하지 않는다.
     /// </summary>
     public class GameHud : MonoBehaviour
     {
+        [Header("게임 상태")]
         [SerializeField] private GameStateMachine stateMachine;
         [SerializeField] private PlayerRegistry playerRegistry;
         [SerializeField] private ObjectiveTracker objectiveTracker;
         [SerializeField] private MatchResult matchResult;
         [SerializeField] private SpectatorController spectator;
 
+        [Header("상단 / 중앙")]
+        [SerializeField] private GameObject topPanel;
+        [SerializeField] private Text topText;
+        [SerializeField] private GameObject crosshair;
+        [SerializeField] private Text waitingText;
+
+        [Header("하단")]
+        [SerializeField] private GameObject bottomPanel;
+        [SerializeField] private Text objectiveText;
+        [SerializeField] private Text statusText;
+
+        [Header("결과")]
+        [SerializeField] private GameObject resultPanel;
+        [SerializeField] private Text resultHeadlineText;
+        [SerializeField] private Text resultParticipantsText;
+        [SerializeField] private Text resultCountdownText;
+        [SerializeField] private Button returnToRoomButton;
+
+        private readonly StringBuilder builder = new();
         private PlayerIdentity localPlayer;
-        private GameState previousState = GameState.Waiting;
         private PlayerHealth localHealth;
         private ITool[] localTools = new ITool[0];
         private PlayerRole lastLocalRole = PlayerRole.None;
-
-        private GUIStyle centerStyle;
-        private GUIStyle bigCenterStyle;
+        private GameState previousState = GameState.Waiting;
 
         /// <summary>
-        /// 로컬 플레이어 생성/제거 이벤트를 구독한다.
+        /// 로컬 플레이어 이벤트를 구독하고, 호스트 전용 버튼을 연결한다.
         /// </summary>
         private void Awake()
         {
             LocalPlayerEvents.Spawned += OnLocalPlayerSpawned;
             LocalPlayerEvents.Despawned += OnLocalPlayerDespawned;
+
+            // 서버(호스트)만 상태를 바꿀 수 있다. 대기 상태로 바뀌면 MatchSessionBridge가 모두를 룸으로 보낸다.
+            returnToRoomButton.onClick.AddListener(() =>
+            {
+                if (stateMachine.IsServerReady())
+                    stateMachine.ChangeState(GameState.Waiting);
+            });
+
+            SetAllHidden();
         }
 
         /// <summary>
@@ -71,36 +100,53 @@ namespace GuardVsMannequin.UI
         }
 
         /// <summary>
-        /// 게임이 진행 중일 때만 HUD를 그린다.
+        /// 상태에 맞게 HUD 요소를 켜고 내용을 갱신한다.
         /// </summary>
-        private void OnGUI()
+        private void Update()
         {
-            // 네트워크 초기화 전(Play 직후, 접속 전)에는 FishNet 상태를 읽을 수 없다.
+            // 네트워크 초기화 전에는 FishNet 상태를 읽을 수 없다.
             if (!stateMachine.IsClientReady())
-                return;
-
-            GameState state = stateMachine.CurrentState;
-            HandleStateTransition(state);
-            if (state == GameState.Waiting)
             {
-                lastLocalRole = PlayerRole.None;
-                EnsureStyles();
-                GUI.Label(new Rect(0f, Screen.height * 0.5f - 20f, Screen.width, 40f), "다른 플레이어를 기다리는 중...", centerStyle);
+                SetAllHidden();
                 return;
             }
 
-            EnsureStyles();
-            DrawTopPanel(state);
-            DrawLocalPlayerPanel();
-            DrawCrosshair();
+            GameState state = stateMachine.CurrentState;
+            HandleStateTransition(state);
 
+            bool isWaiting = state == GameState.Waiting;
+            waitingText.gameObject.SetActive(isWaiting);
+            topPanel.SetActive(!isWaiting);
+            bottomPanel.SetActive(!isWaiting);
+            crosshair.SetActive(!isWaiting && localPlayer != null && state != GameState.Ended);
+            resultPanel.SetActive(state == GameState.Ended);
+
+            if (isWaiting)
+            {
+                lastLocalRole = PlayerRole.None;
+                return;
+            }
+
+            RefreshTopPanel(state);
+            RefreshBottomPanel(state);
             if (state == GameState.Ended)
-                DrawResult();
+                RefreshResult();
+        }
+
+        /// <summary>
+        /// 모든 HUD 요소를 숨긴다.
+        /// </summary>
+        private void SetAllHidden()
+        {
+            topPanel.SetActive(false);
+            bottomPanel.SetActive(false);
+            crosshair.SetActive(false);
+            waitingText.gameObject.SetActive(false);
+            resultPanel.SetActive(false);
         }
 
         /// <summary>
         /// 결과 화면에 들어서면 버튼을 누를 수 있도록 커서 잠금을 푼다.
-        /// (커서가 풀리면 PlayerInputReader가 게임 입력을 막는다)
         /// </summary>
         private void HandleStateTransition(GameState state)
         {
@@ -108,30 +154,25 @@ namespace GuardVsMannequin.UI
                 return;
 
             if (state == GameState.Ended)
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
+                GameCursor.SetLocked(false);
             previousState = state;
         }
 
         /// <summary>
-        /// 화면 상단에 단계, 남은 시간, 남은 마네킹 수, 달성 횟수를 표시한다.
+        /// 상단: 단계, 남은 시간, 남은 마네킹 수, 목표.
         /// 사냥 시간 진입은 기획에 따라 텍스트 없이 조명 연출로만 알리므로, 탐색/사냥 시간에는 단계 이름을 표시하지 않는다.
         /// </summary>
-        private void DrawTopPanel(GameState state)
+        private void RefreshTopPanel(GameState state)
         {
             string phase = state switch
             {
-                GameState.Preparation => "가드 대기 시간",
-                GameState.Ended => "종료",
+                GameState.Preparation => Loc.Get("hud.phase.preparation") + "  ",
+                GameState.Ended => Loc.Get("hud.phase.ended") + "  ",
                 _ => string.Empty
             };
 
-            string text = $"{phase}  {FormatTime(stateMachine.RemainingTime)}\n" +
-                          $"남은 마네킹 {playerRegistry.AliveMannequinCount}   {GetObjectiveLine(state)}";
-
-            GUI.Box(new Rect(Screen.width * 0.5f - 260f, 10f, 520f, 50f), text, centerStyle);
+            topText.text = $"{phase}{FormatTime(stateMachine.RemainingTime)}\n" +
+                           $"{Loc.Format("hud.remainingMannequins", playerRegistry.AliveMannequinCount)}   {GetObjectiveLine(state)}";
         }
 
         /// <summary>
@@ -142,138 +183,76 @@ namespace GuardVsMannequin.UI
         {
             GameSettings settings = stateMachine.Settings;
             if (!HuntTiming.IsTimedHunt(settings))
-                return $"목표 {objectiveTracker.DestroyedCount} / {objectiveTracker.RequiredCount}";
+                return Loc.Format("hud.objective.progress", objectiveTracker.DestroyedCount, objectiveTracker.RequiredCount);
 
             return state switch
             {
                 GameState.Preparation =>
-                    $"목표 없음 · 대기 시간 후 {GameConstants.ZeroObjectiveHuntDelay:0}초간 가드 보호, 이후 사냥 시간",
+                    Loc.Format("hud.objective.none.preparation", GameConstants.ZeroObjectiveHuntDelay.ToString("0")),
                 GameState.Playing =>
-                    $"목표 없음 · 가드 보호 시간 {Mathf.CeilToInt(Mathf.Max(0f, HuntTiming.GetProtectionRemaining(settings, stateMachine.RemainingTime)))}초 후 사냥 시간",
-                _ => "목표 없음"
+                    Loc.Format("hud.objective.none.playing", Mathf.CeilToInt(Mathf.Max(0f, HuntTiming.GetProtectionRemaining(settings, stateMachine.RemainingTime)))),
+                _ => Loc.Get("hud.objective.none")
             };
         }
 
         /// <summary>
-        /// 화면 하단에 역할 목표, 체력, 도구 쿨타임을 표시한다.
+        /// 하단: 살아 있으면 역할 목표·체력·도구, 아니면 관전 정보.
         /// </summary>
-        private void DrawLocalPlayerPanel()
+        private void RefreshBottomPanel(GameState state)
         {
-            Rect area = new Rect(Screen.width * 0.5f - 280f, Screen.height - 140f, 560f, 130f);
-            GUILayout.BeginArea(area, GUI.skin.box);
-
             if (localPlayer == null)
             {
-                DrawSpectatorInfo();
-                GUILayout.EndArea();
+                objectiveText.text = GetSpectatorText();
+                statusText.text = string.Empty;
                 return;
             }
 
-            GUILayout.Label(GetObjectiveText(localPlayer.Role, stateMachine.CurrentState == GameState.Hunting), centerStyle);
-            if (localHealth != null)
-                GUILayout.Label($"체력 {localHealth.CurrentHealth} / {localHealth.MaxHealth}", centerStyle);
+            objectiveText.text = GetObjectiveText(localPlayer.Role, state == GameState.Hunting);
 
-            GUILayout.BeginHorizontal();
+            builder.Clear();
+            if (localHealth != null)
+                builder.Append(Loc.Format("hud.health", localHealth.CurrentHealth, localHealth.MaxHealth));
             foreach (ITool tool in localTools)
             {
-                string status = tool.CooldownRemaining > 0f ? $"{tool.CooldownRemaining:0.0}초" : (tool.IsReady ? "준비" : "-");
-                GUILayout.Label($"{tool.DisplayName}: {status}", centerStyle);
+                string toolStatus = tool.CooldownRemaining > 0f
+                    ? Loc.Format("hud.tool.cooldown", tool.CooldownRemaining.ToString("0.0"))
+                    : Loc.Get(tool.IsReady ? "hud.tool.ready" : "hud.tool.unavailable");
+                builder.Append($"     {tool.DisplayName}: {toolStatus}");
             }
-            GUILayout.EndHorizontal();
-
-            GUILayout.EndArea();
+            statusText.text = builder.ToString();
         }
 
         /// <summary>
-        /// 사망 또는 미참가 상태에서 관전 대상과 전환 방법을 표시한다.
+        /// 사망 또는 미참가 상태의 관전 안내 문구를 만든다.
         /// </summary>
-        private void DrawSpectatorInfo()
+        private string GetSpectatorText()
         {
-            string header = lastLocalRole == PlayerRole.None ? "관전 중" : "사망했습니다 · 관전 중";
+            string header = Loc.Get(lastLocalRole == PlayerRole.None ? "hud.spectating" : "hud.spectatingDead");
             SpectatorViewPoint target = spectator != null ? spectator.CurrentTarget : null;
-
             if (target == null)
-            {
-                GUILayout.Label($"{header}\n관전할 생존자가 없습니다.", centerStyle);
-                return;
-            }
+                return $"{header}\n{Loc.Get("hud.spectate.none")}";
 
             PlayerIdentity identity = target.Identity;
-            GUILayout.Label($"{header}\n{identity.DisplayName} ({GetRoleName(identity.Role)})\n← / → : 관전 대상 전환", centerStyle);
+            return $"{header}\n{Loc.Format("hud.spectate.target", identity.DisplayName, GetRoleName(identity.Role))}";
         }
 
         /// <summary>
-        /// 역할의 표시 이름을 반환한다.
+        /// 결과 화면: 승패, 참가자별 결과, 자동 복귀 시간, (호스트) 룸으로 이동 버튼.
         /// </summary>
-        private static string GetRoleName(PlayerRole role)
+        private void RefreshResult()
         {
-            return role switch
-            {
-                PlayerRole.Guard => "가드",
-                PlayerRole.Mannequin => "마네킹",
-                _ => "-"
-            };
-        }
+            resultHeadlineText.text = GetResultHeadline();
 
-        /// <summary>
-        /// 역할별 목표와 조작 안내 문구를 반환한다. (전원 장치 목표는 마네킹에게만 표시)
-        /// </summary>
-        private static string GetObjectiveText(PlayerRole role, bool isHunting)
-        {
-            if (isHunting)
-            {
-                return role switch
-                {
-                    PlayerRole.Guard => "[가드] 살아남거나 마네킹을 모두 제거하세요.\n(좌클릭: 사격, 우클릭: 탐지기, E: 손전등)",
-                    PlayerRole.Mannequin => "[마네킹] 가드를 모두 제거하세요.\n(좌클릭: 공격, 1~6: 감정 표현)",
-                    _ => string.Empty
-                };
-            }
-
-            return role switch
-            {
-                PlayerRole.Guard => "[가드] 숨어 있는 마네킹을 찾아 제거하세요.\n(좌클릭: 사격, 우클릭: 탐지기)",
-                PlayerRole.Mannequin => "[마네킹] 전원 장치를 찾아 파괴하세요.\n(좌클릭 유지: 파괴, 우클릭: 변신/해제, Q/E: 변신 중 회전, 1~6: 감정 표현)",
-                _ => string.Empty
-            };
-        }
-
-        /// <summary>
-        /// 화면 중앙에 조준점을 그린다.
-        /// </summary>
-        private void DrawCrosshair()
-        {
-            if (localPlayer == null)
-                return;
-
-            GUI.Label(new Rect(Screen.width * 0.5f - 10f, Screen.height * 0.5f - 12f, 20f, 24f), "+", centerStyle);
-        }
-
-        /// <summary>
-        /// 결과 화면: 승패, 참가자별 결과, 자동 복귀 시간, (호스트) 바로 다음 판 준비 버튼을 표시한다.
-        /// </summary>
-        private void DrawResult()
-        {
-            Rect area = new Rect(Screen.width * 0.5f - 260f, Screen.height * 0.5f - 200f, 520f, 400f);
-            GUILayout.BeginArea(area, GUI.skin.box);
-
-            GUILayout.Label(GetResultHeadline(), bigCenterStyle);
-            GUILayout.Space(10f);
-
+            builder.Clear();
             foreach (ParticipantResult participant in matchResult.Participants)
             {
-                string status = participant.survived ? "생존" : "탈락";
-                GUILayout.Label($"{participant.displayName}  ·  {GetRoleName(participant.role)}  ·  {status}", centerStyle);
+                string status = Loc.Get(participant.survived ? "result.survived" : "result.eliminated");
+                builder.AppendLine($"{participant.displayName}  ·  {GetRoleName(participant.role)}  ·  {status}");
             }
+            resultParticipantsText.text = builder.ToString();
 
-            GUILayout.FlexibleSpace();
-            GUILayout.Label($"{Mathf.CeilToInt(stateMachine.RemainingTime)}초 후 자동으로 룸으로 돌아갑니다.", centerStyle);
-
-            // 서버(호스트)만 상태를 바꿀 수 있다. 대기 상태로 바뀌면 MatchSessionBridge가 모두를 룸으로 보낸다.
-            if (stateMachine.IsServerReady() && GUILayout.Button("룸으로 이동", GUILayout.Height(36f)))
-                stateMachine.ChangeState(GameState.Waiting);
-
-            GUILayout.EndArea();
+            resultCountdownText.text = Loc.Format("result.countdown", Mathf.CeilToInt(stateMachine.RemainingTime));
+            returnToRoomButton.gameObject.SetActive(stateMachine.IsServerReady());
         }
 
         /// <summary>
@@ -281,27 +260,55 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private string GetResultHeadline()
         {
-            string winner = matchResult.Winner switch
+            string winner = Loc.Get(matchResult.Winner switch
             {
-                MatchWinner.Guard => "가드 승리",
-                MatchWinner.Mannequin => "마네킹 승리",
-                _ => "무승부"
-            };
+                MatchWinner.Guard => "result.guardWin",
+                MatchWinner.Mannequin => "result.mannequinWin",
+                _ => "result.draw"
+            });
 
-            string reason = matchResult.Reason switch
+            string reasonKey = matchResult.Reason switch
             {
-                WinReason.AllMannequinsEliminated => "모든 마네킹이 제거되었습니다.",
-                WinReason.ObjectiveFailed => "마네킹이 제한 시간 내에 목표를 달성하지 못했습니다.",
-                WinReason.GuardsSurvived => "가드가 사냥 시간 동안 살아남았습니다.",
-                WinReason.AllGuardsEliminated => "모든 가드가 제거되었습니다.",
+                WinReason.AllMannequinsEliminated => "result.reason.allMannequins",
+                WinReason.ObjectiveFailed => "result.reason.objectiveFailed",
+                WinReason.GuardsSurvived => "result.reason.guardsSurvived",
+                WinReason.AllGuardsEliminated => "result.reason.allGuards",
                 _ => string.Empty
             };
+            string reason = Loc.Get(reasonKey);
 
             bool isWinner = (matchResult.Winner == MatchWinner.Guard && lastLocalRole == PlayerRole.Guard)
                             || (matchResult.Winner == MatchWinner.Mannequin && lastLocalRole == PlayerRole.Mannequin);
-            string personal = lastLocalRole == PlayerRole.None ? string.Empty : (isWinner ? "\n승리!" : "\n패배");
+            string personal = lastLocalRole == PlayerRole.None ? string.Empty : "\n" + Loc.Get(isWinner ? "result.victory" : "result.defeat");
 
             return $"{winner}\n{reason}{personal}";
+        }
+
+        /// <summary>
+        /// 역할의 표시 이름을 반환한다.
+        /// </summary>
+        private static string GetRoleName(PlayerRole role)
+        {
+            return Loc.Get(role switch
+            {
+                PlayerRole.Guard => "role.guard",
+                PlayerRole.Mannequin => "role.mannequin",
+                _ => "role.none"
+            });
+        }
+
+        /// <summary>
+        /// 역할별 목표와 조작 안내 문구를 반환한다. (전원 장치 목표는 마네킹에게만 표시)
+        /// </summary>
+        private static string GetObjectiveText(PlayerRole role, bool isHunting)
+        {
+            string phase = isHunting ? "hunting" : "playing";
+            return role switch
+            {
+                PlayerRole.Guard => Loc.Get("hud.guide.guard." + phase),
+                PlayerRole.Mannequin => Loc.Get("hud.guide.mannequin." + phase),
+                _ => string.Empty
+            };
         }
 
         /// <summary>
@@ -311,18 +318,6 @@ namespace GuardVsMannequin.UI
         {
             int total = Mathf.CeilToInt(Mathf.Max(0f, seconds));
             return $"{total / 60}:{total % 60:00}";
-        }
-
-        /// <summary>
-        /// GUI 스타일을 한 번만 만든다. (GUI.skin은 OnGUI 안에서만 접근 가능)
-        /// </summary>
-        private void EnsureStyles()
-        {
-            if (centerStyle != null)
-                return;
-
-            centerStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 16 };
-            bigCenterStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 26, wordWrap = true };
         }
     }
 }

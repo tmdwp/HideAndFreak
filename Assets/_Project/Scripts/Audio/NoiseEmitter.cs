@@ -1,4 +1,5 @@
 using FishNet.Object;
+using GuardVsMannequin.Settings;
 using UnityEngine;
 
 namespace GuardVsMannequin.Audio
@@ -54,7 +55,7 @@ namespace GuardVsMannequin.Audio
 
             NoiseLibrary.Entry entry = library.Get(type);
             audioSource.maxDistance = entry.maxDistance;
-            audioSource.PlayOneShot(library.GetClip(type), entry.volume);
+            audioSource.PlayOneShot(library.GetClip(type), entry.volume * AudioVolumes.Sfx);
         }
     }
 }

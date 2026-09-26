@@ -8,7 +8,7 @@ namespace GuardVsMannequin.Player.Mannequin
     /// <summary>
     /// 사냥 시간 진입 시 마네킹을 사냥 모드로 바꾼다.
     /// - 서버: 강제 변신 해제, 최대 체력 = 기본 체력 × huntHealthMultiplier (가득 채움)
-    /// - 소유자: 1인칭 전환(본인 몸은 그림자만), 이동 속도 2.2, 제한된 시야(HuntVisionEffect)
+    /// - 소유자: 1인칭 전환(본인 몸은 그림자만), 제한된 시야(HuntVisionEffect)
     /// 동기화된 게임 상태를 보고 각자 한 번씩 적용한다.
     /// </summary>
     [RequireComponent(typeof(MannequinCharacter), typeof(MannequinTransformer), typeof(PlayerHealth))]
@@ -64,13 +64,12 @@ namespace GuardVsMannequin.Player.Mannequin
         }
 
         /// <summary>
-        /// 1인칭으로 전환하고 이동 속도를 높인다.
+        /// 1인칭으로 전환한다. (사냥 시간 속도는 MoveSpeedController가 적용)
         /// </summary>
         private void ApplyOnOwner()
         {
             ownerApplied = true;
             character.SetFirstPerson(true);
-            character.maxWalkSpeed = GameConstants.MannequinHuntMoveSpeed;
 
             foreach (Renderer bodyRenderer in bodyRenderers)
                 bodyRenderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;

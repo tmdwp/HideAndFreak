@@ -1,0 +1,18 @@
+{
+    "mapId": 0,
+    "preparationTime": 20,
+    "playTime": 180,
+    "huntTime": 60,
+    "guardCount": 1,
+    "objectiveCount": 0,
+    "generatorCount": 5,
+    "generatorDestroyTime": 10,
+    "gunCooldown": 1,
+    "detectorCooldown": 10,
+    "guardMaxHealth": 3,
+    "mannequinMaxHealth": 1,
+    "huntHealthMultiplier": 10,
+    "mannequinAttackRange": 2,
+    "guardMoveSpeed": 2,
+    "mannequinMoveSpeed": 1.5
+}

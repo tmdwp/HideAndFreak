@@ -105,7 +105,6 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 7901750136580128672}
   _networkObjectCache: {fileID: 0}
-  defaultSettings: {fileID: 11400000, guid: ec7029a5f5bab604683e10c2db39d2a1, type: 2}
   roomSceneName: Room
   gameSceneNames:
   - Game_Test

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Text;
 using FishNet;
+using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using GuardVsMannequin.Network;
 using GuardVsMannequin.Room;
 using UnityEngine;
@@ -65,7 +67,7 @@ namespace GuardVsMannequin.UI
             RoomState room = RoomState.Instance;
             if (room == null)
             {
-                statusText.text = "방 정보를 불러오는 중...";
+                statusText.text = Loc.Get("room.status.loading");
                 primaryButton.interactable = false;
                 return;
             }
@@ -86,11 +88,11 @@ namespace GuardVsMannequin.UI
             sortedMembers.Sort((a, b) => a.Value.isHost != b.Value.isHost ? (a.Value.isHost ? -1 : 1) : a.Key.CompareTo(b.Key));
 
             builder.Clear();
-            builder.AppendLine($"참가자 {sortedMembers.Count} / 10");
+            builder.AppendLine(Loc.Format("room.members.count", sortedMembers.Count, GameConstants.MaxPlayers));
             foreach (KeyValuePair<int, RoomMember> pair in sortedMembers)
             {
                 string name = room.GetDisplayName(pair.Key);
-                string state = pair.Value.isHost ? "★ 호스트" : (pair.Value.isReady ? "준비 완료" : "준비 중");
+                string state = Loc.Get(pair.Value.isHost ? "room.member.host" : (pair.Value.isReady ? "room.member.ready" : "room.member.notReady"));
                 builder.AppendLine($"{name}  —  {state}");
             }
             memberListText.text = builder.ToString();
@@ -104,7 +106,7 @@ namespace GuardVsMannequin.UI
             ISessionService session = SessionServices.Session;
             bool isSteamRoom = session != null && session.IsSteamRoom;
 
-            roomCodeText.text = session != null ? $"방 코드: {session.RoomCode}" : string.Empty;
+            roomCodeText.text = session != null ? Loc.Format("room.code", session.RoomCode) : string.Empty;
             copyCodeButton.interactable = isSteamRoom;
             inviteButton.interactable = isSteamRoom;
         }
@@ -114,7 +116,7 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private void RefreshSettings(RoomState room)
         {
-            settingsHintText.text = IsHost ? "게임 설정 (호스트)" : "게임 설정 (호스트만 변경할 수 있습니다)";
+            settingsHintText.text = Loc.Get(IsHost ? "room.settings.host" : "room.settings.guest");
             foreach (SettingRowView row in settingRows)
                 row.Refresh(room.Settings, IsHost);
         }
@@ -127,16 +129,16 @@ namespace GuardVsMannequin.UI
             if (IsHost)
             {
                 bool canStart = room.CanStartGame(out string reason);
-                primaryButtonLabel.text = "게임 시작";
+                primaryButtonLabel.text = Loc.Get("room.start");
                 primaryButton.interactable = canStart;
-                statusText.text = canStart ? "모든 준비가 끝났습니다." : reason;
+                statusText.text = canStart ? Loc.Get("room.status.allReady") : reason;
                 return;
             }
 
             bool isReady = TryGetLocalMember(room, out RoomMember member) && member.isReady;
-            primaryButtonLabel.text = isReady ? "준비 해제" : "준비";
+            primaryButtonLabel.text = Loc.Get(isReady ? "room.unready" : "room.ready");
             primaryButton.interactable = true;
-            statusText.text = isReady ? "호스트가 게임을 시작하기를 기다리는 중..." : "준비를 눌러 주세요.";
+            statusText.text = Loc.Get(isReady ? "room.status.waitingHost" : "room.status.pressReady");
         }
 
         /// <summary>
@@ -178,7 +180,7 @@ namespace GuardVsMannequin.UI
                 return;
 
             GUIUtility.systemCopyBuffer = session.RoomCode;
-            statusText.text = "방 코드를 복사했습니다.";
+            statusText.text = Loc.Get("room.status.codeCopied");
         }
 
         /// <summary>

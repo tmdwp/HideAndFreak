@@ -4,6 +4,7 @@ using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using FishNet.Transporting;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using GuardVsMannequin.Network;
 using UnityEngine;
 
@@ -16,8 +17,6 @@ namespace GuardVsMannequin.Room
     /// </summary>
     public class RoomState : NetworkBehaviour, IRoomInfo, ISceneFlow
     {
-        [SerializeField] private GameSettingsPreset defaultSettings;
-
         [Tooltip("룸 씬 이름. (빌드 설정에 등록되어 있어야 함)")]
         [SerializeField] private string roomSceneName = "Room";
 
@@ -45,7 +44,8 @@ namespace GuardVsMannequin.Room
         public override void OnStartServer()
         {
             base.OnStartServer();
-            settings.Value = defaultSettings != null ? defaultSettings.Settings : GameSettings.CreateDefault();
+            // 방의 초기 설정은 Resources/Data/default_game_settings.json을 따른다.
+            settings.Value = DefaultGameSettings.Load();
 
             foreach (NetworkConnection conn in ServerManager.Clients.Values)
                 AddMember(conn);
@@ -102,7 +102,7 @@ namespace GuardVsMannequin.Room
         {
             if (!GameSettingsValidator.CanStart(members.Count))
             {
-                reason = $"{GameConstants.MinPlayers}~{GameConstants.MaxPlayers}명이 필요합니다. (현재 {members.Count}명)";
+                reason = Loc.Format("room.reason.playerCount", GameConstants.MinPlayers, GameConstants.MaxPlayers, members.Count);
                 return false;
             }
 
@@ -110,7 +110,7 @@ namespace GuardVsMannequin.Room
             {
                 if (!member.isHost && !member.isReady)
                 {
-                    reason = "모든 참가자가 준비해야 합니다.";
+                    reason = Loc.Get("room.reason.notAllReady");
                     return false;
                 }
             }
@@ -138,7 +138,7 @@ namespace GuardVsMannequin.Room
         {
             if (isInGame.Value)
             {
-                reason = "이미 게임이 진행 중입니다.";
+                reason = Loc.Get("room.reason.inGame");
                 return false;
             }
             if (!CanStartGame(out reason))

@@ -1,3 +1,5 @@
+using GuardVsMannequin.Localization;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -97,6 +99,8 @@ namespace GuardVsMannequin.Editor
 
         /// <summary>
         /// 텍스트를 만든다.
+        /// content가 strings.csv의 key이면 LocalizedText를 붙여 실행 중 현재 언어로 표시한다.
+        /// (코드가 상황에 따라 바꾸는 텍스트에는 key를 넘기지 않는다)
         /// </summary>
         public static Text CreateText(Transform parent, string name, string content, int fontSize, TextAnchor alignment, Color color)
         {
@@ -104,6 +108,14 @@ namespace GuardVsMannequin.Editor
             Text text = rect.gameObject.AddComponent<Text>();
             text.font = DefaultFont;
             text.text = content;
+            if (Loc.HasKey(content))
+            {
+                text.text = Loc.Get(content);
+                LocalizedText localized = rect.gameObject.AddComponent<LocalizedText>();
+                var serialized = new SerializedObject(localized);
+                serialized.FindProperty("key").stringValue = content;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
             text.fontSize = fontSize;
             text.alignment = alignment;
             text.color = color;
@@ -162,6 +174,76 @@ namespace GuardVsMannequin.Editor
             input.placeholder = placeholderText;
             input.targetGraphic = image;
             return input;
+        }
+
+        /// <summary>
+        /// 가로 슬라이더(배경, 채움, 손잡이)를 만든다.
+        /// </summary>
+        public static Slider CreateSlider(Transform parent, string name)
+        {
+            RectTransform root = CreateRect(parent, name);
+
+            RectTransform background = CreateRect(root, "Background");
+            background.anchorMin = new Vector2(0f, 0.35f);
+            background.anchorMax = new Vector2(1f, 0.65f);
+            background.offsetMin = background.offsetMax = Vector2.zero;
+            background.gameObject.AddComponent<Image>().color = new Color(0.14f, 0.15f, 0.18f, 1f);
+
+            RectTransform fillArea = CreateRect(root, "Fill Area");
+            fillArea.anchorMin = new Vector2(0f, 0.35f);
+            fillArea.anchorMax = new Vector2(1f, 0.65f);
+            fillArea.offsetMin = new Vector2(5f, 0f);
+            fillArea.offsetMax = new Vector2(-5f, 0f);
+            RectTransform fill = CreateRect(fillArea, "Fill");
+            fill.offsetMin = fill.offsetMax = Vector2.zero;
+            fill.gameObject.AddComponent<Image>().color = AccentColor;
+
+            RectTransform handleArea = CreateRect(root, "Handle Slide Area");
+            Stretch(handleArea);
+            handleArea.offsetMin = new Vector2(10f, 0f);
+            handleArea.offsetMax = new Vector2(-10f, 0f);
+            RectTransform handle = CreateRect(handleArea, "Handle");
+            handle.sizeDelta = new Vector2(20f, 0f);
+            Image handleImage = handle.gameObject.AddComponent<Image>();
+            handleImage.color = TextColor;
+
+            Slider slider = root.gameObject.AddComponent<Slider>();
+            slider.fillRect = fill;
+            slider.handleRect = handle;
+            slider.targetGraphic = handleImage;
+            slider.direction = Slider.Direction.LeftToRight;
+            return slider;
+        }
+
+        /// <summary>
+        /// 세로로 스크롤되는 목록을 만든다. 항목은 반환된 Content 아래에 추가한다.
+        /// </summary>
+        public static RectTransform CreateScrollList(Transform parent, string name, float spacing)
+        {
+            RectTransform root = CreateRect(parent, name);
+            root.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.25f);
+            ScrollRect scroll = root.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 30f;
+
+            RectTransform viewport = CreateRect(root, "Viewport");
+            Stretch(viewport);
+            viewport.gameObject.AddComponent<RectMask2D>();
+
+            RectTransform content = CreateRect(viewport, "Content");
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.offsetMin = content.offsetMax = Vector2.zero;
+            VerticalLayoutGroup layout = AddVerticalLayout(content, spacing, 10);
+            layout.childForceExpandHeight = false;
+            ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scroll.viewport = viewport;
+            scroll.content = content;
+            return content;
         }
 
         /// <summary>

@@ -12,6 +12,8 @@ namespace GuardVsMannequin.Core
         public const float MaxPreparationTime = 30f;
         public const float MinPlayTime = 120f;
         public const float MaxPlayTime = 240f;
+        public const float MinMoveSpeed = 0.5f;
+        public const float MaxMoveSpeed = 6f;
 
         /// <summary>
         /// 현재 참가 인원을 기준으로 설정값을 보정한 결과를 반환한다.
@@ -39,6 +41,8 @@ namespace GuardVsMannequin.Core
             settings.mannequinMaxHealth = Mathf.Max(1, settings.mannequinMaxHealth);
             settings.huntHealthMultiplier = Mathf.Max(1f, settings.huntHealthMultiplier);
             settings.mannequinAttackRange = Mathf.Max(0.1f, settings.mannequinAttackRange);
+            settings.guardMoveSpeed = Mathf.Clamp(settings.guardMoveSpeed, MinMoveSpeed, MaxMoveSpeed);
+            settings.mannequinMoveSpeed = Mathf.Clamp(settings.mannequinMoveSpeed, MinMoveSpeed, MaxMoveSpeed);
             return settings;
         }
 

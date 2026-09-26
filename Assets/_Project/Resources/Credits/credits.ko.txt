@@ -1,0 +1,12 @@
+가드 vs 마네킹
+
+기획  정승제
+개발  정승제
+
+이용한 에셋
+FishNet: Networking Evolved  —  FirstGearGames  (FishNet License)
+FishySteamworks  —  FirstGearGames  (MIT License)
+Steamworks.NET  —  Riley Labrecque  (MIT License)
+Easy Character Movement 2  —  Oscar Gracián  (Unity Asset Store EULA)
+DOTween  —  Demigiant  (DOTween License)
+Universal Render Pipeline, Input System, AI Navigation  —  Unity Technologies  (Unity Companion License)

@@ -1,6 +1,7 @@
 using FishNet.Object;
 using GuardVsMannequin.Audio;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using UnityEngine;
 
 namespace GuardVsMannequin.Player.Mannequin
@@ -23,7 +24,7 @@ namespace GuardVsMannequin.Player.Mannequin
         private float localNextAttackTime;
         private float serverNextAttackTime;
 
-        public string DisplayName => "공격";
+        public string DisplayName => Loc.Get("tool.attack");
         public float CooldownRemaining => Mathf.Max(0f, localNextAttackTime - Time.time);
         public bool IsReady => CooldownRemaining <= 0f && GameServices.CurrentStateOrWaiting == GameState.Hunting;
 

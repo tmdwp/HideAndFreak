@@ -9,9 +9,8 @@ namespace GuardVsMannequin.Core
         public const int MinPlayers = 2;
         public const int MaxPlayers = 10;
 
-        public const float GuardMoveSpeed = 2.0f;
-        public const float MannequinMoveSpeed = 1.5f;
-        public const float MannequinHuntMoveSpeed = 2.2f;
+        /// <summary>사냥 시간 마네킹 이동 속도 = 기본 이동 속도(호스트 설정) × 이 배율.</summary>
+        public const float MannequinHuntSpeedMultiplier = 1.5f;
 
         public const int Damage = 1;
 

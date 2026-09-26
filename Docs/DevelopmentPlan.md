@@ -98,8 +98,10 @@ Waiting ─▶ Preparation ─▶ Playing ─▶ Hunting ─▶ Ended
 | `mannequinMaxHealth` | int | 1 | |
 | `huntHealthMultiplier` | float | 10 | 사냥 시간 마네킹 체력 배율 |
 | `mannequinAttackRange` | float | 2 | |
+| `guardMoveSpeed` | float | 2 | 가드 이동 속도(m/s) |
+| `mannequinMoveSpeed` | float | 1.5 | 마네킹 기본 이동 속도(m/s). 사냥 시간에는 × 1.5 (`GameConstants.MannequinHuntSpeedMultiplier`) |
 
-- 기본값은 `GameSettingsPreset` ScriptableObject에 저장하고, 런타임 값은 `SyncVar`로 동기화하는 구조체로 관리합니다.
+- 기본값은 `Resources/Data/default_game_settings.json`에, 룸에서 조정하는 단위·범위·표시 순서는 `Resources/Data/game_settings.csv`에 둡니다. 런타임 값은 `SyncVar`로 동기화하는 구조체로 관리합니다.
 - 값 검증(범위 제한)은 `GameSettingsValidator`가 담당합니다 (SRP).
 
 ### 2.2 고정 상수 (`GameConstants`)
@@ -343,10 +345,40 @@ public interface ITransformable { int PropId { get; } }
 
 ### Phase 6 — 마무리
 
-- [ ] 설정: 키 리바인딩(Input System Rebinding API, 저장/불러오기), 마우스 감도, 사운드(마스터/BGM/효과음, AudioMixer)
-- [ ] 크레딧: 기획자, 개발자, 이용한 에셋 (`Docs/AssetLicenses.md` 기반)
-- [ ] 정식 맵 제작 (천장 개방 맵은 투명 천장, 프롭 실루엣 문제는 의도된 재미로 유지)
+- [x] 설정: 키 리바인딩(Input System Rebinding API, 저장/불러오기), 마우스 감도, 사운드(마스터/BGM/효과음)
+- [x] 게임 중 ESC 메뉴 (계속하기 / 설정 / 방 나가기) — 룸과 게임 씬
+- [x] 크레딧: 기획자, 개발자, 이용한 에셋 (`Docs/AssetLicenses.md` 기반)
+- [x] HUD를 IMGUI 임시 구현에서 uGUI로 교체
+- [x] 다국어 (한국어/영어, CSV 열 추가로 언어 확장) — 설정 화면에서 언어 선택
+- [x] 룸 설정에 가드/마네킹 이동 속도 추가 (마네킹 사냥 시간 속도 = 기본 × 1.5)
+- [x] 사람이 관리하기 쉬운 데이터를 텍스트 파일로 분리 (문장, 크레딧, 게임 설정 기본값·범위)
+- [ ] 정식 맵 제작 (천장 개방 맵은 투명 천장, 프롭 실루엣 문제는 의도된 재미로 유지) — 3D 에셋 준비 후 진행
 - [ ] 밸런스 조정, 최적화 (실시간 조명 개수, 네트워크 전송량)
+- [ ] (검토) TextMeshPro + 한글 폰트 에셋으로 UI 폰트 교체
+
+**상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리 검증 완료 / 다국어·이동 속도·데이터 파일 분리 검증 전
+
+**구현 메모**
+- 개인 설정(`GameOptions`: 감도 배율, 전체/배경 음악/효과음 음량)과 키 바인딩은 `OptionsStore`가 **PlayerPrefs**(이 PC)에 저장한다. 호스트가 정하는 게임 설정(`GameSettings`)과는 별개다.
+- 키 바인딩: 입력 에셋 복제본을 만드는 곳(`PlayerInputReader`, `SpectatorController`, `PauseMenuView`, 설정 화면)마다 `OptionsStore.ApplyBindings`로 저장된 바인딩을 적용하고, 게임 중 바꾸면 `BindingsChanged`로 즉시 반영한다. 바꿀 수 있는 키 목록은 `KeyBindingCatalog`.
+- 음량: Unity에는 AudioMixer 에셋을 코드로 만드는 공개 API가 없어, 지금은 **전체 = `AudioListener.volume`, 효과음/배경 음악 = `AudioVolumes` 배율**로 적용한다. 사운드 에셋 도입 시 AudioMixer 그룹으로 교체할 수 있도록 음량 조회를 `AudioVolumes` 한곳에 모았다. (배경 음악은 아직 없음)
+- ESC: 기존의 "커서 잠금 전환"을 메뉴로 교체했다(입력 액션 `ToggleCursor` → `Menu`). 커서 잠금은 `GameCursor`가 관리하며, 잠겨 있을 때만 이동·시점·클릭 입력을 받는다. 키 설정 중에는 ESC가 키 입력 취소로 쓰이므로 메뉴가 반응하지 않는다.
+- 크레딧 내용은 `Resources/Credits/credits.<언어 코드>.txt` 텍스트 파일에서 편집한다. (기획·개발: 정승제) 현재 언어 파일이 없으면 ko 파일을 보여준다.
+- **텍스트 데이터 파일** (모두 `Assets/_Project/Resources/` 아래, 메모장·엑셀로 편집. UTF-8로 저장)
+
+  | 파일 | 내용 |
+  |---|---|
+  | `Localization/strings.csv` | 화면의 모든 문장. 열 = `key, ko, en, …`. `#` 줄은 메모, 값의 쉼표는 큰따옴표로 감싸고 줄바꿈은 `\n` |
+  | `Credits/credits.ko.txt`, `credits.en.txt` | 언어별 크레딧 |
+  | `Data/default_game_settings.json` | 방을 만들 때의 게임 설정 기본값 |
+  | `Data/game_settings.csv` | 룸 설정 항목의 표시 순서, 조정 단위(step), 범위(min~max), 단위 문구 key |
+
+- **다국어**: `Loc.Get(key)` / `Loc.Format(key, 값…)`로 문장을 얻는다. 고정 문구는 `LocalizedText` 컴포넌트(에디터 툴이 key로 만든 텍스트에 자동 부착), 상황에 따라 바뀌는 문구는 각 화면 코드가 채운다. 언어를 바꾸면 `Loc.LanguageChanged`로 즉시 갱신된다. 첫 실행 언어는 시스템 언어(한국어면 ko, 그 외 en)이며, 선택한 언어는 `GameOptions.languageCode`로 저장된다.
+  - 새 언어 추가: `strings.csv`에 열 추가(머리글 = 언어 코드, `language.name` 줄에 그 언어로 쓴 이름) → 설정 화면 언어 목록에 자동 표시. 크레딧은 `credits.<코드>.txt` 추가. 번역이 비어 있는 칸은 ko로 표시된다.
+  - 한국어·영어 외에 한자/가나 등을 쓰는 언어는 `OsFontApplier`의 폰트가 글자를 지원하는지 확인해야 한다.
+- **이동 속도**: `MoveSpeedController`(가드/마네킹 프리팹)가 동기화된 이번 판 설정으로 `maxWalkSpeed`/`maxFlySpeed`(벽타기)를 맞추고, 마네킹은 사냥 시간에 1.5배로 바꾼다. 가짜 마네킹(NavMeshAgent)도 마네킹 기본 속도를 따른다.
+- 인스펙터 툴팁·개발용 로그는 한국어로 유지한다. (플레이어에게 보이지 않음)
+- HUD(`GameHud`)는 같은 표시 로직을 uGUI Text/패널로 옮겼다. UI는 모두 에디터 툴(`SharedUiBuilder`, `MenuSceneBuilder`)로 씬에 생성되어 인스펙터에서 편집할 수 있다.
 
 ---
 

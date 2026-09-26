@@ -23,16 +23,17 @@ namespace GuardVsMannequin.UI
         /// <param name="onAdjust">(항목, 방향 -1/+1)을 받는 조정 함수.</param>
         public void Bind(Action<GameSettingId, int> onAdjust)
         {
-            labelText.text = GameSettingDefinitions.Get(settingId).label;
+            labelText.text = GameSettingDefinitions.Get(settingId).Label;
             decreaseButton.onClick.AddListener(() => onAdjust(settingId, -1));
             increaseButton.onClick.AddListener(() => onAdjust(settingId, 1));
         }
 
         /// <summary>
-        /// 현재 설정 값을 표시하고, 호스트일 때만 버튼을 켠다.
+        /// 현재 설정 값을 표시하고, 호스트일 때만 버튼을 켠다. (언어가 바뀌었을 수 있어 이름도 다시 표시)
         /// </summary>
         public void Refresh(GameSettings settings, bool editable)
         {
+            labelText.text = GameSettingDefinitions.Get(settingId).Label;
             valueText.text = GameSettingDefinitions.Format(settings, settingId);
             decreaseButton.interactable = editable;
             increaseButton.interactable = editable;

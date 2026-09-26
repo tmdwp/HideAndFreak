@@ -29,8 +29,8 @@ namespace GuardVsMannequin.Network
         /// <summary>친구 초대를 수락하거나 친구 목록에서 참가를 눌렀을 때. (로비 ID)</summary>
         public event Action<ulong> JoinRequested;
 
-        /// <summary>로비 작업이 실패했을 때. (사유)</summary>
-        public event Action<string> Failed;
+        /// <summary>로비 작업이 실패했을 때. (사유 문구 key, 문구에 끼워 넣을 세부 정보 — 없으면 빈 문자열)</summary>
+        public event Action<string, string> Failed;
 
         /// <summary>현재 들어가 있는 로비 ID. 없으면 0.</summary>
         public ulong CurrentLobbyId { get; private set; }
@@ -57,7 +57,7 @@ namespace GuardVsMannequin.Network
         {
             if (!SteamBootstrap.IsInitialized)
             {
-                Failed?.Invoke("Steam이 실행 중이 아닙니다.");
+                Failed?.Invoke("notice.steamNotRunning", string.Empty);
                 return;
             }
 
@@ -73,7 +73,7 @@ namespace GuardVsMannequin.Network
         {
             if (!SteamBootstrap.IsInitialized)
             {
-                Failed?.Invoke("Steam이 실행 중이 아닙니다.");
+                Failed?.Invoke("notice.steamNotRunning", string.Empty);
                 return;
             }
 
@@ -116,7 +116,7 @@ namespace GuardVsMannequin.Network
             isCreatingLobby = false;
             if (ioFailure || result.m_eResult != EResult.k_EResultOK)
             {
-                Failed?.Invoke($"방을 만들지 못했습니다. ({result.m_eResult})");
+                Failed?.Invoke("notice.lobbyCreateFailed", result.m_eResult.ToString());
                 return;
             }
 
@@ -134,7 +134,7 @@ namespace GuardVsMannequin.Network
             CSteamID lobby = new CSteamID(result.m_ulSteamIDLobby);
             if (result.m_EChatRoomEnterResponse != (uint)EChatRoomEnterResponse.k_EChatRoomEnterResponseSuccess)
             {
-                Failed?.Invoke("방에 들어갈 수 없습니다. (방이 가득 찼거나 게임이 진행 중일 수 있습니다)");
+                Failed?.Invoke("notice.lobbyEnterFailed", string.Empty);
                 return;
             }
 
@@ -147,7 +147,7 @@ namespace GuardVsMannequin.Network
             string hostAddress = SteamMatchmaking.GetLobbyData(lobby, HostAddressKey);
             if (!ulong.TryParse(hostAddress, out ulong hostSteamId))
             {
-                Failed?.Invoke("방 정보를 읽을 수 없습니다.");
+                Failed?.Invoke("notice.lobbyDataInvalid", string.Empty);
                 LeaveLobby();
                 return;
             }

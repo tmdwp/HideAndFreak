@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 2863810353114395617}
   - component: {fileID: 8597384182301706604}
   - component: {fileID: 5575777677741418536}
+  - component: {fileID: 178145158723463962}
   - component: {fileID: 4185462520517239729}
   - component: {fileID: 2325282995815847103}
   - component: {fileID: 9486479044456953}
@@ -394,6 +395,19 @@ MonoBehaviour:
   - {fileID: 2863810353114395617}
   - {fileID: 8597384182301706604}
   hiddenForOwner: []
+--- !u!114 &178145158723463962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 297b503959c94394b894a9c21da746c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.MoveSpeedController
+  role: 2
 --- !u!114 &4185462520517239729
 MonoBehaviour:
   m_ObjectHideFlags: 0

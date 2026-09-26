@@ -19,13 +19,12 @@ namespace GuardVsMannequin.Player.Guard
         private float cameraPitch;
 
         /// <summary>
-        /// 가드 이동 속도를 적용한다. 회전은 시점 입력으로만 처리한다.
+        /// 회전은 시점 입력으로만 처리한다. (이동 속도는 MoveSpeedController가 게임 설정으로 적용)
         /// </summary>
         protected override void Awake()
         {
             base.Awake();
             SetRotationMode(RotationMode.None);
-            maxWalkSpeed = GameConstants.GuardMoveSpeed;
         }
 
         /// <summary>

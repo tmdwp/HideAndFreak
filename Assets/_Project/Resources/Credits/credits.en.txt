@@ -1,0 +1,12 @@
+Guard vs Mannequin
+
+Design  정승제 (Jung Seungje)
+Development  정승제 (Jung Seungje)
+
+Third-party Assets
+FishNet: Networking Evolved  —  FirstGearGames  (FishNet License)
+FishySteamworks  —  FirstGearGames  (MIT License)
+Steamworks.NET  —  Riley Labrecque  (MIT License)
+Easy Character Movement 2  —  Oscar Gracián  (Unity Asset Store EULA)
+DOTween  —  Demigiant  (DOTween License)
+Universal Render Pipeline, Input System, AI Navigation  —  Unity Technologies  (Unity Companion License)

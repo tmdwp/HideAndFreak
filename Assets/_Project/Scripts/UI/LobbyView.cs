@@ -1,3 +1,4 @@
+using GuardVsMannequin.Localization;
 using GuardVsMannequin.Network;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,6 +27,10 @@ namespace GuardVsMannequin.UI
         [SerializeField] private Button quitButton;
         [SerializeField] private Text noticeText;
 
+        [Header("패널")]
+        [SerializeField] private SettingsPanelView settingsPanel;
+        [SerializeField] private CreditsView creditsPanel;
+
         /// <summary>
         /// 버튼 동작을 연결하고 커서를 보이게 한다. (게임에서 돌아왔을 때 잠겨 있을 수 있음)
         /// </summary>
@@ -39,10 +44,11 @@ namespace GuardVsMannequin.UI
             hostDirectButton.onClick.AddListener(() => SessionServices.Session?.HostDirectRoom());
             joinDirectButton.onClick.AddListener(() => SessionServices.Session?.JoinDirectRoom(addressInput.text));
             quitButton.onClick.AddListener(Quit);
+            settingsButton.onClick.AddListener(() => settingsPanel.Open());
+            creditsButton.onClick.AddListener(() => creditsPanel.Open());
 
-            // 설정과 크레딧은 Phase 6에서 구현한다.
-            settingsButton.interactable = false;
-            creditsButton.interactable = false;
+            settingsPanel.gameObject.SetActive(false);
+            creditsPanel.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -53,7 +59,7 @@ namespace GuardVsMannequin.UI
             ISessionService session = SessionServices.Session;
             if (session == null)
             {
-                noticeText.text = "네트워크 서비스를 찾을 수 없습니다.";
+                noticeText.text = Loc.Get("lobby.noService");
                 return;
             }
 
@@ -63,9 +69,7 @@ namespace GuardVsMannequin.UI
             hostDirectButton.interactable = idle;
             joinDirectButton.interactable = idle;
 
-            steamStatusText.text = session.IsSteamAvailable
-                ? "Steam 연결됨"
-                : "Steam을 사용할 수 없습니다. (Steam을 실행하면 Steam 방을 만들 수 있습니다)";
+            steamStatusText.text = Loc.Get(session.IsSteamAvailable ? "lobby.steam.connected" : "lobby.steam.unavailable");
             noticeText.text = session.Notice;
         }
 

@@ -1,4 +1,5 @@
 using FishNet.Transporting;
+using GuardVsMannequin.Localization;
 using UnityEngine;
 
 namespace GuardVsMannequin.Network
@@ -18,14 +19,18 @@ namespace GuardVsMannequin.Network
         private bool isLeaving;
         private bool isRegistered;
 
+        // 안내 문구는 key와 끼워 넣을 값으로 보관하고, 읽을 때 현재 언어로 만든다. (언어를 바꾸면 바로 반영)
+        private string noticeKey = string.Empty;
+        private string noticeDetail = string.Empty;
+
         public bool IsSteamAvailable => SteamBootstrap.IsInitialized && connector.HasSteamTransport;
         public bool IsBusy { get; private set; }
         public bool IsSteamRoom { get; private set; }
-        public string Notice { get; private set; } = string.Empty;
+        public string Notice => string.IsNullOrEmpty(noticeKey) ? string.Empty : Loc.Format(noticeKey, noticeDetail);
 
         public string RoomCode => IsSteamRoom && steamLobby.CurrentLobbyId != 0
             ? steamLobby.CurrentLobbyId.ToString()
-            : "직접 접속 방 (호스트 IP로 참가)";
+            : Loc.Get("session.directRoomCode");
 
         /// <summary>
         /// 첫 인스턴스만 서비스로 등록하고 이벤트를 연결한다. (로비 씬 재로딩 시 생기는 중복은 무시)
@@ -78,12 +83,12 @@ namespace GuardVsMannequin.Network
 
             if (!IsSteamAvailable)
             {
-                Notice = "Steam을 사용할 수 없습니다. Steam을 실행한 뒤 다시 시도하세요.";
+                SetNotice("notice.steamUnavailable");
                 return;
             }
 
             IsBusy = true;
-            Notice = "방을 만드는 중...";
+            SetNotice("notice.creatingRoom");
             steamLobby.CreateLobby();
         }
 
@@ -97,18 +102,18 @@ namespace GuardVsMannequin.Network
 
             if (!IsSteamAvailable)
             {
-                Notice = "Steam을 사용할 수 없습니다. Steam을 실행한 뒤 다시 시도하세요.";
+                SetNotice("notice.steamUnavailable");
                 return;
             }
 
             if (!ulong.TryParse(roomCode?.Trim(), out ulong lobbyId))
             {
-                Notice = "방 코드가 올바르지 않습니다. 숫자로 된 코드를 입력하세요.";
+                SetNotice("notice.invalidCode");
                 return;
             }
 
             IsBusy = true;
-            Notice = "방에 참가하는 중...";
+            SetNotice("notice.joiningRoom");
             steamLobby.JoinLobby(lobbyId);
         }
 
@@ -124,7 +129,7 @@ namespace GuardVsMannequin.Network
             if (connector.StartServer(withSteam: false))
                 connector.StartLocalClient();
             else
-                Notice = "서버를 시작하지 못했습니다. 포트(7770)가 사용 중인지 확인하세요.";
+                SetNotice("notice.serverStartFailedPort");
         }
 
         /// <summary>
@@ -137,7 +142,7 @@ namespace GuardVsMannequin.Network
 
             IsSteamRoom = false;
             IsBusy = true;
-            Notice = "방에 참가하는 중...";
+            SetNotice("notice.joiningRoom");
             connector.StartDirectClient(address);
         }
 
@@ -176,7 +181,16 @@ namespace GuardVsMannequin.Network
         /// </summary>
         public void ClearNotice()
         {
-            Notice = string.Empty;
+            SetNotice(string.Empty);
+        }
+
+        /// <summary>
+        /// 안내 문구를 key(strings.csv)와 끼워 넣을 세부 정보로 정한다. 빈 key는 문구 없음.
+        /// </summary>
+        private void SetNotice(string key, string detail = "")
+        {
+            noticeKey = key ?? string.Empty;
+            noticeDetail = detail ?? string.Empty;
         }
 
         /// <summary>
@@ -186,12 +200,12 @@ namespace GuardVsMannequin.Network
         {
             if (IsBusy || connector.IsServerRunning || connector.IsClientRunning)
             {
-                Notice = "이미 방에 있거나 연결 중입니다.";
+                SetNotice("notice.alreadyInRoom");
                 return false;
             }
 
             isLeaving = false;
-            Notice = string.Empty;
+            SetNotice(string.Empty);
             return true;
         }
 
@@ -208,7 +222,7 @@ namespace GuardVsMannequin.Network
             }
 
             IsBusy = false;
-            Notice = "서버를 시작하지 못했습니다.";
+            SetNotice("notice.serverStartFailed");
             steamLobby.LeaveLobby();
         }
 
@@ -221,7 +235,7 @@ namespace GuardVsMannequin.Network
             if (!connector.StartSteamClient(hostSteamId))
             {
                 IsBusy = false;
-                Notice = "호스트에 접속하지 못했습니다.";
+                SetNotice("notice.hostConnectFailed");
                 steamLobby.LeaveLobby();
             }
         }
@@ -233,7 +247,7 @@ namespace GuardVsMannequin.Network
         {
             if (connector.IsClientRunning || connector.IsServerRunning)
             {
-                Notice = "이미 다른 방에 있어 초대에 응할 수 없습니다. 방을 나간 뒤 다시 시도하세요.";
+                SetNotice("notice.inviteWhileInRoom");
                 return;
             }
 
@@ -243,10 +257,10 @@ namespace GuardVsMannequin.Network
         /// <summary>
         /// 로비 작업 실패를 안내한다.
         /// </summary>
-        private void OnLobbyFailed(string reason)
+        private void OnLobbyFailed(string reasonKey, string detail)
         {
             IsBusy = false;
-            Notice = reason;
+            SetNotice(reasonKey, detail);
         }
 
         /// <summary>
@@ -258,7 +272,7 @@ namespace GuardVsMannequin.Network
             if (args.ConnectionState == LocalConnectionState.Started)
             {
                 IsBusy = false;
-                Notice = string.Empty;
+                SetNotice(string.Empty);
                 return;
             }
 
@@ -270,7 +284,7 @@ namespace GuardVsMannequin.Network
             steamLobby.LeaveLobby();
 
             if (!isLeaving)
-                Notice = wasConnecting ? "방에 접속하지 못했습니다." : "호스트와의 연결이 끊겼습니다.";
+                SetNotice(wasConnecting ? "notice.joinFailed" : "notice.hostDisconnected");
 
             // 호스트가 아닌 경우에만 여기서 정리한다. (호스트는 Leave에서 서버까지 정리)
             if (!connector.IsServerRunning)

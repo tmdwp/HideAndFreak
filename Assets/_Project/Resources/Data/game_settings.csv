@@ -1,0 +1,21 @@
+# 룸의 게임 설정 항목. 표시 순서 = 이 파일의 줄 순서.
+# id: 코드의 GameSettingId 이름 (바꾸지 마세요) / step: -,+ 한 번에 바뀌는 양 / min, max: 룸에서 고를 수 있는 범위
+# unit: 단위 문구의 key (strings.csv). 비우면 단위 없음. 이름 문구는 strings.csv의 setting.<id>
+# 인원에 따라 달라지는 최종 범위(가드 수, 목표 수 등)는 게임이 다시 보정합니다.
+id,step,min,max,unit
+Map,1,0,0,
+PreparationTime,5,15,30,unit.seconds
+PlayTime,30,120,240,unit.seconds
+HuntTime,15,30,180,unit.seconds
+GuardCount,1,1,5,unit.people
+ObjectiveCount,1,0,12,unit.times
+GeneratorCount,1,1,12,unit.count
+GeneratorDestroyTime,1,3,30,unit.seconds
+GunCooldown,0.5,0.5,10,unit.seconds
+DetectorCooldown,1,3,30,unit.seconds
+GuardMaxHealth,1,1,10,
+MannequinMaxHealth,1,1,5,
+HuntHealthMultiplier,1,1,20,unit.multiplier
+MannequinAttackRange,0.5,1,5,unit.meters
+GuardMoveSpeed,0.1,0.5,6,unit.speed
+MannequinMoveSpeed,0.1,0.5,6,unit.speed

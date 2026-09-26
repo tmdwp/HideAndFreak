@@ -1,6 +1,7 @@
 using System.Collections;
 using GuardVsMannequin.Audio;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Settings;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -82,7 +83,7 @@ namespace GuardVsMannequin.Map
             isDark = true;
 
             if (noiseLibrary != null)
-                audioSource.PlayOneShot(noiseLibrary.GetClip(NoiseType.PowerDown), noiseLibrary.Get(NoiseType.PowerDown).volume);
+                audioSource.PlayOneShot(noiseLibrary.GetClip(NoiseType.PowerDown), noiseLibrary.Get(NoiseType.PowerDown).volume * AudioVolumes.Sfx);
 
             foreach (MapLight mapLight in mapLights)
                 StartCoroutine(TurnOffAfter(mapLight, Random.Range(0f, maxOffDelay)));

@@ -133,7 +133,7 @@
                                          "initialStateCheck":  false
                                      },
                                      {
-                                         "name":  "ToggleCursor",
+                                         "name":  "Menu",
                                          "type":  "Button",
                                          "id":  "c9ccb204-2e06-4609-bfcd-e64868fa2767",
                                          "expectedControlType":  "Button",
@@ -370,7 +370,7 @@
                                           "interactions":  "",
                                           "processors":  "",
                                           "groups":  "Keyboard\u0026Mouse",
-                                          "action":  "ToggleCursor",
+                                          "action":  "Menu",
                                           "isComposite":  false,
                                           "isPartOfComposite":  false
                                       }

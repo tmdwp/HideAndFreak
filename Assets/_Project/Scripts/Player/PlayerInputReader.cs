@@ -1,4 +1,6 @@
 using System;
+using GuardVsMannequin.Core;
+using GuardVsMannequin.Settings;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,7 +8,8 @@ namespace GuardVsMannequin.Player
 {
     /// <summary>
     /// Input System 액션을 <see cref="IPlayerInput"/>으로 변환한다.
-    /// 로컬 소유자 아바타에서만 활성화된다.
+    /// 로컬 소유자 아바타에서만 활성화되며, 설정 화면에서 바꾼 키 바인딩을 적용한다.
+    /// 커서가 풀려 있으면(ESC 메뉴, 결과 화면) 게임 입력을 막는다.
     /// </summary>
     public class PlayerInputReader : MonoBehaviour, IPlayerInput
     {
@@ -24,13 +27,12 @@ namespace GuardVsMannequin.Player
         private InputAction rotateAction;
         private InputAction spectatePreviousAction;
         private InputAction spectateNextAction;
-        private InputAction toggleCursorAction;
         private readonly InputAction[] emoteActions = new InputAction[EmoteCount];
 
-        public Vector2 Move => moveAction?.ReadValue<Vector2>() ?? Vector2.zero;
-        public Vector2 Look => IsCursorLocked ? lookAction?.ReadValue<Vector2>() ?? Vector2.zero : Vector2.zero;
-        public float Rotate => IsCursorLocked ? rotateAction?.ReadValue<float>() ?? 0f : 0f;
-        public bool IsPrimaryHeld => IsCursorLocked && primaryAction != null && primaryAction.IsPressed();
+        public Vector2 Move => GameCursor.IsLocked ? moveAction?.ReadValue<Vector2>() ?? Vector2.zero : Vector2.zero;
+        public Vector2 Look => GameCursor.IsLocked ? lookAction?.ReadValue<Vector2>() ?? Vector2.zero : Vector2.zero;
+        public float Rotate => GameCursor.IsLocked ? rotateAction?.ReadValue<float>() ?? 0f : 0f;
+        public bool IsPrimaryHeld => GameCursor.IsLocked && primaryAction != null && primaryAction.IsPressed();
 
         public event Action PrimaryPressed;
         public event Action PrimaryReleased;
@@ -39,15 +41,13 @@ namespace GuardVsMannequin.Player
         public event Action FlashlightPressed;
         public event Action<int> SpectateCycled;
 
-        /// <summary>커서가 잠겨 있을 때만 게임 입력을 처리한다. (ESC로 잠금 해제 시 HUD 조작 가능)</summary>
-        private static bool IsCursorLocked => Cursor.lockState == CursorLockMode.Locked;
-
         /// <summary>
-        /// 에셋을 복제해 액션을 찾는다. 복제본을 쓰면 다른 아바타와 상태가 섞이지 않는다.
+        /// 에셋을 복제해 저장된 키 바인딩을 적용하고 액션을 찾는다. 복제본을 쓰면 다른 아바타와 상태가 섞이지 않는다.
         /// </summary>
         private void Awake()
         {
             runtimeActions = Instantiate(inputActions);
+            OptionsStore.ApplyBindings(runtimeActions);
             InputActionMap map = runtimeActions.FindActionMap(PlayerMapName, true);
 
             moveAction = map.FindAction("Move", true);
@@ -58,13 +58,12 @@ namespace GuardVsMannequin.Player
             rotateAction = map.FindAction("Rotate", true);
             spectatePreviousAction = map.FindAction("SpectatePrevious", true);
             spectateNextAction = map.FindAction("SpectateNext", true);
-            toggleCursorAction = map.FindAction("ToggleCursor", true);
             for (int i = 0; i < EmoteCount; i++)
                 emoteActions[i] = map.FindAction($"Emote{i + 1}", true);
         }
 
         /// <summary>
-        /// 액션을 활성화하고 버튼 이벤트를 구독한다.
+        /// 액션을 활성화하고 버튼·설정 변경 이벤트를 구독한다. 게임을 시작하면 커서를 잠근다.
         /// </summary>
         private void OnEnable()
         {
@@ -74,12 +73,12 @@ namespace GuardVsMannequin.Player
             flashlightAction.performed += OnFlashlightPerformed;
             spectatePreviousAction.performed += OnSpectatePreviousPerformed;
             spectateNextAction.performed += OnSpectateNextPerformed;
-            toggleCursorAction.performed += OnToggleCursorPerformed;
             foreach (InputAction emote in emoteActions)
                 emote.performed += OnEmotePerformed;
+            OptionsStore.BindingsChanged += OnBindingsChanged;
 
             runtimeActions.Enable();
-            SetCursorLocked(true);
+            GameCursor.SetLocked(true);
         }
 
         /// <summary>
@@ -95,11 +94,11 @@ namespace GuardVsMannequin.Player
             flashlightAction.performed -= OnFlashlightPerformed;
             spectatePreviousAction.performed -= OnSpectatePreviousPerformed;
             spectateNextAction.performed -= OnSpectateNextPerformed;
-            toggleCursorAction.performed -= OnToggleCursorPerformed;
             foreach (InputAction emote in emoteActions)
                 emote.performed -= OnEmotePerformed;
+            OptionsStore.BindingsChanged -= OnBindingsChanged;
 
-            SetCursorLocked(false);
+            GameCursor.SetLocked(false);
         }
 
         /// <summary>
@@ -112,18 +111,17 @@ namespace GuardVsMannequin.Player
         }
 
         /// <summary>
-        /// 커서 잠금 상태를 설정한다.
+        /// 게임 중 설정 화면에서 키를 바꾸면 바로 적용한다.
         /// </summary>
-        private static void SetCursorLocked(bool locked)
+        private void OnBindingsChanged()
         {
-            Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = !locked;
+            OptionsStore.ApplyBindings(runtimeActions);
         }
 
         /// <summary>좌클릭 누름을 전달한다.</summary>
         private void OnPrimaryPerformed(InputAction.CallbackContext context)
         {
-            if (IsCursorLocked)
+            if (GameCursor.IsLocked)
                 PrimaryPressed?.Invoke();
         }
 
@@ -138,14 +136,14 @@ namespace GuardVsMannequin.Player
         /// </summary>
         private void OnSecondaryPerformed(InputAction.CallbackContext context)
         {
-            if (IsCursorLocked)
+            if (GameCursor.IsLocked)
                 SecondaryPressed?.Invoke();
         }
 
         /// <summary>손전등 키를 전달한다.</summary>
         private void OnFlashlightPerformed(InputAction.CallbackContext context)
         {
-            if (IsCursorLocked)
+            if (GameCursor.IsLocked)
                 FlashlightPressed?.Invoke();
         }
 
@@ -166,20 +164,12 @@ namespace GuardVsMannequin.Player
         /// </summary>
         private void OnEmotePerformed(InputAction.CallbackContext context)
         {
-            if (!IsCursorLocked)
+            if (!GameCursor.IsLocked)
                 return;
 
             int index = Array.IndexOf(emoteActions, context.action);
             if (index >= 0)
                 EmotePressed?.Invoke(index + 1);
-        }
-
-        /// <summary>
-        /// ESC로 커서 잠금을 전환한다. (Phase 6에서 설정 메뉴 열기로 대체)
-        /// </summary>
-        private void OnToggleCursorPerformed(InputAction.CallbackContext context)
-        {
-            SetCursorLocked(!IsCursorLocked);
         }
     }
 }

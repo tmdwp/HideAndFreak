@@ -13,8 +13,6 @@ namespace GuardVsMannequin.Core
     /// </summary>
     public class GameStateMachine : NetworkBehaviour, IGameStateContext, IGameStateProvider
     {
-        [SerializeField] private GameSettingsPreset settingsPreset;
-
         [Tooltip("IMatchRules를 구현한 컴포넌트. 비어 있으면 시간만으로 단계를 넘긴다.")]
         [SerializeField] private MonoBehaviour matchRulesComponent;
 
@@ -66,15 +64,12 @@ namespace GuardVsMannequin.Core
         }
 
         /// <summary>
-        /// 서버 시작 시 프리셋 설정으로 초기화하고 대기 상태에 진입한다.
+        /// 서버 시작 시 룸 설정(없으면 기본 설정 파일)으로 초기화하고 대기 상태에 진입한다.
         /// </summary>
         public override void OnStartServer()
         {
             base.OnStartServer();
-            if (settingsPreset == null)
-                Debug.LogWarning("[GameStateMachine] settingsPreset이 연결되지 않아 코드 기본값(GameSettings.CreateDefault)을 사용합니다.", this);
-
-            currentSettings.Value = settingsPreset != null ? settingsPreset.Settings : GameSettings.CreateDefault();
+            currentSettings.Value = GameServices.Room?.Settings ?? DefaultGameSettings.Load();
             handlers[GameState.Waiting].Enter(this);
         }
 
@@ -123,9 +118,8 @@ namespace GuardVsMannequin.Core
                 return false;
             }
 
-            // 룸에서 호스트가 정한 설정을 우선 사용하고, 룸 없이 실행하면 프리셋을 쓴다.
-            GameSettings baseSettings = GameServices.Room?.Settings
-                                        ?? (settingsPreset != null ? settingsPreset.Settings : GameSettings.CreateDefault());
+            // 룸에서 호스트가 정한 설정을 우선 사용하고, 룸 없이 실행하면 기본 설정 파일을 쓴다.
+            GameSettings baseSettings = GameServices.Room?.Settings ?? DefaultGameSettings.Load();
             currentSettings.Value = GameSettingsValidator.Validate(baseSettings, playerCount);
 
             ChangeState(GameState.Preparation);

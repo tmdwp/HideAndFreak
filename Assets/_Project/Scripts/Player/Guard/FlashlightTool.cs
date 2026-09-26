@@ -2,6 +2,7 @@ using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using GuardVsMannequin.Audio;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using UnityEngine;
 
 namespace GuardVsMannequin.Player.Guard
@@ -20,7 +21,7 @@ namespace GuardVsMannequin.Player.Guard
         private IPlayerInput playerInput;
         private NoiseEmitter noiseEmitter;
 
-        public string DisplayName => "손전등";
+        public string DisplayName => Loc.Get("tool.flashlight");
         public float CooldownRemaining => 0f;
         public bool IsReady => GameServices.CurrentStateOrWaiting == GameState.Hunting;
 

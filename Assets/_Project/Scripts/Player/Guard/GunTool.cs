@@ -1,6 +1,7 @@
 using FishNet.Object;
 using GuardVsMannequin.Audio;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using UnityEngine;
 
 namespace GuardVsMannequin.Player.Guard
@@ -26,7 +27,7 @@ namespace GuardVsMannequin.Player.Guard
         private float localNextFireTime;
         private float serverNextFireTime;
 
-        public string DisplayName => "총";
+        public string DisplayName => Loc.Get("tool.gun");
         public float CooldownRemaining => Mathf.Max(0f, localNextFireTime - Time.time);
         public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting);
 

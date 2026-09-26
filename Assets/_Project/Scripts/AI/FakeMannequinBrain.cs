@@ -45,13 +45,15 @@ namespace GuardVsMannequin.AI
         }
 
         /// <summary>
-        /// 서버에서 에이전트를 켜고 실제 마네킹과 같은 이동 속도를 적용한다.
+        /// 서버에서 에이전트를 켜고 실제 마네킹과 같은 이동 속도(게임 설정)를 적용한다.
         /// </summary>
         public override void OnStartServer()
         {
             base.OnStartServer();
             agent.enabled = true;
-            agent.speed = GameConstants.MannequinMoveSpeed;
+            float settingSpeed = GameServices.State?.Settings.mannequinMoveSpeed ?? 0f;
+            if (settingSpeed > 0f)
+                agent.speed = settingSpeed;
             agent.Warp(transform.position);
             ChooseNextAction();
         }

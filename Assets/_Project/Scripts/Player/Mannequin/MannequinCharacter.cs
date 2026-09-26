@@ -36,16 +36,14 @@ namespace GuardVsMannequin.Player.Mannequin
         public bool IsFirstPerson { get; private set; }
 
         /// <summary>
-        /// 마네킹 이동 속도와 회전 방식을 적용한다.
+        /// 회전 방식을 적용한다. (이동 속도는 MoveSpeedController가 게임 설정으로 적용)
         /// </summary>
         protected override void Awake()
         {
             base.Awake();
             SetRotationMode(RotationMode.OrientRotationToMovement);
-            maxWalkSpeed = GameConstants.MannequinMoveSpeed;
 
-            // 벽타기는 Flying 모드를 쓰므로 걷기와 같은 속도로 맞추고, 입력을 떼면 바로 멈추게 한다.
-            maxFlySpeed = GameConstants.MannequinMoveSpeed;
+            // 벽타기는 Flying 모드를 쓰므로 입력을 떼면 바로 멈추게 한다.
             brakingDecelerationFlying = 20f;
 
             cameraYaw = transform.eulerAngles.y;

@@ -13,6 +13,7 @@ using GuardVsMannequin.AI;
 using GuardVsMannequin.Audio;
 using GuardVsMannequin.Cameras;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using GuardVsMannequin.Map;
 using GuardVsMannequin.Network;
 using GuardVsMannequin.Objectives;
@@ -37,7 +38,8 @@ namespace GuardVsMannequin.Editor
 {
     /// <summary>
     /// 테스트 환경(머티리얼, 설정/사물 데이터, 프리팹, 테스트 씬)을 메뉴 한 번으로 생성한다.
-    /// 다시 실행하면 프리팹과 씬을 덮어써서 항상 같은 결과를 만든다. (게임 설정 프리셋은 유지)
+    /// 다시 실행하면 프리팹과 씬을 덮어써서 항상 같은 결과를 만든다.
+    /// (게임 설정·문장·크레딧은 Resources 폴더의 텍스트 파일이라 이 도구가 건드리지 않는다)
     /// </summary>
     public static class TestEnvironmentSetupTool
     {
@@ -48,7 +50,6 @@ namespace GuardVsMannequin.Editor
         private const string SceneFolder = RootFolder + "/Scenes";
 
         private const string InputActionsPath = RootFolder + "/Input/GameInput.inputactions";
-        private const string PresetPath = SoFolder + "/GameSettingsPreset.asset";
         private const string PropDatabasePath = SoFolder + "/PropDatabase_Test.asset";
         private const string GuardPrefabPath = PrefabFolder + "/Guard.prefab";
         private const string MannequinPrefabPath = PrefabFolder + "/Mannequin.prefab";
@@ -101,8 +102,12 @@ namespace GuardVsMannequin.Editor
                 return;
 
             EnsureFolders();
+
+            // 텍스트 데이터 파일(문장, 설정 항목)을 수정한 뒤 바로 실행해도 최신 내용으로 UI를 만든다.
+            Loc.Reload();
+            GameSettingDefinitions.ClearCache();
+
             Dictionary<string, Material> materials = CreateMaterials();
-            GameSettingsPreset preset = CreatePreset();
             InputActionAsset inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath);
             if (inputActions == null)
             {
@@ -124,13 +129,14 @@ namespace GuardVsMannequin.Editor
             RegisterSpawnablePrefabs(prefabs.guard, prefabs.mannequin, prefabs.generator, prefabs.fakeMannequin, roomStatePrefab);
 
             // 게임 씬 → 룸 씬 → 로비 씬(시작 씬) 순서로 만든다. 마지막에 로비 씬이 열린 상태로 끝난다.
-            CreateTestScene(preset, prefabs, materials, layoutPropIds, wallPieceId, noiseLibrary);
+            CreateTestScene(prefabs, materials, layoutPropIds, wallPieceId, noiseLibrary);
             MenuSceneBuilder.BuildRoomScene(RoomScenePath, AssetDatabase.LoadAssetAtPath<NetworkObject>(RoomStatePrefabPath));
             MenuSceneBuilder.BuildLobbyScene(LobbyScenePath, RoomScenePath,
                 AssetDatabase.LoadAssetAtPath<DefaultPrefabObjects>(DefaultPrefabObjectsPath));
 
             SetBuildScenes(LobbyScenePath, RoomScenePath, ScenePath);
             KeepLinearFogShaderVariants();
+            SteamBuildProcessor.EnsureRunInBackground();
 
             AssetDatabase.SaveAssets();
             Debug.Log("[TestSetup] 테스트 환경 생성 완료. 로비 씬에서 Play 하세요: " + LobbyScenePath);
@@ -138,6 +144,7 @@ namespace GuardVsMannequin.Editor
 
         /// <summary>
         /// 룸 상태 프리팹을 만든다. 전역(Global) 네트워크 오브젝트라 씬이 바뀌어도 유지된다.
+        /// (기본 게임 설정은 Resources/Data/default_game_settings.json에서 읽는다)
         /// </summary>
         private static NetworkObject CreateRoomStatePrefab()
         {
@@ -147,9 +154,7 @@ namespace GuardVsMannequin.Editor
             serialized.FindProperty("_isGlobal").boolValue = true;
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
-            RoomState roomState = root.AddComponent<RoomState>();
-            SetField(roomState, "defaultSettings", AssetDatabase.LoadAssetAtPath<GameSettingsPreset>(PresetPath));
-
+            root.AddComponent<RoomState>();
             return SavePrefab(root, RoomStatePrefabPath);
         }
 
@@ -224,20 +229,6 @@ namespace GuardVsMannequin.Editor
                 EditorUtility.SetDirty(material);
                 result[pair.Key] = material;
             }
-        }
-
-        /// <summary>
-        /// 기본 게임 설정 프리셋을 만든다. 이미 있으면 사용자가 편집한 값을 유지한다.
-        /// </summary>
-        private static GameSettingsPreset CreatePreset()
-        {
-            GameSettingsPreset preset = AssetDatabase.LoadAssetAtPath<GameSettingsPreset>(PresetPath);
-            if (preset != null)
-                return preset;
-
-            preset = ScriptableObject.CreateInstance<GameSettingsPreset>();
-            AssetDatabase.CreateAsset(preset, PresetPath);
-            return preset;
         }
 
         /// <summary>
@@ -381,6 +372,7 @@ namespace GuardVsMannequin.Editor
 
             SetField(character, "cameraPivot", cameraPivot);
             ConfigureOwnership(root, character, playerCamera, new Behaviour[] { inputReader, driver }, new[] { body, visor });
+            AddMoveSpeedController(root, PlayerRole.Guard);
 
             // 사격: 조준 → 소음 → 총 → 궤적 표시
             root.AddComponent<CameraAimProvider>();
@@ -439,6 +431,7 @@ namespace GuardVsMannequin.Editor
 
             SetField(character, "followTarget", followTarget);
             ConfigureOwnership(root, character, playerCamera, new Behaviour[] { inputReader, driver }, new Renderer[0]);
+            AddMoveSpeedController(root, PlayerRole.Mannequin);
 
             // 변신: 조준 → 변신 상태 → 외형 적용, 상호작용
             root.AddComponent<CameraAimProvider>();
@@ -471,6 +464,17 @@ namespace GuardVsMannequin.Editor
             AddViewSync(root, null, followTarget, isThirdPerson: true);
 
             return SavePrefab(root, MannequinPrefabPath);
+        }
+
+        /// <summary>
+        /// 게임 설정의 이동 속도를 적용하는 컴포넌트를 역할과 함께 추가한다.
+        /// </summary>
+        private static void AddMoveSpeedController(GameObject root, PlayerRole role)
+        {
+            MoveSpeedController speedController = root.AddComponent<MoveSpeedController>();
+            var serialized = new SerializedObject(speedController);
+            serialized.FindProperty("role").enumValueIndex = (int)role;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>
@@ -526,7 +530,8 @@ namespace GuardVsMannequin.Editor
             NavMeshAgent agent = root.AddComponent<NavMeshAgent>();
             agent.radius = 0.4f;
             agent.height = 1.8f;
-            agent.speed = GameConstants.MannequinMoveSpeed;
+            // 실제 속도는 FakeMannequinBrain이 게임 설정(마네킹 이동 속도)으로 다시 맞춘다.
+            agent.speed = 1.5f;
             agent.angularSpeed = 540f;
             agent.acceleration = 20f;
             agent.stoppingDistance = 0.1f;
@@ -780,7 +785,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 테스트 씬을 새로 만들어 저장한다.
         /// </summary>
-        private static void CreateTestScene(GameSettingsPreset preset, ScenePrefabs prefabs, Dictionary<string, Material> materials,
+        private static void CreateTestScene(ScenePrefabs prefabs, Dictionary<string, Material> materials,
             int[] layoutPropIds, int wallPieceId, NoiseLibrary noiseLibrary)
         {
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -802,7 +807,7 @@ namespace GuardVsMannequin.Editor
             CreateGeneratorSpawnPoints(mapRoot);
             NavMeshSurface navMeshSurface = CreateNavMeshSurface(mapRoot);
 
-            GameSystemsRefs systems = CreateGameSystems(preset, prefabs, navMeshSurface);
+            GameSystemsRefs systems = CreateGameSystems(prefabs, navMeshSurface);
             CreateUi(systems, spectator);
 
             // 경로가 없는 새 씬에서는 FishNet이 씬 ID를 만들지 않으므로, 먼저 저장해 경로를 확정한 뒤 ID를 생성한다.
@@ -1078,7 +1083,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 게임 진행에 필요한 서버 시스템을 가진 씬 네트워크 오브젝트를 만든다.
         /// </summary>
-        private static GameSystemsRefs CreateGameSystems(GameSettingsPreset preset, ScenePrefabs prefabs, NavMeshSurface navMeshSurface)
+        private static GameSystemsRefs CreateGameSystems(ScenePrefabs prefabs, NavMeshSurface navMeshSurface)
         {
             var systems = new GameObject("GameSystems");
             systems.AddComponent<NetworkObject>();
@@ -1095,9 +1100,6 @@ namespace GuardVsMannequin.Editor
             MatchSessionBridge sessionBridge = systems.AddComponent<MatchSessionBridge>();
             SetField(sessionBridge, "stateMachine", stateMachine);
 
-            // 새 씬을 만들 때 아무 프리팹도 참조하지 않는 에셋은 메모리에서 내려가므로 경로로 다시 불러온다.
-            // (이전 버전에서 이 때문에 프리셋 참조가 비어 SO 설정이 반영되지 않았음)
-            SetField(stateMachine, "settingsPreset", AssetDatabase.LoadAssetAtPath<GameSettingsPreset>(PresetPath));
             SetField(stateMachine, "matchRulesComponent", matchRules);
 
             SetField(playerSpawner, "stateMachine", stateMachine);
@@ -1135,9 +1137,14 @@ namespace GuardVsMannequin.Editor
         /// </summary>
         private static void CreateUi(GameSystemsRefs systems, SpectatorController spectator)
         {
-            var uiObject = new GameObject("UI");
+            // uGUI HUD와 ESC 메뉴(게임 중에는 닫을 때 커서를 다시 잠금)
+            EditorUiFactory.CreateEventSystem();
+            Canvas canvas = EditorUiFactory.CreateCanvas("HudCanvas");
+            canvas.gameObject.AddComponent<OsFontApplier>();
 
-            GameHud gameHud = uiObject.AddComponent<GameHud>();
+            GameHud gameHud = SharedUiBuilder.CreateGameHud(canvas.transform);
+            SharedUiBuilder.CreatePauseMenu(canvas.transform, lockCursorOnClose: true);
+
             SetField(gameHud, "stateMachine", systems.stateMachine);
             SetField(gameHud, "playerRegistry", systems.playerRegistry);
             SetField(gameHud, "objectiveTracker", systems.objectiveTracker);

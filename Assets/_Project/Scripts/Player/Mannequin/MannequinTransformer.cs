@@ -2,6 +2,7 @@ using System;
 using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using GuardVsMannequin.Player.Emotes;
 using GuardVsMannequin.Props;
 using UnityEngine;
@@ -42,7 +43,7 @@ namespace GuardVsMannequin.Player.Mannequin
         /// <summary>변신 중에는 감정 표현을 할 수 없다.</summary>
         public bool IsEmoteBlocked => IsDisguised;
 
-        public string DisplayName => "변신";
+        public string DisplayName => Loc.Get("tool.disguise");
         public float CooldownRemaining => Mathf.Max(0f, localCooldownEnd - Time.time);
         public bool IsReady => CooldownRemaining <= 0f && CanTransformIn(GameServices.CurrentStateOrWaiting);
 

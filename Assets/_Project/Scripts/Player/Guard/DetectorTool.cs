@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using FishNet.Object;
 using GuardVsMannequin.Audio;
 using GuardVsMannequin.Core;
+using GuardVsMannequin.Localization;
 using UnityEngine;
 
 namespace GuardVsMannequin.Player.Guard
@@ -25,7 +26,7 @@ namespace GuardVsMannequin.Player.Guard
         private float localNextUseTime;
         private float serverNextUseTime;
 
-        public string DisplayName => "탐지기";
+        public string DisplayName => Loc.Get("tool.detector");
         public float CooldownRemaining => Mathf.Max(0f, localNextUseTime - Time.time);
         public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting);
 
