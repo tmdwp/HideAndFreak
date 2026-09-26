@@ -8,9 +8,9 @@ namespace GuardVsMannequin.Player.Mannequin
 {
     /// <summary>
     /// 사냥 시간 마네킹의 근접 공격. 좌클릭 시 서버가 공격 범위(호스트 설정) 안의 가드를 판정한다.
-    /// 탐색 단계의 좌클릭(전원 장치 파괴)과는 게임 상태로 구분된다.
+    /// 탐색 단계의 좌클릭(전원 장치 파괴)과는 게임 상태로 구분된다. 변신 중에는 공격할 수 없다.
     /// </summary>
-    [RequireComponent(typeof(CameraAimProvider), typeof(NoiseEmitter))]
+    [RequireComponent(typeof(CameraAimProvider), typeof(NoiseEmitter), typeof(MannequinTransformer))]
     public class MannequinAttackTool : NetworkBehaviour, ITool
     {
         private const float CooldownTolerance = 0.15f;
@@ -21,12 +21,16 @@ namespace GuardVsMannequin.Player.Mannequin
         private IAimProvider aimProvider;
         private IPlayerInput playerInput;
         private NoiseEmitter noiseEmitter;
+        private MannequinTransformer transformer;
         private float localNextAttackTime;
         private float serverNextAttackTime;
 
         public string DisplayName => Loc.Get("tool.attack");
         public float CooldownRemaining => Mathf.Max(0f, localNextAttackTime - Time.time);
-        public bool IsReady => CooldownRemaining <= 0f && GameServices.CurrentStateOrWaiting == GameState.Hunting;
+        public bool IsReady => CooldownRemaining <= 0f && CanAttackNow;
+
+        /// <summary>사냥 시간이고 변신하지 않은 상태인지 여부.</summary>
+        private bool CanAttackNow => GameServices.CurrentStateOrWaiting == GameState.Hunting && !transformer.IsDisguised;
 
         /// <summary>호스트 설정의 공격 범위.</summary>
         private static float AttackRange => GameServices.State?.Settings.mannequinAttackRange ?? 2f;
@@ -39,6 +43,7 @@ namespace GuardVsMannequin.Player.Mannequin
             aimProvider = GetComponent<IAimProvider>();
             playerInput = GetComponent<IPlayerInput>();
             noiseEmitter = GetComponent<NoiseEmitter>();
+            transformer = GetComponent<MannequinTransformer>();
         }
 
         /// <summary>
@@ -80,7 +85,7 @@ namespace GuardVsMannequin.Player.Mannequin
         [ServerRpc]
         private void AttackServerRpc(Vector3 origin, Vector3 direction)
         {
-            if (GameServices.CurrentStateOrWaiting != GameState.Hunting)
+            if (!CanAttackNow)
                 return;
             if (Time.time < serverNextAttackTime - CooldownTolerance)
                 return;

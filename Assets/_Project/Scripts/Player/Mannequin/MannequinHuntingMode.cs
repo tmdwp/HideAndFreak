@@ -7,7 +7,7 @@ namespace GuardVsMannequin.Player.Mannequin
 {
     /// <summary>
     /// 사냥 시간 진입 시 마네킹을 사냥 모드로 바꾼다.
-    /// - 서버: 강제 변신 해제, 최대 체력 = 기본 체력 × huntHealthMultiplier (가득 채움)
+    /// - 서버: 강제 변신 해제(이후 다시 변신 가능), 최대 체력 = 기본 체력 × huntHealthMultiplier (가득 채움)
     /// - 소유자: 1인칭 전환(본인 몸은 그림자만), 제한된 시야(HuntVisionEffect)
     /// 동기화된 게임 상태를 보고 각자 한 번씩 적용한다.
     /// </summary>
@@ -21,6 +21,7 @@ namespace GuardVsMannequin.Player.Mannequin
         private MannequinTransformer transformer;
         private PlayerHealth health;
         private HuntVisionEffect huntVision;
+        private PropDisguiseView disguiseView;
         private bool serverApplied;
         private bool ownerApplied;
 
@@ -33,6 +34,7 @@ namespace GuardVsMannequin.Player.Mannequin
             transformer = GetComponent<MannequinTransformer>();
             health = GetComponent<PlayerHealth>();
             huntVision = GetComponent<HuntVisionEffect>();
+            disguiseView = GetComponent<PropDisguiseView>();
         }
 
         /// <summary>
@@ -73,6 +75,10 @@ namespace GuardVsMannequin.Player.Mannequin
 
             foreach (Renderer bodyRenderer in bodyRenderers)
                 bodyRenderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+
+            // 사냥 시간에 다시 변신해도 사물이 1인칭 시야를 가리지 않게 한다.
+            if (disguiseView != null)
+                disguiseView.SetDisguiseShadowsOnly(true);
 
             // 주변만 보이도록 시야를 제한한다. (본인 화면에만 적용)
             if (huntVision != null)

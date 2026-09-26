@@ -159,7 +159,7 @@ hud.spectate.target,{0} ({1})   ← / → : 관전 대상 전환,{0} ({1})   ←
 hud.guide.guard.playing,"[가드] 숨어 있는 마네킹을 찾아 제거하세요.  (좌클릭: 사격, 우클릭: 탐지기)","[Guard] Find and eliminate hidden mannequins.  (LMB: Fire, RMB: Detector)"
 hud.guide.guard.hunting,"[가드] 살아남거나 마네킹을 모두 제거하세요.  (좌클릭: 사격, 우클릭: 탐지기, E: 손전등)","[Guard] Survive or eliminate every mannequin.  (LMB: Fire, RMB: Detector, E: Flashlight)"
 hud.guide.mannequin.playing,"[마네킹] 전원 장치를 찾아 파괴하세요.\n(좌클릭 유지: 파괴, 우클릭: 변신/해제, Q/E: 변신 중 회전, 1~6: 감정 표현)","[Mannequin] Find and destroy the power units.\n(Hold LMB: Destroy, RMB: Disguise, Q/E: Rotate while disguised, 1-6: Emotes)"
-hud.guide.mannequin.hunting,"[마네킹] 가드를 모두 제거하세요.  (좌클릭: 공격, 1~6: 감정 표현)","[Mannequin] Eliminate every guard.  (LMB: Attack, 1-6: Emotes)"
+hud.guide.mannequin.hunting,"[마네킹] 가드를 모두 제거하세요.\n(좌클릭: 공격, 우클릭: 변신/해제, Q/E: 변신 중 회전, 1~6: 감정 표현)","[Mannequin] Eliminate every guard.\n(LMB: Attack, RMB: Disguise, Q/E: Rotate while disguised, 1-6: Emotes)"
 
 # 역할과 도구
 role.guard,가드,Guard

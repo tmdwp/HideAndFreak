@@ -157,7 +157,7 @@ namespace GuardVsMannequin.Player.Mannequin
         }
 
         /// <summary>
-        /// 쿨타임 없이 강제로 변신을 해제한다. 사냥 시간 진입 시 사용한다. (Phase 3)
+        /// 쿨타임 없이 강제로 변신을 해제한다. 사냥 시간 진입 시 사용하며, 이후 다시 변신할 수 있다.
         /// </summary>
         [Server]
         public void ForceUntransform()
@@ -166,11 +166,11 @@ namespace GuardVsMannequin.Player.Mannequin
         }
 
         /// <summary>
-        /// 변신이 가능한 상태인지 확인한다. (준비/탐색 단계만 가능)
+        /// 변신이 가능한 상태인지 확인한다. (준비/탐색/사냥 시간 가능)
         /// </summary>
         private static bool CanTransformIn(GameState state)
         {
-            return state == GameState.Preparation || state == GameState.Playing;
+            return state == GameState.Preparation || state == GameState.Playing || state == GameState.Hunting;
         }
 
         /// <summary>

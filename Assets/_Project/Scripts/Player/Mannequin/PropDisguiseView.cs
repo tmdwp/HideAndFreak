@@ -1,6 +1,7 @@
 using ECM2;
 using GuardVsMannequin.Props;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace GuardVsMannequin.Player.Mannequin
 {
@@ -25,6 +26,7 @@ namespace GuardVsMannequin.Player.Mannequin
         private MeshRenderer disguiseRenderer;
         private float defaultRadius;
         private float defaultHeight;
+        private bool disguiseShadowsOnly;
 
         /// <summary>
         /// 기본 충돌체 크기를 저장하고 변신 이벤트를 구독한다.
@@ -96,6 +98,25 @@ namespace GuardVsMannequin.Player.Mannequin
             disguiseObject.transform.SetParent(transform, false);
             disguiseFilter = disguiseObject.AddComponent<MeshFilter>();
             disguiseRenderer = disguiseObject.AddComponent<MeshRenderer>();
+            ApplyDisguiseShadowMode();
+        }
+
+        /// <summary>
+        /// 변신 외형을 그림자만 보이게 할지 정한다. 사냥 시간 1인칭에서 본인 화면에 사물이 가리지 않게 한다.
+        /// </summary>
+        public void SetDisguiseShadowsOnly(bool shadowsOnly)
+        {
+            disguiseShadowsOnly = shadowsOnly;
+            ApplyDisguiseShadowMode();
+        }
+
+        /// <summary>
+        /// 저장된 그림자 모드를 변신 외형 렌더러에 적용한다.
+        /// </summary>
+        private void ApplyDisguiseShadowMode()
+        {
+            if (disguiseRenderer != null)
+                disguiseRenderer.shadowCastingMode = disguiseShadowsOnly ? ShadowCastingMode.ShadowsOnly : ShadowCastingMode.On;
         }
 
         /// <summary>

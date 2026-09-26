@@ -274,8 +274,8 @@ public interface ITransformable { int PropId { get; } }
   - 체력 = `mannequinMaxHealth × huntHealthMultiplier` (현재 비율 유지 또는 가득 채움 중 선택, 기본은 **가득 채움**)
   - 이동 속도 2.2
   - 카메라 **1인칭 전환**
-  - 강제 변신 해제 및 변신 불가
-  - 좌클릭 = 공격 (`attackRange` 내 가드에게 서버 판정)
+  - 진입 시 강제 변신 해제, 이후 다시 변신 가능 (Phase 6에서 변경)
+  - 좌클릭 = 공격 (`attackRange` 내 가드에게 서버 판정, 변신 중에는 불가)
 - [x] 사냥 시간 타이머 → 종료 시 승패 판정
 
 **상태:** ✅ 검증 완료 (2026-09-25)
@@ -352,11 +352,12 @@ public interface ITransformable { int PropId { get; } }
 - [x] 다국어 (한국어/영어, CSV 열 추가로 언어 확장) — 설정 화면에서 언어 선택
 - [x] 룸 설정에 가드/마네킹 이동 속도 추가 (마네킹 사냥 시간 속도 = 기본 × 1.5)
 - [x] 사람이 관리하기 쉬운 데이터를 텍스트 파일로 분리 (문장, 크레딧, 게임 설정 기본값·범위)
+- [x] 사냥 시간에도 마네킹 변신 허용 (진입 시 강제 해제는 유지, 변신 중 공격 불가)
 - [ ] 정식 맵 제작 (천장 개방 맵은 투명 천장, 프롭 실루엣 문제는 의도된 재미로 유지) — 3D 에셋 준비 후 진행
 - [ ] 밸런스 조정, 최적화 (실시간 조명 개수, 네트워크 전송량)
 - [ ] (검토) TextMeshPro + 한글 폰트 에셋으로 UI 폰트 교체
 
-**상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리 검증 완료 / 다국어·이동 속도·데이터 파일 분리 검증 전
+**상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리·다국어·이동 속도 검증 완료 (2026-09-26) / 데이터 파일 분리·사냥 시간 변신 검증 전
 
 **구현 메모**
 - 개인 설정(`GameOptions`: 감도 배율, 전체/배경 음악/효과음 음량)과 키 바인딩은 `OptionsStore`가 **PlayerPrefs**(이 PC)에 저장한다. 호스트가 정하는 게임 설정(`GameSettings`)과는 별개다.
@@ -377,6 +378,7 @@ public interface ITransformable { int PropId { get; } }
   - 새 언어 추가: `strings.csv`에 열 추가(머리글 = 언어 코드, `language.name` 줄에 그 언어로 쓴 이름) → 설정 화면 언어 목록에 자동 표시. 크레딧은 `credits.<코드>.txt` 추가. 번역이 비어 있는 칸은 ko로 표시된다.
   - 한국어·영어 외에 한자/가나 등을 쓰는 언어는 `OsFontApplier`의 폰트가 글자를 지원하는지 확인해야 한다.
 - **이동 속도**: `MoveSpeedController`(가드/마네킹 프리팹)가 동기화된 이번 판 설정으로 `maxWalkSpeed`/`maxFlySpeed`(벽타기)를 맞추고, 마네킹은 사냥 시간에 1.5배로 바꾼다. 가짜 마네킹(NavMeshAgent)도 마네킹 기본 속도를 따른다.
+- **사냥 시간 변신**: `MannequinTransformer.CanTransformIn`에 `Hunting`을 추가했다. 진입 순간의 강제 해제(`MannequinHuntingMode`)는 그대로 두어 사냥 시간 시작 시 모두 본모습이 드러난다. 변신 중에는 탐색 단계의 상호작용처럼 공격도 막는다(`MannequinAttackTool`). 1인칭에서 사물 메시가 시야를 가리지 않도록 본인 화면에서는 변신 외형도 그림자만 그린다(`PropDisguiseView.SetDisguiseShadowsOnly`). 해제 쿨타임 5초는 동일하다.
 - 인스펙터 툴팁·개발용 로그는 한국어로 유지한다. (플레이어에게 보이지 않음)
 - HUD(`GameHud`)는 같은 표시 로직을 uGUI Text/패널로 옮겼다. UI는 모두 에디터 툴(`SharedUiBuilder`, `MenuSceneBuilder`)로 씬에 생성되어 인스펙터에서 편집할 수 있다.
 
@@ -389,8 +391,8 @@ public interface ITransformable { int PropId { get; } }
 ### 4.1 플러그인
 - [x] FishNet
 - [x] ECM2
-- [ ] Steamworks.NET
-- [ ] FishySteamworks
+- [x] Steamworks.NET
+- [x] FishySteamworks
 - [ ] 한글 폰트 (Noto Sans KR, TMP 폰트 에셋)
 - [ ] (선택) DOTween
 
