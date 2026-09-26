@@ -388,22 +388,31 @@ MonoBehaviour:
   _spectatorInterpolation: 2
   _enableTeleport: 0
   _teleportThreshold: 1
-  <PrefabId>k__BackingField: 65535
+  <PrefabId>k__BackingField: 9
   <SpawnableCollectionId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 9613717569316391230
   SceneId: 0
   SerializedTransformProperties:
     Position: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 0}
-    Scale: {x: 0, y: 0, z: 0}
-    IsValid: 0
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
+    Scale: {x: 1, y: 1, z: 1}
+    IsValid: 1
   <IsNested>k__BackingField: 0
   WasActiveDuringEdit: 0
   WasActiveDuringEdit_Set1: 1
   <ComponentIndex>k__BackingField: 0
   <PredictedSpawn>k__BackingField: {fileID: 0}
   <PredictedOwner>k__BackingField: {fileID: 0}
-  NetworkBehaviours: []
+  NetworkBehaviours:
+  - {fileID: 7101474927794631319}
+  - {fileID: 3987307489940972741}
+  - {fileID: 6612599555056097774}
+  - {fileID: 4545166632837510194}
+  - {fileID: 6610813240673784941}
+  - {fileID: 7421086410035561181}
+  - {fileID: 1705056848279936813}
+  - {fileID: 5390217533131719041}
+  - {fileID: 7077973463211331629}
   InitializedParentNetworkBehaviour: {fileID: 0}
   InitializedNestedNetworkObjects: []
   RuntimeParentNetworkBehaviour: {fileID: 0}
@@ -414,7 +423,7 @@ MonoBehaviour:
   _initializeOrder: 0
   _preventDespawnOnDisconnect: 0
   _defaultDespawnType: 0
-  _initializedTimestamp: 0
+  _initializedTimestamp: -8584111866306920969
 --- !u!114 &7101474927794631319
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -427,9 +436,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2836e36774ca1c4bbbee976e17b649c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FishNet.Runtime::FishNet.Component.Transforming.NetworkTransform
-  _componentIndexCache: 255
+  _componentIndexCache: 0
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
   _componentConfiguration: 0
   _synchronizeParent: 0
   _packing:
@@ -473,9 +482,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 131520701ad529845811bf964b41fb88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerIdentity
-  _componentIndexCache: 255
+  _componentIndexCache: 1
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
 --- !u!114 &6612599555056097774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -488,9 +497,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6de6d4443c6f3d44980bbc64a595f322, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerHealth
-  _componentIndexCache: 255
+  _componentIndexCache: 2
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
 --- !u!114 &6530848944518144842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -529,9 +538,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c95072ef33e015f418f0b1402ba96bb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerOwnershipSetup
-  _componentIndexCache: 255
+  _componentIndexCache: 3
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
   character: {fileID: 2251875300951767263}
   playerCamera: {fileID: 3009823042062335779}
   ownerOnlyBehaviours:
@@ -578,9 +587,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c53966364f0cad4c88e7ef48d4d52ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Audio.NoiseEmitter
-  _componentIndexCache: 255
+  _componentIndexCache: 4
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
   library: {fileID: 11400000, guid: ee319f26cc7916e48ba986d566c211df, type: 2}
 --- !u!114 &7421086410035561181
 MonoBehaviour:
@@ -594,9 +603,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0e7689f080edee489148f3a044ed541, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Guard.GunTool
-  _componentIndexCache: 255
+  _componentIndexCache: 5
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
   tracerView: {fileID: 3403385563672256298}
 --- !u!114 &1705056848279936813
 MonoBehaviour:
@@ -610,9 +619,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a05b7c2d1d71834aa73f3afc889dbe9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Guard.DetectorTool
-  _componentIndexCache: 255
+  _componentIndexCache: 6
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
   pulseView: {fileID: 3281218584104462359}
 --- !u!114 &5390217533131719041
 MonoBehaviour:
@@ -626,9 +635,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb8929cf2fcb73f408b2bbb3cd2428d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerViewSync
-  _componentIndexCache: 255
+  _componentIndexCache: 7
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
   pitchPivot: {fileID: 364191669701804959}
   remoteSmoothing: 15
 --- !u!114 &1658422639008677458
@@ -660,9 +669,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef3c779519f16d468bee03f8f58ad2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Guard.FlashlightTool
-  _componentIndexCache: 255
+  _componentIndexCache: 8
   _addedNetworkObject: {fileID: 5982477161353681102}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5982477161353681102}
   spotLight: {fileID: 7826898903791666731}
 --- !u!1 &4523014314682797257
 GameObject:
