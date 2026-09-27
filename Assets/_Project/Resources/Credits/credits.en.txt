@@ -1,6 +1,6 @@
 Guard vs Mannequin
 
-Design  Hornrabbit
+Design  HornRabbit
 Development  HornRabbit
 
 Third-party Assets
