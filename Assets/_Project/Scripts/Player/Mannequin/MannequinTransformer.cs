@@ -113,6 +113,20 @@ namespace GuardVsMannequin.Player.Mannequin
         private bool TryFindTargetProp(out int propId)
         {
             propId = PropDatabase.NoProp;
+            if (!TryGetAimedProp(out TransformableProp prop))
+                return false;
+
+            propId = prop.PropId;
+            return true;
+        }
+
+        /// <summary>
+        /// 지금 조준하고 있는 변신 가능 사물을 찾는다. (변신 사거리 안, 사물 목록에 있는 것만)
+        /// 외곽선 표시(<see cref="PropHighlighter"/>)도 같은 판정을 쓴다.
+        /// </summary>
+        public bool TryGetAimedProp(out TransformableProp prop)
+        {
+            prop = null;
             Ray aim = aimProvider.GetAimRay();
 
             // 3인칭 카메라가 몸 뒤에 있으므로 카메라-몸 거리만큼 사거리를 늘린다.
@@ -122,11 +136,12 @@ namespace GuardVsMannequin.Player.Mannequin
             if (Vector3.Distance(hit.point, transform.position) > GameConstants.TransformRange)
                 return false;
 
-            TransformableProp prop = hit.collider.GetComponentInParent<TransformableProp>();
+            prop = hit.collider.GetComponentInParent<TransformableProp>();
             if (prop == null || !Database.IsValid(prop.PropId))
+            {
+                prop = null;
                 return false;
-
-            propId = prop.PropId;
+            }
             return true;
         }
 

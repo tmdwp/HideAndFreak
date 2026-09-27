@@ -398,6 +398,14 @@ public interface ITransformable { int PropId { get; } }
 - **맵 자동 생성** (`GuardVsMannequin > 맵 생성`, `MapCatalog`의 순서 = 맵 번호): 원본 데모 씬을 가져와 정리(프리팹 연결 해제, 카메라·UI·에셋 스크립트 제거, 물리 고정) → 머티리얼 URP 변환(`UrpMaterialConverter`, 원본 에셋 머티리얼을 직접 바꿈) → 충돌체 없는 메시에 MeshCollider → 크기·이름 규칙으로 변신 사물/벽 조각 지정(맵 전용 `PropDatabase_<씬>`) → 임시 NavMesh로 플레이 가능한 바닥(실내 맵은 천장 있는 곳, 가장 넓게 이어진 영역)을 분석해 마네킹 스폰 10·전원 장치 후보 12·가드 출발 지점 5를 고르게 배치 → 조명을 실시간 MapLight로 바꾸고 부족하면 추가 → 투명 경계·천장, 맵 아래 닫힌 대기실 → 게임 시스템·HUD → 빌드 설정과 RoomState 맵 목록 등록.
   - 새 맵의 가드 대기실은 맵과 떨어져 있어, 탐색 단계 시작 시 `GuardReleaseTeleporter`가 가드를 `GuardReleasePoint`로 옮긴다(`MovementValidator.ServerTeleport`). 테스트 맵은 출발 지점이 없어 기존처럼 문이 열린다.
   - 빌드 설정에 없는 맵을 고르면 `RoomState`가 테스트 맵으로 대신한다.
+- **맵 크기**: 걸을 수 있는 바닥이 800㎡보다 좁은 맵은 생성 시 환경 전체를 키운다(최대 2.5배, 조명 범위도 함께). `MapCatalog`의 `scale`에 값을 넣으면 그 배율로 고정된다(0 = 자동).
+- **전원 장치 배치**: 생성 시 후보 12개를 서로 최대한 멀리 배치하고, 매 판 `GeneratorSpawner`가 후보 중 서로 먼 것을 고른다(가장 먼 상위 3개 중 무작위). 편집은 `GuardVsMannequin > 맵 편집` 메뉴(씬 뷰 중앙에 전원 장치 후보·마네킹 스폰·가드 출발 지점 추가, 전원 장치 후보 넓게 다시 배치)나 씬에서 직접 옮기기·복제로 한다. 후보는 씬 뷰에 빨간 상자와 이름표로 보인다.
+- **캐릭터 애니메이션 규칙** (`CharacterAnimatorParameters`): 외형 컨트롤러에 `Speed`/`MoveX`/`MoveZ`(Float), `Attack`/`Shoot`/`Hit`(Trigger), `Emote1`~`Emote6`(Trigger) 또는 `Emote`(Trigger)+`EmoteId`(Int)를 만들면 게임이 자동으로 사용한다. 없는 파라미터는 건너뛰며, 감정 표현 애니메이션이 없으면 절차적 움직임으로 대신한다(`AnimatorEmoteView` → `ProceduralEmoteView`).
+- **리볼버 위치**: 모두 매 프레임 적용되므로 Play 중에 맞춘다.
+  - 1인칭 총(카메라 기준, 외형과 무관): Guard 프리팹의 `GuardWeaponView`. Play 중 맞춘 뒤 Copy Component → 프리팹에 Paste Component Values.
+  - 3인칭 총·조준 IK 손 위치(외형마다 다름): 외형 에셋 `Skin_*.asset`의 **Weapon Grip**. 에셋이라 Play 중 바꾼 값이 그대로 저장되고, '캐릭터·무기 에셋 생성'을 다시 실행해도 유지된다. 외형이 없는 가드는 `GuardWeaponView`의 예비 값(fallbackGrip)을 쓴다.
+- **총알 이펙트**: `ShotTracerView`의 총알·명중·총구 화염 밝기와 크기 배율(기본 0.35~0.4 / 0.4~0.6)로 조정한다. 파티클 시작 색의 RGB·알파와 시작 크기에 곱한다.
+- **변신 사물 외곽선**: 마네킹 본인 화면에서 조준 중인 변신 가능 사물(변신 판정과 같은 조건)에 `GuardVsMannequin/PropOutline` 셰이더로 화면 기준 일정한 두께의 외곽선을 그린다(`PropHighlighter`). 색·두께는 `Art/Materials/M_PropOutline`에서 조정. 변신 사물은 외곽선이 원래 메시를 써야 하므로 정적 배칭에서 제외한다.
 - **맵 최적화** (`GuardVsMannequin > 맵 최적화`, 맵 생성 시 자동 실행): 투명 경계 밖(실내 3m·실외 12m 여유)의 환경 오브젝트와 꺼진 오브젝트를 지우고, 남은 환경에 Occludee·정적 배칭 플래그(1m 이상 불투명 메시는 Occluder)를 준 뒤, 플레이 영역을 덮는 Occlusion Area로 오클루전 컬링을 굽는다. 수동으로 옮긴 스폰·전원 장치 배치는 건드리지 않는다.
 - **빌드 최적화 설정** (`GuardVsMannequin > 빌드 최적화 설정 적용`): 셰이더 변형이 4천 개 넘게 나와 첫 빌드가 1시간 이상 걸리던 문제로, PC URP 에셋의 라이트 쿠키·라이트 레이어·LOD 크로스페이드·반사 프로브 블렌딩/박스 투영·부드러운 그림자를 끄고 캐스케이드를 2개로 줄이며, SSAO를 끄고, Windows 그래픽 API를 Direct3D11만 쓰게 한다. (손전등용 추가 조명 그림자는 유지. Mobile 품질 레벨은 원래 PC 빌드에서 제외되어 있음)
 - 새로 추가된 외부 에셋 중 Unity 6에서 컴파일되지 않던 옛 스크립트(Standard Assets `Utility` 3개와 에디터 스크립트 2개, Flooded_Grounds PostProcessing 에디터 2개)는 제거된 API만 대체 API로 바꿨다. (파일마다 "GuardVsMannequin 프로젝트 수정" 주석)

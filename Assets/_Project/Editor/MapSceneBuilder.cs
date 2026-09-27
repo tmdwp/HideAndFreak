@@ -34,13 +34,17 @@ namespace GuardVsMannequin.Editor
     {
         private const int FloorSampleCount = 600;
         private const int MannequinSpawnCount = 10;
+        // 자동 크기 조정: 걸을 수 있는 바닥이 이보다 좁으면 환경을 키운다. (최대 10명 기준)
+        private const float MinFloorArea = 800f;
+        private const float MaxAutoScale = 2.5f;
+
         // 룸 설정의 전원 장치 수 최댓값(game_settings.csv)과 맞춘다.
-        private const int GeneratorCandidateCount = 12;
+        internal const int GeneratorCandidateCount = 12;
         private const int GuardReleaseCount = 5;
         private const int WaitingRoomSpawnCount = 5;
 
         private const float SpawnEdgeClearance = 0.5f;
-        private const float GeneratorEdgeClearance = 1.0f;
+        internal const float GeneratorEdgeClearance = 1.0f;
         private const float IndoorCeilingCheck = 12f;
         private const float WaitingRoomDepth = 60f;
         private const float LampSpacingArea = 70f;
@@ -134,11 +138,14 @@ namespace GuardVsMannequin.Editor
             int colliders = AddMissingColliders(environment);
             Physics.SyncTransforms();
 
-            PropDatabase propDatabase = CreatePropDatabase(map, environment, out int propCount, out int wallCount);
-
             NavMeshSurface navMeshSurface = mapRoot.gameObject.AddComponent<NavMeshSurface>();
             navMeshSurface.collectObjects = CollectObjects.Children;
             navMeshSurface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
+
+            // 작은 맵은 환경 전체를 키운다. (변신 사물 크기도 커진 상태로 등록되도록 사물 목록보다 먼저)
+            float mapScale = ScaleEnvironment(map, environment, navMeshSurface);
+
+            PropDatabase propDatabase = CreatePropDatabase(map, environment, out int propCount, out int wallCount);
 
             List<Vector3> floor = SampleFloorPoints(navMeshSurface, map.indoor);
             Bounds playArea = GetPlayArea(floor, environment);
@@ -184,7 +191,7 @@ namespace GuardVsMannequin.Editor
             EditorSceneManager.SaveScene(scene);
 
             Debug.Log($"[MapSceneBuilder] {map.displayName} 완료: {map.ScenePath}\n" +
-                      $"머티리얼 변환 {converted}개, 충돌체 추가 {colliders}개, 변신 사물 {propCount}개(벽 {wallCount}개), " +
+                      $"맵 크기 배율 {mapScale:F2}, 머티리얼 변환 {converted}개, 충돌체 추가 {colliders}개, 변신 사물 {propCount}개(벽 {wallCount}개), " +
                       $"바닥 샘플 {floor.Count}개, 조명 추가 {addedLamps}개. 스폰·전원 장치·출발 지점 위치를 씬에서 확인하세요.");
         }
 
@@ -345,6 +352,42 @@ namespace GuardVsMannequin.Editor
 
         #endregion
 
+        #region 맵 크기
+
+        /// <summary>
+        /// 환경을 키울 배율을 정해 적용한다. 적용한 배율을 반환한다.
+        /// - MapCatalog의 scale이 0보다 크면 그 값을 그대로 쓴다.
+        /// - 0이면 걸을 수 있는 바닥 넓이를 재서 <see cref="MinFloorArea"/>보다 좁을 때만 넓이가 맞도록 키운다. (최대 <see cref="MaxAutoScale"/>배)
+        /// 조명의 범위도 같은 배율로 늘린다. (Light.range는 트랜스폼 크기의 영향을 받지 않으므로)
+        /// </summary>
+        private static float ScaleEnvironment(MapCatalog.Entry map, Transform environment, NavMeshSurface surface)
+        {
+            float factor = map.scale;
+            if (factor <= 0f)
+            {
+                List<Vector3> floor = SampleFloorPoints(surface, map.indoor);
+                float area = EstimateFloorArea(floor);
+                factor = area > 0f && area < MinFloorArea ? Mathf.Clamp(Mathf.Sqrt(MinFloorArea / area), 1f, MaxAutoScale) : 1f;
+                surface.RemoveData();
+                surface.navMeshData = null;
+                Debug.Log($"[MapSceneBuilder] {map.displayName}: 바닥 넓이 약 {area:F0}㎡ → 배율 {factor:F2}");
+            }
+
+            if (Mathf.Approximately(factor, 1f))
+                return 1f;
+
+            environment.localScale *= factor;
+            foreach (Light sceneLight in environment.GetComponentsInChildren<Light>(true))
+            {
+                if (sceneLight.type != LightType.Directional)
+                    sceneLight.range *= factor;
+            }
+            Physics.SyncTransforms();
+            return factor;
+        }
+
+        #endregion
+
         #region 변신 사물
 
         /// <summary>
@@ -477,7 +520,7 @@ namespace GuardVsMannequin.Editor
         /// 벽에 너무 붙은 점, (실내 맵이면) 천장이 없는 점을 버리고, 가장 넓게 이어진 영역의 점만 남긴다.
         /// (지붕 위처럼 떨어진 곳을 제외하기 위함)
         /// </summary>
-        private static List<Vector3> SampleFloorPoints(NavMeshSurface surface, bool indoor)
+        internal static List<Vector3> SampleFloorPoints(NavMeshSurface surface, bool indoor)
         {
             surface.BuildNavMesh();
             NavMeshTriangulation triangulation = NavMesh.CalculateTriangulation();
@@ -587,7 +630,7 @@ namespace GuardVsMannequin.Editor
         /// 서로 최대한 멀리 떨어진 점을 개수만큼 고른다. (가장 먼 점 샘플링)
         /// 가장자리 여유가 부족한 점은 제외한다.
         /// </summary>
-        private static List<Vector3> PickSpread(List<Vector3> points, int count, float edgeClearance)
+        internal static List<Vector3> PickSpread(List<Vector3> points, int count, float edgeClearance)
         {
             List<Vector3> candidates = points
                 .Where(p => !NavMeshEdgeTooClose(p, edgeClearance))
@@ -661,7 +704,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 컴포넌트 하나를 가진 표식 오브젝트를 만든다.
         /// </summary>
-        private static void CreateMarker<T>(Transform parent, string name, Vector3 position, Quaternion rotation) where T : Component
+        internal static void CreateMarker<T>(Transform parent, string name, Vector3 position, Quaternion rotation) where T : Component
         {
             var marker = new GameObject(name);
             marker.transform.SetParent(parent, false);
@@ -720,7 +763,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 바닥 점이 덮는 대략적인 넓이. (2m 격자 칸 수)
         /// </summary>
-        private static float EstimateFloorArea(List<Vector3> floor)
+        internal static float EstimateFloorArea(List<Vector3> floor)
         {
             var cells = new HashSet<Vector2Int>();
             foreach (Vector3 point in floor)

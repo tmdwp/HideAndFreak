@@ -22,6 +22,7 @@ namespace GuardVsMannequin.Player.Mannequin
         private IPlayerInput playerInput;
         private NoiseEmitter noiseEmitter;
         private MannequinTransformer transformer;
+        private CharacterSkinView skinView;
         private float localNextAttackTime;
         private float serverNextAttackTime;
 
@@ -44,6 +45,7 @@ namespace GuardVsMannequin.Player.Mannequin
             playerInput = GetComponent<IPlayerInput>();
             noiseEmitter = GetComponent<NoiseEmitter>();
             transformer = GetComponent<MannequinTransformer>();
+            skinView = GetComponent<CharacterSkinView>();
         }
 
         /// <summary>
@@ -129,6 +131,10 @@ namespace GuardVsMannequin.Player.Mannequin
         {
             if (noiseEmitter != null)
                 noiseEmitter.PlayLocal(NoiseType.MannequinAttack);
+
+            // 외형 애니메이터에 Attack 트리거가 있을 때만 공격 동작을 재생한다.
+            if (skinView != null)
+                skinView.TryPlayTrigger(CharacterAnimatorParameters.Attack);
         }
     }
 }

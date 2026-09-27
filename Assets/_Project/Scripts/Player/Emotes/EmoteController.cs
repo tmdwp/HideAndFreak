@@ -11,7 +11,7 @@ namespace GuardVsMannequin.Player.Emotes
     /// </summary>
     public class EmoteController : NetworkBehaviour
     {
-        private IEmoteView emoteView;
+        private IEmoteView[] emoteViews;
         private IPlayerInput playerInput;
         private IEmoteBlocker emoteBlocker;
         private float serverEmoteEndTime;
@@ -21,7 +21,8 @@ namespace GuardVsMannequin.Player.Emotes
         /// </summary>
         private void Awake()
         {
-            emoteView = GetComponent<IEmoteView>();
+            // 컴포넌트 순서가 우선순위다. (애니메이터 → 절차적 움직임)
+            emoteViews = GetComponents<IEmoteView>();
             playerInput = GetComponent<IPlayerInput>();
             emoteBlocker = GetComponent<IEmoteBlocker>();
         }
@@ -85,12 +86,16 @@ namespace GuardVsMannequin.Player.Emotes
         }
 
         /// <summary>
-        /// 각 클라이언트에서 뷰로 재생한다.
+        /// 각 클라이언트에서 뷰를 순서대로 시도해 처음 성공한 것 하나만 재생한다.
         /// </summary>
         [ObserversRpc]
         private void PlayObserversRpc(int emoteId)
         {
-            emoteView?.Play(emoteId);
+            foreach (IEmoteView view in emoteViews)
+            {
+                if (view.TryPlay(emoteId))
+                    return;
+            }
         }
     }
 

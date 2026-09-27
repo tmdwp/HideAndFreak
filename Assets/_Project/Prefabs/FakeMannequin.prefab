@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 7137689041672274275}
   - component: {fileID: 7462747130078977980}
   - component: {fileID: 4096921918795631912}
+  - component: {fileID: 5526137077378984936}
   - component: {fileID: 3036224662530216448}
   - component: {fileID: 1953861562713653213}
   - component: {fileID: 9041401759454440322}
@@ -312,6 +313,18 @@ MonoBehaviour:
   fallbackRenderers:
   - {fileID: 950902452075273297}
   - {fileID: 3136479973127028540}
+--- !u!114 &5526137077378984936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3512893968821901109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 849319fed8c5e5543ae4f8283b66d1d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Emotes.AnimatorEmoteView
 --- !u!114 &3036224662530216448
 MonoBehaviour:
   m_ObjectHideFlags: 0

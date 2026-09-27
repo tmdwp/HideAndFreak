@@ -4,7 +4,8 @@ using UnityEngine;
 namespace GuardVsMannequin.Player.Emotes
 {
     /// <summary>
-    /// 애니메이션 에셋 없이 본체 트랜스폼을 움직여 감정 표현을 보여주는 임시 구현.
+    /// 애니메이션 에셋 없이 본체 트랜스폼을 움직여 감정 표현을 보여주는 대체 구현.
+    /// 외형 애니메이터에 감정 표현이 있으면 <see cref="AnimatorEmoteView"/>가 먼저 재생하고 이것은 쓰이지 않는다.
     /// 1: 점프, 2: 회전, 3: 좌우 흔들기, 4: 인사(앞으로 숙이기), 5: 떨기, 6: 웅크리기
     /// </summary>
     public class ProceduralEmoteView : MonoBehaviour, IEmoteView
@@ -29,12 +30,13 @@ namespace GuardVsMannequin.Player.Emotes
         }
 
         /// <summary>
-        /// 감정 표현을 처음부터 재생한다.
+        /// 감정 표현을 처음부터 재생한다. 애니메이션이 없을 때의 대체 수단이므로 항상 성공한다.
         /// </summary>
-        public void Play(int emoteId)
+        public bool TryPlay(int emoteId)
         {
             currentEmote = emoteId;
             elapsed = 0f;
+            return true;
         }
 
         /// <summary>

@@ -29,6 +29,12 @@ namespace GuardVsMannequin.Editor
             /// <summary>실내 맵이면 true. 천장이 있는 바닥만 플레이 영역으로 본다.</summary>
             public bool indoor;
 
+            /// <summary>
+            /// 환경 크기 배율. 0이면 자동(바닥이 좁은 맵만 키움), 0보다 크면 그 배율로 고정.
+            /// 맵이 작거나 크다고 느껴지면 이 값을 바꾸고 '맵 생성'을 다시 실행한다.
+            /// </summary>
+            public float scale;
+
             /// <summary>생성된 씬의 경로.</summary>
             public string ScenePath => $"{TestEnvironmentSetupTool.SceneFolder}/{sceneName}.unity";
         }

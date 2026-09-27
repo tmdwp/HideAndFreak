@@ -37,6 +37,14 @@ namespace GuardVsMannequin.Player.Guard
         [Tooltip("총알 이펙트의 이동 속도(m/s). 판정은 즉시 끝나므로 보기 좋은 속도로 둔다.")]
         [SerializeField] private float bulletSpeed = 90f;
 
+        [Header("이펙트 밝기·크기 (1 = 원본, Play 중 수정하면 다음 사격부터 반영)")]
+        [Range(0f, 1f)] [SerializeField] private float bulletBrightness = 0.35f;
+        [Range(0.1f, 2f)] [SerializeField] private float bulletScale = 0.6f;
+        [Range(0f, 1f)] [SerializeField] private float hitBrightness = 0.4f;
+        [Range(0.1f, 2f)] [SerializeField] private float hitScale = 0.6f;
+        [Range(0f, 1f)] [SerializeField] private float muzzleFlashBrightness = 0.35f;
+        [Range(0.1f, 2f)] [SerializeField] private float muzzleFlashScale = 0.4f;
+
         private LineRenderer lineRenderer;
         private float tracerHideTime;
         private float impactHideTime;
@@ -95,14 +103,16 @@ namespace GuardVsMannequin.Player.Guard
             {
                 // 총과 함께 움직이도록 총구에 붙인다.
                 GameObject flash = Instantiate(muzzleFlashPrefab, start.position, start.rotation, start);
+                EffectTuning.Apply(flash, muzzleFlashBrightness, muzzleFlashScale);
                 Destroy(flash, EffectLifetime);
             }
 
             if (bulletPrefab != null)
             {
                 GameObject bullet = Instantiate(bulletPrefab, startPosition, Quaternion.LookRotation(endPoint - startPosition + Vector3.forward * 0.0001f));
+                EffectTuning.Apply(bullet, bulletBrightness, bulletScale);
                 BulletEffect effect = bullet.AddComponent<BulletEffect>();
-                effect.Launch(endPoint, bulletSpeed, didHit ? hitPrefab : null);
+                effect.Launch(endPoint, bulletSpeed, didHit ? hitPrefab : null, hitBrightness, hitScale);
                 return;
             }
 

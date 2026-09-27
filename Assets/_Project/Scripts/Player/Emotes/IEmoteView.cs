@@ -2,14 +2,15 @@ namespace GuardVsMannequin.Player.Emotes
 {
     /// <summary>
     /// 감정 표현을 화면에 재생한다.
-    /// 지금은 절차적 움직임(<see cref="ProceduralEmoteView"/>)이고, 애니메이션 에셋 도입 시 Animator 구현으로 교체한다.
+    /// 오브젝트에 여러 구현이 있으면 컴포넌트 순서대로 시도해 처음 성공한 것만 재생한다.
+    /// (애니메이터 → 절차적 움직임 순서: 애니메이션이 없으면 절차적 움직임으로 대신)
     /// </summary>
     public interface IEmoteView
     {
         /// <summary>
-        /// 감정 표현을 재생한다.
+        /// 감정 표현을 재생한다. 재생할 수 없으면 false를 반환해 다음 구현에 넘긴다.
         /// </summary>
         /// <param name="emoteId">1부터 시작하는 감정 표현 번호.</param>
-        void Play(int emoteId);
+        bool TryPlay(int emoteId);
     }
 }

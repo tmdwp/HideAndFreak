@@ -24,6 +24,7 @@ namespace GuardVsMannequin.Player.Guard
         private IAimProvider aimProvider;
         private IPlayerInput playerInput;
         private NoiseEmitter noiseEmitter;
+        private CharacterSkinView skinView;
         private float localNextFireTime;
         private float serverNextFireTime;
 
@@ -42,6 +43,7 @@ namespace GuardVsMannequin.Player.Guard
             aimProvider = GetComponent<IAimProvider>();
             noiseEmitter = GetComponent<NoiseEmitter>();
             playerInput = GetComponent<IPlayerInput>();
+            skinView = GetComponent<CharacterSkinView>();
         }
 
         /// <summary>
@@ -119,6 +121,10 @@ namespace GuardVsMannequin.Player.Guard
             // 사격 RPC가 이미 모든 클라이언트에 전달되므로 소음은 추가 전송 없이 로컬 재생한다.
             if (noiseEmitter != null)
                 noiseEmitter.PlayLocal(NoiseType.GunShot);
+
+            // 외형 애니메이터에 Shoot 트리거가 있을 때만 사격 동작을 재생한다.
+            if (skinView != null)
+                skinView.TryPlayTrigger(CharacterAnimatorParameters.Shoot);
         }
     }
 }

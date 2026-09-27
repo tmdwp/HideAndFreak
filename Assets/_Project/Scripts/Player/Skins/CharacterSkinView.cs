@@ -10,14 +10,11 @@ namespace GuardVsMannequin.Player
     /// - 외형: 맵(<see cref="MapInfo"/>)이 역할별 외형을 지정하면 그것을, 아니면 기본 외형을 쓴다.
     ///   외형이 없으면 기본 도형(fallbackRenderers)을 그대로 보여준다.
     /// - 애니메이션: 위치 변화로 속도를 계산하므로 원격 아바타·가짜 마네킹에서도 동작한다.
-    ///   애니메이터에 있는 파라미터(Speed, MoveX, MoveZ)만 설정한다.
+    ///   애니메이터에 있는 파라미터만 설정한다. (이름 규칙: <see cref="CharacterAnimatorParameters"/>)
     /// 몸체 렌더러는 <see cref="BodyRenderers"/>로 제공한다. (변신 숨김, 1인칭 그림자 처리에 사용)
     /// </summary>
     public class CharacterSkinView : MonoBehaviour
     {
-        private const string SpeedParameter = "Speed";
-        private const string MoveXParameter = "MoveX";
-        private const string MoveZParameter = "MoveZ";
         private const float VelocitySmoothing = 12f;
 
         [Tooltip("맵에서 외형을 고를 때 사용할 역할.")]
@@ -37,6 +34,7 @@ namespace GuardVsMannequin.Player
         private Renderer[] bodyRenderers;
         private Animator animator;
         private HandAimIK aimIK;
+        private CharacterSkin activeSkin;
         private Vector3 lastPosition;
         private Vector3 smoothedVelocity;
         private bool isApplied;
@@ -48,6 +46,16 @@ namespace GuardVsMannequin.Player
             {
                 EnsureApplied();
                 return bodyRenderers;
+            }
+        }
+
+        /// <summary>적용된 외형. 외형 없이 기본 도형을 쓰면 null.</summary>
+        public CharacterSkin ActiveSkin
+        {
+            get
+            {
+                EnsureApplied();
+                return activeSkin;
             }
         }
 
@@ -87,9 +95,40 @@ namespace GuardVsMannequin.Player
             smoothedVelocity = Vector3.Lerp(smoothedVelocity, velocity, 1f - Mathf.Exp(-VelocitySmoothing * Time.deltaTime));
             Vector3 local = transform.InverseTransformDirection(smoothedVelocity);
 
-            SetFloatIfExists(SpeedParameter, smoothedVelocity.magnitude);
-            SetFloatIfExists(MoveXParameter, local.x);
-            SetFloatIfExists(MoveZParameter, local.z);
+            SetFloatIfExists(CharacterAnimatorParameters.Speed, smoothedVelocity.magnitude);
+            SetFloatIfExists(CharacterAnimatorParameters.MoveX, local.x);
+            SetFloatIfExists(CharacterAnimatorParameters.MoveZ, local.z);
+        }
+
+        /// <summary>
+        /// 애니메이터에 해당 이름의 파라미터가 있는지 확인한다.
+        /// </summary>
+        public bool HasParameter(string parameterName)
+        {
+            EnsureApplied();
+            return animator != null && animatorParameters.Contains(parameterName);
+        }
+
+        /// <summary>
+        /// 트리거가 있으면 발동하고 true, 없으면 아무것도 하지 않고 false. (애니메이션이 없는 외형은 건너뜀)
+        /// </summary>
+        public bool TryPlayTrigger(string triggerName)
+        {
+            if (!HasParameter(triggerName))
+                return false;
+            animator.SetTrigger(triggerName);
+            return true;
+        }
+
+        /// <summary>
+        /// 정수 파라미터가 있으면 설정하고 true.
+        /// </summary>
+        public bool TrySetInteger(string parameterName, int value)
+        {
+            if (!HasParameter(parameterName))
+                return false;
+            animator.SetInteger(parameterName, value);
+            return true;
         }
 
         /// <summary>
@@ -113,6 +152,15 @@ namespace GuardVsMannequin.Player
         }
 
         /// <summary>
+        /// 조준 IK의 오른손 위치(조준 기준 좌표)를 지정한다. 외형이 IK를 쓰지 않으면 무시된다.
+        /// </summary>
+        public void SetAimHandOffset(Vector3 handOffset)
+        {
+            if (aimIK != null)
+                aimIK.HandOffset = handOffset;
+        }
+
+        /// <summary>
         /// 외형을 한 번만 적용한다. 다른 컴포넌트가 Awake 순서와 관계없이 렌더러를 조회할 수 있게 한다.
         /// </summary>
         private void EnsureApplied()
@@ -128,6 +176,7 @@ namespace GuardVsMannequin.Player
                 return;
             }
 
+            activeSkin = skin;
             Transform parent = visualRoot != null ? visualRoot : transform;
             GameObject model = Instantiate(skin.modelPrefab, parent, false);
             model.name = skin.modelPrefab.name;

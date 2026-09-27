@@ -10,6 +10,10 @@ namespace GuardVsMannequin.Player.Guard
     /// - 다른 플레이어: 외형의 오른손에 3인칭 총을 들려 조준 방향으로 향하게 한다.
     /// 사격 연출은 <see cref="Muzzle"/>(보는 사람 기준 총구)에서 시작한다.
     /// 총 모델 프리팹은 "캐릭터·무기 에셋 생성" 도구가 총구가 +Z를 향하고 Muzzle 자식을 갖도록 만든다.
+    ///
+    /// 위치 조정 (값은 매 프레임 적용되므로 Play 중 바꾸며 맞출 수 있다)
+    /// - 1인칭 총: 카메라 기준이라 외형과 무관 → 이 컴포넌트의 값. Play 중 맞춘 뒤 Copy Component → 프리팹에 Paste Component Values.
+    /// - 3인칭 총·조준 IK 손 위치: 외형마다 다름 → 외형 에셋(Skin_*.asset)의 Weapon Grip. 에셋이라 Play 중 바꾼 값이 그대로 저장된다.
     /// </summary>
     public class GuardWeaponView : NetworkBehaviour
     {
@@ -24,8 +28,14 @@ namespace GuardVsMannequin.Player.Guard
         [Tooltip("조준 방향 기준. (카메라 피벗, 원격 아바타는 동기화된 상하 시선이 적용된다)")]
         [SerializeField] private Transform aimPivot;
 
-        [Tooltip("손 뼈 기준 3인칭 총 위치 보정(조준 방향 좌표).")]
-        [SerializeField] private Vector3 handOffset = new Vector3(0f, 0.02f, 0.06f);
+        [Header("1인칭 총 위치 (카메라 기준)")]
+        [SerializeField] private Vector3 firstPersonPosition = new Vector3(0.18f, -0.2f, 0.3f);
+        [SerializeField] private Vector3 firstPersonRotation = Vector3.zero;
+        [SerializeField] private float firstPersonScale = 1f;
+
+        [Header("3인칭 총 위치 (외형이 없을 때만 사용)")]
+        [Tooltip("손 위치는 외형마다 다르므로 보통 외형 에셋(Skin_*.asset)의 Weapon Grip을 쓴다. 외형이 없을 때만 이 값을 쓴다.")]
+        [SerializeField] private WeaponGrip fallbackGrip = new WeaponGrip();
 
         private CharacterSkinView skinView;
         private Transform firstPersonMuzzle;
@@ -41,7 +51,6 @@ namespace GuardVsMannequin.Player.Guard
         /// </summary>
         private void Awake()
         {
-            skinView = GetComponent<CharacterSkinView>();
             if (firstPersonGun != null)
                 firstPersonMuzzle = FindMuzzle(firstPersonGun);
 
@@ -53,6 +62,7 @@ namespace GuardVsMannequin.Player.Guard
                 thirdPersonMuzzle = FindMuzzle(thirdPersonGun);
             }
 
+            skinView = GetComponent<CharacterSkinView>();
             if (skinView != null)
             {
                 skinView.SetAimSource(aimPivot);
@@ -88,18 +98,60 @@ namespace GuardVsMannequin.Player.Guard
         }
 
         /// <summary>
-        /// 애니메이션(IK 포함)이 끝난 뒤 3인칭 총을 손 위치로 옮기고 조준 방향으로 향하게 한다.
+        /// 애니메이션(IK 포함)이 끝난 뒤 총 위치를 적용한다. 인스펙터 값을 매 프레임 반영한다.
         /// </summary>
         private void LateUpdate()
         {
+            WeaponGrip grip = CurrentGrip;
+            if (skinView != null)
+                skinView.SetAimHandOffset(grip.ikHandPosition);
+
+            if (firstPersonGun != null)
+            {
+                firstPersonGun.localPosition = firstPersonPosition;
+                firstPersonGun.localRotation = Quaternion.Euler(firstPersonRotation);
+                firstPersonGun.localScale = Vector3.one * firstPersonScale;
+            }
+
             if (thirdPersonGun == null || aimPivot == null)
                 return;
 
-            Quaternion aimRotation = aimPivot.rotation;
-            Vector3 position = rightHand != null
-                ? rightHand.position + aimRotation * handOffset
-                : aimPivot.position + aimRotation * new Vector3(0.2f, -0.3f, 0.4f);
-            thirdPersonGun.SetPositionAndRotation(position, aimRotation);
+            thirdPersonGun.localScale = Vector3.one * grip.gunScale;
+            if (rightHand == null)
+            {
+                // 휴머노이드가 아니면 카메라 피벗 오른쪽 아래에 둔다.
+                thirdPersonGun.SetPositionAndRotation(aimPivot.TransformPoint(new Vector3(0.2f, -0.3f, 0.4f)), aimPivot.rotation);
+                return;
+            }
+
+            Quaternion baseRotation = grip.followHandRotation ? rightHand.rotation : aimPivot.rotation;
+            thirdPersonGun.SetPositionAndRotation(rightHand.position + baseRotation * grip.handPositionOffset,
+                baseRotation * Quaternion.Euler(grip.handRotationOffset));
+        }
+
+        /// <summary>
+        /// 적용된 외형의 손 위치 설정. 외형이 없으면 이 컴포넌트의 예비 설정.
+        /// (매 프레임 읽으므로 Play 중 외형 에셋 값을 바꾸면 바로 반영된다)
+        /// </summary>
+        private WeaponGrip CurrentGrip
+        {
+            get
+            {
+                CharacterSkin skin = skinView != null ? skinView.ActiveSkin : null;
+                return skin != null && skin.weaponGrip != null ? skin.weaponGrip : fallbackGrip;
+            }
+        }
+
+        /// <summary>
+        /// 선택했을 때 씬 뷰에 총구 위치를 표시한다. (위치 조정용)
+        /// </summary>
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.red;
+            if (firstPersonMuzzle != null)
+                Gizmos.DrawWireSphere(firstPersonMuzzle.position, 0.02f);
+            if (thirdPersonMuzzle != null)
+                Gizmos.DrawWireSphere(thirdPersonMuzzle.position, 0.03f);
         }
     }
 }

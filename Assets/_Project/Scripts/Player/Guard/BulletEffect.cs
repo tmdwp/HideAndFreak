@@ -15,6 +15,8 @@ namespace GuardVsMannequin.Player.Guard
         private Vector3 target;
         private float speed;
         private GameObject hitPrefab;
+        private float hitBrightness = 1f;
+        private float hitScale = 1f;
         private bool arrived;
 
         /// <summary>
@@ -23,11 +25,15 @@ namespace GuardVsMannequin.Player.Guard
         /// <param name="targetPoint">도착 지점.</param>
         /// <param name="moveSpeed">이동 속도(m/s).</param>
         /// <param name="hitEffectPrefab">도착 시 남길 이펙트. 없으면 null.</param>
-        public void Launch(Vector3 targetPoint, float moveSpeed, GameObject hitEffectPrefab)
+        /// <param name="hitEffectBrightness">명중 이펙트 밝기 배율.</param>
+        /// <param name="hitEffectScale">명중 이펙트 크기 배율.</param>
+        public void Launch(Vector3 targetPoint, float moveSpeed, GameObject hitEffectPrefab, float hitEffectBrightness, float hitEffectScale)
         {
             target = targetPoint;
             speed = Mathf.Max(1f, moveSpeed);
             hitPrefab = hitEffectPrefab;
+            hitBrightness = hitEffectBrightness;
+            hitScale = hitEffectScale;
         }
 
         /// <summary>
@@ -46,6 +52,7 @@ namespace GuardVsMannequin.Player.Guard
             if (hitPrefab != null)
             {
                 GameObject hit = Instantiate(hitPrefab, target, Quaternion.LookRotation(-transform.forward));
+                EffectTuning.Apply(hit, hitBrightness, hitScale);
                 Destroy(hit, HitLifetime);
             }
 

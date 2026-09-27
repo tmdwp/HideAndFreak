@@ -255,6 +255,18 @@ namespace GuardVsMannequin.Editor
             lampOn.SetColor("_EmissionColor", new Color(1f, 0.95f, 0.85f) * 3f);
             lampOn.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             EditorUtility.SetDirty(lampOn);
+
+            // 변신 가능 사물 외곽선: 색과 두께(픽셀)는 이 머티리얼에서 조정한다. 이미 있으면 사용자가 바꾼 값을 유지한다.
+            string outlinePath = $"{MaterialFolder}/M_PropOutline.mat";
+            Material outline = AssetDatabase.LoadAssetAtPath<Material>(outlinePath);
+            if (outline == null)
+            {
+                outline = new Material(Shader.Find("GuardVsMannequin/PropOutline"));
+                outline.SetColor("_OutlineColor", new Color(1f, 0.9f, 0.4f, 1f));
+                outline.SetFloat("_OutlineWidth", 1.5f);
+                AssetDatabase.CreateAsset(outline, outlinePath);
+            }
+            result["PropOutline"] = outline;
             return result;
         }
 
@@ -498,6 +510,10 @@ namespace GuardVsMannequin.Editor
 
             root.AddComponent<MannequinInteractor>();
 
+            // 조준한 변신 가능 사물에 외곽선 표시 (본인 화면만)
+            PropHighlighter highlighter = root.AddComponent<PropHighlighter>();
+            SetField(highlighter, "outlineMaterial", materials["PropOutline"]);
+
             // Phase 2: 소음(탐지/변신 중 주기 소음), 벽타기, 감정 표현
             AddNoiseEmitter(root, noiseLibrary);
             root.AddComponent<DisguiseNoiseEmitter>();
@@ -636,6 +652,10 @@ namespace GuardVsMannequin.Editor
             SetField(skinView, "defaultSkin", AssetDatabase.LoadAssetAtPath<CharacterSkin>(defaultSkinPath));
             SetField(skinView, "visualRoot", visualRoot);
             SetArray(skinView, "fallbackRenderers", fallback);
+
+            // 체력이 있는 아바타는 피격 시 Hit 트리거를 발동한다. (가짜 마네킹은 체력이 없음)
+            if (root.GetComponent<PlayerHealth>() != null)
+                root.AddComponent<HitReactionAnimator>();
         }
 
         /// <summary>
@@ -668,6 +688,8 @@ namespace GuardVsMannequin.Editor
         /// </summary>
         private static void AddEmotes(GameObject root, Transform visual)
         {
+            // 순서가 우선순위: 외형 애니메이터에 감정 표현이 있으면 그것을, 없으면 절차적 움직임을 쓴다.
+            root.AddComponent<AnimatorEmoteView>();
             ProceduralEmoteView emoteView = root.AddComponent<ProceduralEmoteView>();
             SetField(emoteView, "body", visual);
             root.AddComponent<EmoteController>();
@@ -1296,6 +1318,10 @@ namespace GuardVsMannequin.Editor
         {
             TransformableProp prop = target.AddComponent<TransformableProp>();
             prop.SetPropId(propId);
+
+            // 정적 배칭으로 합쳐지면 실행 중 메시가 합쳐진 메시로 바뀌어 외곽선 표시가 맵 전체에 그려진다.
+            StaticEditorFlags flags = GameObjectUtility.GetStaticEditorFlags(target);
+            GameObjectUtility.SetStaticEditorFlags(target, flags & ~StaticEditorFlags.BatchingStatic);
         }
 
         /// <summary>

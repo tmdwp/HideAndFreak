@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GuardVsMannequin.Props;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -234,7 +235,13 @@ namespace GuardVsMannequin.Editor
                     continue;
 
                 StaticEditorFlags flags = GameObjectUtility.GetStaticEditorFlags(target.gameObject);
-                flags |= StaticEditorFlags.OccludeeStatic | StaticEditorFlags.BatchingStatic;
+                flags |= StaticEditorFlags.OccludeeStatic;
+
+                // 변신 사물은 외곽선 표시가 원래 메시를 써야 하므로 정적 배칭에서 뺀다.
+                if (target.GetComponent<TransformableProp>() == null)
+                    flags |= StaticEditorFlags.BatchingStatic;
+                else
+                    flags &= ~StaticEditorFlags.BatchingStatic;
 
                 Vector3 size = target.bounds.size;
                 bool large = Mathf.Max(size.x, size.y, size.z) >= OccluderMinSize;

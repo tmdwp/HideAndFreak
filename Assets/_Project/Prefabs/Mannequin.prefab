@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 2863810353114395617}
   - component: {fileID: 8597384182301706604}
   - component: {fileID: 8982155293469663719}
+  - component: {fileID: 5785353184681625617}
   - component: {fileID: 5575777677741418536}
   - component: {fileID: 178145158723463962}
   - component: {fileID: 1253789041520945570}
@@ -27,10 +28,12 @@ GameObject:
   - component: {fileID: 2325282995815847103}
   - component: {fileID: 9486479044456953}
   - component: {fileID: 996527292708218019}
+  - component: {fileID: 553451606137133066}
   - component: {fileID: 2646054283718179590}
   - component: {fileID: 9040296370836314556}
   - component: {fileID: 3947446186194541744}
   - component: {fileID: 4579842159026776760}
+  - component: {fileID: 3303560899435614600}
   - component: {fileID: 257246070984453191}
   - component: {fileID: 4571227541005378936}
   - component: {fileID: 4950935256107480423}
@@ -394,6 +397,18 @@ MonoBehaviour:
   fallbackRenderers:
   - {fileID: 5027871171780702361}
   - {fileID: 2495850511174593684}
+--- !u!114 &5785353184681625617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0691c0493d2c3544ba295d3d297d7084, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.HitReactionAnimator
 --- !u!114 &5575777677741418536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -508,6 +523,22 @@ MonoBehaviour:
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 5274660207253486401}
   _networkObjectCache: {fileID: 0}
+--- !u!114 &553451606137133066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27966ffb548e26f4f9581b023b44493e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.PropHighlighter
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 5274660207253486401}
+  _networkObjectCache: {fileID: 0}
+  outlineMaterial: {fileID: 2100000, guid: 4a3ea67eb1707134f933b0303b4d8c78, type: 2}
 --- !u!114 &2646054283718179590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -568,6 +599,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.DisguiseRotationAbility
   rotateSpeed: 120
+--- !u!114 &3303560899435614600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 849319fed8c5e5543ae4f8283b66d1d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Emotes.AnimatorEmoteView
 --- !u!114 &257246070984453191
 MonoBehaviour:
   m_ObjectHideFlags: 0

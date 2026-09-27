@@ -9,13 +9,15 @@ namespace GuardVsMannequin.Player
     [RequireComponent(typeof(Animator))]
     public class HandAimIK : MonoBehaviour
     {
-        private static readonly Vector3 HandOffset = new Vector3(0.18f, -0.15f, 0.45f);
         private const float LookDistance = 10f;
 
         private Animator animator;
 
         /// <summary>조준 방향 기준. (가드의 카메라 피벗) 없으면 IK를 쓰지 않는다.</summary>
         public Transform AimSource { get; set; }
+
+        /// <summary>조준 기준 좌표의 오른손 위치. (GuardWeaponView가 인스펙터 값으로 매 프레임 지정)</summary>
+        public Vector3 HandOffset { get; set; } = new Vector3(0.18f, -0.15f, 0.45f);
 
         /// <summary>
         /// 애니메이터를 캐시한다.

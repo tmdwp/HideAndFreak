@@ -49,7 +49,7 @@ namespace GuardVsMannequin.Objectives
         }
 
         /// <summary>
-        /// 후보 위치를 섞어 앞에서부터 count개에 전원 장치를 생성한다.
+        /// 후보 위치 중 서로 멀리 떨어진 count개를 골라 전원 장치를 생성한다.
         /// </summary>
         private void SpawnGenerators(int count)
         {
@@ -62,10 +62,9 @@ namespace GuardVsMannequin.Objectives
                 count = spawnPoints.Count;
             }
 
-            Shuffle(spawnPoints);
-            for (int i = 0; i < count; i++)
+            foreach (GeneratorSpawnPoint spawnPoint in PickSpread(count))
             {
-                Transform point = spawnPoints[i].transform;
+                Transform point = spawnPoint.transform;
                 NetworkObject instance = Instantiate(generatorPrefab, point.position, point.rotation);
                 ServerManager.Spawn(instance);
 
@@ -85,6 +84,43 @@ namespace GuardVsMannequin.Objectives
                     ServerManager.Despawn(generator);
             }
             spawnedGenerators.Clear();
+        }
+
+        /// <summary>
+        /// 넓게 퍼지도록 후보를 고른다. 첫 위치는 무작위, 이후에는 이미 고른 위치들과 가장 먼 후보를 고른다.
+        /// 매 판 같은 배치가 되지 않도록 가장 먼 후보 상위 몇 개 중에서 무작위로 고른다.
+        /// </summary>
+        private List<GeneratorSpawnPoint> PickSpread(int count)
+        {
+            const int topChoices = 3;
+            var remaining = new List<GeneratorSpawnPoint>(spawnPoints);
+            Shuffle(remaining);
+            var chosen = new List<GeneratorSpawnPoint>();
+            if (count <= 0 || remaining.Count == 0)
+                return chosen;
+
+            chosen.Add(remaining[0]);
+            remaining.RemoveAt(0);
+            while (chosen.Count < count && remaining.Count > 0)
+            {
+                remaining.Sort((a, b) => NearestChosenDistance(b, chosen).CompareTo(NearestChosenDistance(a, chosen)));
+                int index = Random.Range(0, Mathf.Min(topChoices, remaining.Count));
+                chosen.Add(remaining[index]);
+                remaining.RemoveAt(index);
+            }
+            return chosen;
+        }
+
+        /// <summary>
+        /// 이미 고른 위치들 중 가장 가까운 것까지의 거리(제곱).
+        /// </summary>
+        private static float NearestChosenDistance(GeneratorSpawnPoint candidate, List<GeneratorSpawnPoint> chosen)
+        {
+            float nearest = float.MaxValue;
+            Vector3 position = candidate.transform.position;
+            foreach (GeneratorSpawnPoint point in chosen)
+                nearest = Mathf.Min(nearest, (point.transform.position - position).sqrMagnitude);
+            return nearest;
         }
 
         /// <summary>

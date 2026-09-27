@@ -121,9 +121,40 @@ Transform:
   m_Children:
   - {fileID: 8522724368732855940}
   - {fileID: 8764221185249543946}
-  - {fileID: 4326926920663943527}
+  - {fileID: 5185383054832918870}
   - {fileID: 9026349189377418366}
   m_Father: {fileID: 6441984490329226975}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2938723179133701284
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5185383054832918870}
+  m_Layer: 0
+  m_Name: Muzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5185383054832918870
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2938723179133701284}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.25, y: -0.2, z: 0.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 364191669701804959}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3154698559590718275
 GameObject:
@@ -148,6 +179,7 @@ GameObject:
   - component: {fileID: 8921748799592083599}
   - component: {fileID: 6090368242269027633}
   - component: {fileID: 5347145407046371073}
+  - component: {fileID: 7160363665501068462}
   - component: {fileID: 6292148516769558274}
   - component: {fileID: 3184271152891881263}
   - component: {fileID: 6610813240673784941}
@@ -564,6 +596,18 @@ MonoBehaviour:
   fallbackRenderers:
   - {fileID: 5266408112472218372}
   - {fileID: 5991925537653547114}
+--- !u!114 &7160363665501068462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3154698559590718275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0691c0493d2c3544ba295d3d297d7084, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.HitReactionAnimator
 --- !u!114 &6292148516769558274
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -582,7 +626,14 @@ MonoBehaviour:
   firstPersonGun: {fileID: 8764221185249543946}
   thirdPersonGunPrefab: {fileID: 3553825433406614452, guid: d266346ac73803740a659f82a3b20130, type: 3}
   aimPivot: {fileID: 364191669701804959}
-  handOffset: {x: 0, y: 0.02, z: 0.06}
+  firstPersonPosition: {x: 0.18, y: -0.2, z: 0.3}
+  firstPersonRotation: {x: 0, y: 0, z: 0}
+  firstPersonScale: 1
+  followHandRotation: 0
+  handPositionOffset: {x: 0, y: 0.02, z: 0.06}
+  handRotationOffset: {x: 0, y: 0, z: 0}
+  thirdPersonScale: 1
+  ikHandPosition: {x: 0.18, y: -0.15, z: 0.45}
 --- !u!114 &3184271152891881263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -784,37 +835,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &5572761270228438589
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4326926920663943527}
-  m_Layer: 0
-  m_Name: Muzzle
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4326926920663943527
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5572761270228438589}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.25, y: -0.2, z: 0.4}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 364191669701804959}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6528258453963101051
 GameObject:
   m_ObjectHideFlags: 0
@@ -1238,12 +1258,18 @@ MonoBehaviour:
   tracerDuration: 0.15
   impactDuration: 0.4
   weaponView: {fileID: 6292148516769558274}
-  muzzle: {fileID: 4326926920663943527}
+  muzzle: {fileID: 5185383054832918870}
   impactMarker: {fileID: 4618841909441591536}
   bulletPrefab: {fileID: 3488899618961192495, guid: cc43894aafa349e4982e8d0be98c5f12, type: 3}
   hitPrefab: {fileID: 8428584151837272525, guid: b72e7c982f4c9c345a174b6910ea5841, type: 3}
   muzzleFlashPrefab: {fileID: 2019486499795581864, guid: 2248359051ce1f943bc5c0e82352b590, type: 3}
   bulletSpeed: 90
+  bulletBrightness: 0.35
+  bulletScale: 0.6
+  hitBrightness: 0.4
+  hitScale: 0.6
+  muzzleFlashBrightness: 0.35
+  muzzleFlashScale: 0.4
 --- !u!1 &7201990657220987551
 GameObject:
   m_ObjectHideFlags: 0
@@ -1254,6 +1280,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9026349189377418366}
   - component: {fileID: 7826898903791666731}
+  - component: {fileID: 2781153292325548001}
   m_Layer: 0
   m_Name: Flashlight
   m_TagString: Untagged
@@ -1341,6 +1368,35 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &2781153292325548001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7201990657220987551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &8913971548358168456
 GameObject:
   m_ObjectHideFlags: 0

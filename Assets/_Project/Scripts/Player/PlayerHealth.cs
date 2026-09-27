@@ -21,6 +21,9 @@ namespace GuardVsMannequin.Player
         /// <summary>서버에서 체력이 0이 되었을 때. (사망자, 공격자)</summary>
         public event Action<PlayerHealth, NetworkObject> ServerDied;
 
+        /// <summary>체력이 줄었을 때. 각 피어에서 한 번씩 호출된다. (피격 애니메이션 등 연출용)</summary>
+        public event Action Damaged;
+
         public int CurrentHealth => currentHealth.Value;
         public int MaxHealth => maxHealth.Value;
         public bool IsAlive => currentHealth.Value > 0;
@@ -32,6 +35,26 @@ namespace GuardVsMannequin.Player
         private void Awake()
         {
             identity = GetComponent<PlayerIdentity>();
+            currentHealth.OnChange += OnCurrentHealthChanged;
+        }
+
+        /// <summary>
+        /// 동기화 콜백을 해제한다.
+        /// </summary>
+        private void OnDestroy()
+        {
+            currentHealth.OnChange -= OnCurrentHealthChanged;
+        }
+
+        /// <summary>
+        /// 체력이 줄었으면 피어마다 한 번만 알린다. (호스트는 클라이언트 콜백에서만 처리)
+        /// </summary>
+        private void OnCurrentHealthChanged(int prev, int next, bool asServer)
+        {
+            if (asServer && IsClientInitialized)
+                return;
+            if (next < prev)
+                Damaged?.Invoke();
         }
 
         /// <summary>
