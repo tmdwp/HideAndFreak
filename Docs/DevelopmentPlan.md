@@ -398,6 +398,8 @@ public interface ITransformable { int PropId { get; } }
 - **맵 자동 생성** (`GuardVsMannequin > 맵 생성`, `MapCatalog`의 순서 = 맵 번호): 원본 데모 씬을 가져와 정리(프리팹 연결 해제, 카메라·UI·에셋 스크립트 제거, 물리 고정) → 머티리얼 URP 변환(`UrpMaterialConverter`, 원본 에셋 머티리얼을 직접 바꿈) → 충돌체 없는 메시에 MeshCollider → 크기·이름 규칙으로 변신 사물/벽 조각 지정(맵 전용 `PropDatabase_<씬>`) → 임시 NavMesh로 플레이 가능한 바닥(실내 맵은 천장 있는 곳, 가장 넓게 이어진 영역)을 분석해 마네킹 스폰 10·전원 장치 후보 12·가드 출발 지점 5를 고르게 배치 → 조명을 실시간 MapLight로 바꾸고 부족하면 추가 → 투명 경계·천장, 맵 아래 닫힌 대기실 → 게임 시스템·HUD → 빌드 설정과 RoomState 맵 목록 등록.
   - 새 맵의 가드 대기실은 맵과 떨어져 있어, 탐색 단계 시작 시 `GuardReleaseTeleporter`가 가드를 `GuardReleasePoint`로 옮긴다(`MovementValidator.ServerTeleport`). 테스트 맵은 출발 지점이 없어 기존처럼 문이 열린다.
   - 빌드 설정에 없는 맵을 고르면 `RoomState`가 테스트 맵으로 대신한다.
+- **맵 최적화** (`GuardVsMannequin > 맵 최적화`, 맵 생성 시 자동 실행): 투명 경계 밖(실내 3m·실외 12m 여유)의 환경 오브젝트와 꺼진 오브젝트를 지우고, 남은 환경에 Occludee·정적 배칭 플래그(1m 이상 불투명 메시는 Occluder)를 준 뒤, 플레이 영역을 덮는 Occlusion Area로 오클루전 컬링을 굽는다. 수동으로 옮긴 스폰·전원 장치 배치는 건드리지 않는다.
+- **빌드 최적화 설정** (`GuardVsMannequin > 빌드 최적화 설정 적용`): 셰이더 변형이 4천 개 넘게 나와 첫 빌드가 1시간 이상 걸리던 문제로, PC URP 에셋의 라이트 쿠키·라이트 레이어·LOD 크로스페이드·반사 프로브 블렌딩/박스 투영·부드러운 그림자를 끄고 캐스케이드를 2개로 줄이며, SSAO를 끄고, Windows 그래픽 API를 Direct3D11만 쓰게 한다. (손전등용 추가 조명 그림자는 유지. Mobile 품질 레벨은 원래 PC 빌드에서 제외되어 있음)
 - 새로 추가된 외부 에셋 중 Unity 6에서 컴파일되지 않던 옛 스크립트(Standard Assets `Utility` 3개와 에디터 스크립트 2개, Flooded_Grounds PostProcessing 에디터 2개)는 제거된 API만 대체 API로 바꿨다. (파일마다 "GuardVsMannequin 프로젝트 수정" 주석)
 - 인스펙터 툴팁·개발용 로그는 한국어로 유지한다. (플레이어에게 보이지 않음)
 - HUD(`GameHud`)는 같은 표시 로직을 uGUI Text/패널로 옮겼다. UI는 모두 에디터 툴(`SharedUiBuilder`, `MenuSceneBuilder`)로 씬에 생성되어 인스펙터에서 편집할 수 있다.

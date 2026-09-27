@@ -177,6 +177,9 @@ namespace GuardVsMannequin.Editor
             // 경로가 있어야 FishNet이 씬 ID를 만들므로 먼저 저장한다.
             EditorSceneManager.SaveScene(scene, map.ScenePath);
             TestEnvironmentSetupTool.GenerateNetworkSceneIds(scene);
+
+            // 경계 밖·꺼진 오브젝트 제거, 정적 플래그, 오클루전 컬링 굽기 (저장된 경로가 필요)
+            MapOptimizer.Optimize(scene, map.indoor);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
 
