@@ -23,7 +23,7 @@ namespace GuardVsMannequin.Room
         [SerializeField] private string roomSceneName = "Room";
 
         [Tooltip("맵 ID 순서대로의 게임 씬 이름.")]
-        [SerializeField] private string[] gameSceneNames = { "Game_Test" };
+        [SerializeField] private string[] gameSceneNames = { "Game_Test", "Map_Asylum", "Map_Industrial", "Map_Hospital", "Map_AlchemistHouse" };
 
         private readonly SyncVar<GameSettings> settings = new();
         private readonly SyncDictionary<int, RoomMember> members = new();
@@ -308,7 +308,15 @@ namespace GuardVsMannequin.Room
         private string GetGameSceneName()
         {
             int index = Mathf.Clamp(settings.Value.mapId, 0, gameSceneNames.Length - 1);
-            return gameSceneNames[index];
+            string sceneName = gameSceneNames[index];
+
+            // 아직 만들지 않았거나 빌드 설정에 없는 맵이면 첫 번째 맵(테스트 맵)으로 대신한다.
+            if (!Application.CanStreamedLevelBeLoaded(sceneName))
+            {
+                Debug.LogWarning($"[RoomState] 맵 씬 '{sceneName}'이 빌드 설정에 없어 '{gameSceneNames[0]}'을 사용합니다. 'GuardVsMannequin/맵 생성'을 실행하세요.");
+                return gameSceneNames[0];
+            }
+            return sceneName;
         }
 
         /// <summary>

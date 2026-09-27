@@ -66,7 +66,7 @@ namespace GuardVsMannequin.Room
         /// <summary>CSV를 읽지 못했거나 빠진 항목에 쓰는 기본 정의.</summary>
         private static readonly Definition[] fallbackDefinitions =
         {
-            new(GameSettingId.Map, 1f, 0f, 0f, string.Empty),
+            new(GameSettingId.Map, 1f, 0f, 4f, string.Empty),
             new(GameSettingId.PreparationTime, 5f, GameSettingsValidator.MinPreparationTime, GameSettingsValidator.MaxPreparationTime, "unit.seconds"),
             new(GameSettingId.PlayTime, 30f, GameSettingsValidator.MinPlayTime, GameSettingsValidator.MaxPlayTime, "unit.seconds"),
             new(GameSettingId.HuntTime, 15f, 30f, 180f, "unit.seconds"),
@@ -203,16 +203,29 @@ namespace GuardVsMannequin.Room
         /// </summary>
         private static List<Definition> LoadDefinitions()
         {
-            var result = new List<Definition>();
-            TextAsset asset = Resources.Load<TextAsset>(TablePath);
-            if (asset == null)
+            // 빌드 폴더의 GameData/Data/game_settings.csv를 먼저 보고, 없거나 깨졌으면 내장 원본을 쓴다.
+            if (!DataFiles.TryLoad<List<Definition>>(TablePath, ".csv", TryParseTable, out List<Definition> result))
             {
-                Debug.LogWarning($"[GameSettingDefinitions] Resources/{TablePath}.csv 파일이 없어 기본 정의를 사용합니다.");
-                result.AddRange(fallbackDefinitions);
-                return result;
+                Debug.LogWarning($"[GameSettingDefinitions] {TablePath}.csv를 사용할 수 없어 기본 정의를 사용합니다.");
+                result = new List<Definition>();
             }
 
-            List<string[]> rows = CsvParser.Parse(asset.text);
+            // 파일에서 빠진 항목은 기본 정의를 뒤에 붙인다.
+            foreach (Definition fallback in fallbackDefinitions)
+            {
+                if (!Contains(result, fallback.id))
+                    result.Add(fallback);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// CSV를 항목 정의 목록으로 읽는다. 읽을 수 없는 줄은 건너뛰고, 읽은 줄이 하나도 없으면 깨진 파일로 본다.
+        /// </summary>
+        private static bool TryParseTable(string csv, out List<Definition> result)
+        {
+            result = new List<Definition>();
+            List<string[]> rows = CsvParser.Parse(csv);
             // 0번 행은 머리글(id,step,min,max,unit)
             for (int rowIndex = 1; rowIndex < rows.Count; rowIndex++)
             {
@@ -221,13 +234,7 @@ namespace GuardVsMannequin.Room
                 else
                     Debug.LogWarning($"[GameSettingDefinitions] game_settings.csv {rowIndex + 1}번째 데이터 줄을 읽을 수 없어 건너뜁니다: {string.Join(",", rows[rowIndex])}");
             }
-
-            foreach (Definition fallback in fallbackDefinitions)
-            {
-                if (!Contains(result, fallback.id))
-                    result.Add(fallback);
-            }
-            return result;
+            return result.Count > 0;
         }
 
         /// <summary>

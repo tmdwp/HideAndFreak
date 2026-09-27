@@ -73,7 +73,7 @@ namespace GuardVsMannequin.Player.Mannequin
             ownerApplied = true;
             character.SetFirstPerson(true);
 
-            foreach (Renderer bodyRenderer in bodyRenderers)
+            foreach (Renderer bodyRenderer in CharacterSkinView.ResolveBodyRenderers(this, bodyRenderers))
                 bodyRenderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
 
             // 사냥 시간에 다시 변신해도 사물이 1인칭 시야를 가리지 않게 한다.

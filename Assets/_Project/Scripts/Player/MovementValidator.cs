@@ -91,6 +91,30 @@ namespace GuardVsMannequin.Player
         }
 
         /// <summary>
+        /// 서버가 아바타를 정해진 위치로 옮긴다. (가드 출발 등 규칙에 따른 순간이동)
+        /// 검증 기준 위치도 함께 옮기므로 되돌림으로 처리되지 않는다.
+        /// </summary>
+        [Server]
+        public void ServerTeleport(Vector3 position, Quaternion rotation)
+        {
+            lastValidPosition = position;
+            transform.SetPositionAndRotation(position, rotation);
+            nextCorrectionTime = Time.time + CorrectionInterval;
+            TeleportTargetRpc(Owner, position, rotation);
+        }
+
+        /// <summary>
+        /// 소유자 클라이언트에서 캐릭터를 순간이동시킨다.
+        /// </summary>
+        [TargetRpc]
+        private void TeleportTargetRpc(NetworkConnection target, Vector3 position, Quaternion rotation)
+        {
+            character.SetPosition(position);
+            character.SetRotation(rotation);
+            character.SetVelocity(Vector3.zero);
+        }
+
+        /// <summary>
         /// 현재 설정의 걷기/비행(벽타기) 속도 중 큰 값에 여유 배율을 곱한다. (MoveSpeedController가 서버에도 적용)
         /// </summary>
         private float GetAllowedSpeed()

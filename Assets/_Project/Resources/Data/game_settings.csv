@@ -3,7 +3,7 @@
 # unit: 단위 문구의 key (strings.csv). 비우면 단위 없음. 이름 문구는 strings.csv의 setting.<id>
 # 인원에 따라 달라지는 최종 범위(가드 수, 목표 수 등)는 게임이 다시 보정합니다.
 id,step,min,max,unit
-Map,1,0,0,
+Map,1,0,4,
 PreparationTime,5,15,30,unit.seconds
 PlayTime,30,120,240,unit.seconds
 HuntTime,15,30,180,unit.seconds

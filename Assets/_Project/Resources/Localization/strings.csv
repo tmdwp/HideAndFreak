@@ -94,6 +94,10 @@ unit.speed,{0}m/s,{0}m/s
 
 # 맵 이름 (map.<맵 번호>)
 map.0,테스트 맵,Test Map
+map.1,버려진 정신병원,Abandoned Asylum
+map.2,산업 시설,Industrial Site
+map.3,공포 병원,Horror Hospital
+map.4,연금술사의 집,Alchemist House
 
 # 설정 화면
 options.title,설정,Settings

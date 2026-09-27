@@ -21,6 +21,9 @@ namespace GuardVsMannequin.Player
         [Tooltip("소유자 본인 화면에서는 그림자만 남길 렌더러. (1인칭 몸체 등)")]
         [SerializeField] private Renderer[] hiddenForOwner;
 
+        [Tooltip("1인칭 역할이면 켠다. 외형(CharacterSkinView) 렌더러도 소유자 화면에서 그림자만 남긴다.")]
+        [SerializeField] private bool hideSkinForOwner;
+
         private PlayerIdentity identity;
 
         /// <summary>
@@ -64,7 +67,9 @@ namespace GuardVsMannequin.Player
             character.camera = playerCamera;
             SetBehavioursEnabled(true);
 
-            foreach (Renderer target in hiddenForOwner)
+            // 1인칭 역할은 외형(CharacterSkinView) 렌더러도 그림자만 남긴다.
+            Renderer[] targets = hideSkinForOwner ? CharacterSkinView.ResolveBodyRenderers(this, hiddenForOwner) : hiddenForOwner;
+            foreach (Renderer target in targets)
                 target.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
 
             LocalPlayerEvents.RaiseSpawned(identity);

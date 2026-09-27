@@ -1,0 +1,595 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8be2d9f6aea79948acb38d47c6c0c70, type: 3}
+  m_Name: PropDatabase_Map_AlchemistHouse
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.PropDatabase
+  definitions:
+  - displayName: WallPiece_StoneWall01
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: 2f2d652e95d4eb443aef949c2760c822, type: 2}
+    scale: {x: 1.2, y: 2, z: 0.25}
+  - displayName: WallPiece_WoodCupboard03b
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: 55d30cab2de0ca345a1ca166545f6cb9, type: 2}
+    scale: {x: 1.2, y: 2, z: 0.25}
+  - displayName: TableSink
+    mesh: {fileID: 4300000, guid: 0947ffe7d00408b47a0055dee1ad55b6, type: 3}
+    materials:
+    - {fileID: 2100000, guid: bf97b9ca1d7c5324a87852d7c78423bf, type: 2}
+    scale: {x: 0.010625855, y: 0.010625855, z: 0.010625855}
+  - displayName: Workbench
+    mesh: {fileID: 4300000, guid: 6d42518e125c0954b930b1a95249c612, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 74ae0f74ef747814a993d47053eb558e, type: 2}
+    scale: {x: 0.40372413, y: 0.40372413, z: 0.40372413}
+  - displayName: Board
+    mesh: {fileID: 4300000, guid: 51ec20c97ee0e0549991b21cf5cbdce8, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 8bb543d77c2b84248b3658d104e61522, type: 2}
+    - {fileID: 2100000, guid: 4d3c28575f48c7246b667aa32134ddf4, type: 2}
+    scale: {x: 0.875, y: 0.875, z: 0.875}
+  - displayName: WoodShelf01
+    mesh: {fileID: 4300000, guid: 0c05b937f3b43be4389ad34173708823, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: 0a95b9b121d14d7489c8ac73a9d1cbfb, type: 2}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
+  - displayName: Table01 (1)
+    mesh: {fileID: 4300000, guid: bb40061f706ebe24f97ee0e0f8de8b99, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 143268defb1a55c4f973412db5fbb1ec, type: 2}
+    scale: {x: 0.026446007, y: 0.008100334, z: 0.008100331}
+  - displayName: table03
+    mesh: {fileID: 4300000, guid: 7611197c844888d44acc827a3c5476df, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 3d687a8ab06eafc42b7b24b09827ef31, type: 2}
+    scale: {x: 0.010165079, y: 0.010165084, z: 0.010165084}
+  - displayName: WoodCupboard02
+    mesh: {fileID: 4300000, guid: 1d04056b1c6aa2a419797b0063d19c4b, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: af0f8c0733467814d900c739b03c18ac, type: 2}
+    scale: {x: 0.60329336, y: 0.6032937, z: 0.6032937}
+  - displayName: Workbench
+    mesh: {fileID: 4300000, guid: 6d42518e125c0954b930b1a95249c612, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 74ae0f74ef747814a993d47053eb558e, type: 2}
+    scale: {x: 0.41054296, y: 0.41054302, z: 0.41054302}
+  - displayName: Drawer01
+    mesh: {fileID: 4300000, guid: b81de83eb43ac5e4aa17b9cda21f2678, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 63a65d41b84ceb24aab76a4f3f841131, type: 2}
+    scale: {x: 0.14164804, y: 0.14164805, z: 0.14164804}
+  - displayName: Drawer03
+    mesh: {fileID: 4300000, guid: 82a3f57cffd71f342bfbca645affd273, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 0f16cac64e42eb8438204641f7ddeb80, type: 2}
+    scale: {x: 0.012170267, y: 0.0121702785, z: 0.0121702785}
+  - displayName: WoodCupboard01
+    mesh: {fileID: 4300004, guid: 78a7f7b36156ea84aac04db43269b48d, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: 7e3de33441ef7444db507d1cd2fec1ae, type: 2}
+    - {fileID: 2100000, guid: af0f8c0733467814d900c739b03c18ac, type: 2}
+    - {fileID: 2100000, guid: 0a95b9b121d14d7489c8ac73a9d1cbfb, type: 2}
+    scale: {x: 0.60329336, y: 0.60329336, z: 0.60329336}
+  - displayName: WoodShelf01 (8)
+    mesh: {fileID: 4300000, guid: 0c05b937f3b43be4389ad34173708823, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: 0a95b9b121d14d7489c8ac73a9d1cbfb, type: 2}
+    scale: {x: 0.86343217, y: 0.8634322, z: 0.8634322}
+  - displayName: Alembic02
+    mesh: {fileID: 4300000, guid: 6a7a03246af1eec45a4a6226bd0ffa6b, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 39dd57e1e8aca344fab0a31d825736b2, type: 2}
+    scale: {x: 28.437515, y: 28.43753, z: 28.437532}
+  - displayName: WoodStool (4)
+    mesh: {fileID: 4300000, guid: d6de31c61f3654445983a5ce482cbf69, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 8a93eb95e1a61bc4b97acb0038031d84, type: 2}
+    scale: {x: 0.7, y: 0.70000017, z: 0.7000002}
+  - displayName: Chair01
+    mesh: {fileID: 4300000, guid: 0bfbc1f900c9d3041b0813ff447e67cc, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 02c9e7e186bbbe64b8c1ac115df88b1a, type: 2}
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    scale: {x: 0.8200002, y: 0.82000035, z: 0.8200007}
+  - displayName: Drawer02
+    mesh: {fileID: 4300000, guid: 4415df44a8736df43869831d310b85f0, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 558f1954fd6ed7b4ca4ab96bbc705139, type: 2}
+    scale: {x: 0.017983178, y: 0.01798317, z: 0.01798317}
+  - displayName: Board (1)
+    mesh: {fileID: 4300000, guid: 51ec20c97ee0e0549991b21cf5cbdce8, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 8bb543d77c2b84248b3658d104e61522, type: 2}
+    - {fileID: 2100000, guid: 4cf0fa5bb9003da4da57a64ce103ccd2, type: 2}
+    scale: {x: 0.546875, y: 0.625, z: 0.625}
+  - displayName: Board (2)
+    mesh: {fileID: 4300000, guid: 51ec20c97ee0e0549991b21cf5cbdce8, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 8bb543d77c2b84248b3658d104e61522, type: 2}
+    - {fileID: 2100000, guid: e72f2e19b35beee4393d515cdf62efa2, type: 2}
+    scale: {x: 0.54688007, y: 0.62500006, z: 0.625}
+  - displayName: Trunk01
+    mesh: {fileID: 4300000, guid: e2474ed401ef03c4aa5fc264f3f26317, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 99238a9344d9d8a448804e67cda943a4, type: 2}
+    scale: {x: 1.0000001, y: 1.0000001, z: 1}
+  - displayName: Log01 (2)
+    mesh: {fileID: 4300000, guid: 862d2c3f645ca594381e571018579402, type: 3}
+    materials:
+    - {fileID: 2100000, guid: c162d4e19da904c4c882651802a6817e, type: 2}
+    scale: {x: 0.08739891, y: 0.08739888, z: 0.08739892}
+  - displayName: Log02 (7)
+    mesh: {fileID: 4300000, guid: 6a7e3b7e9a6ebb24f82dbede20898137, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 371a8d60ea9b8364d9f548faec90496c, type: 2}
+    scale: {x: 0.10318705, y: 0.10318706, z: 0.10318708}
+  - displayName: Log03 (3)
+    mesh: {fileID: 4300000, guid: 887cced63749746438c5f2645a8d0f92, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 594a4c4f45e26394c8ecd72360494944, type: 2}
+    scale: {x: 0.127952, y: 0.12795192, z: 0.127952}
+  - displayName: Log02 (8)
+    mesh: {fileID: 4300000, guid: 6a7e3b7e9a6ebb24f82dbede20898137, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 371a8d60ea9b8364d9f548faec90496c, type: 2}
+    scale: {x: 0.12795198, y: 0.12795198, z: 0.12795198}
+  - displayName: Log01 (3)
+    mesh: {fileID: 4300000, guid: 862d2c3f645ca594381e571018579402, type: 3}
+    materials:
+    - {fileID: 2100000, guid: c162d4e19da904c4c882651802a6817e, type: 2}
+    scale: {x: 0.10318705, y: 0.103187114, z: 0.10318706}
+  - displayName: Log01 (4)
+    mesh: {fileID: 4300000, guid: 862d2c3f645ca594381e571018579402, type: 3}
+    materials:
+    - {fileID: 2100000, guid: c162d4e19da904c4c882651802a6817e, type: 2}
+    scale: {x: 0.082423344, y: 0.08242337, z: 0.08242334}
+  - displayName: Log02 (11)
+    mesh: {fileID: 4300000, guid: 6a7e3b7e9a6ebb24f82dbede20898137, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 371a8d60ea9b8364d9f548faec90496c, type: 2}
+    scale: {x: 0.08242331, y: 0.08242335, z: 0.082423344}
+  - displayName: Log03 (5)
+    mesh: {fileID: 4300000, guid: 887cced63749746438c5f2645a8d0f92, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 594a4c4f45e26394c8ecd72360494944, type: 2}
+    scale: {x: 0.102204934, y: 0.102205016, z: 0.102204934}
+  - displayName: Log01 (5)
+    mesh: {fileID: 4300000, guid: 862d2c3f645ca594381e571018579402, type: 3}
+    materials:
+    - {fileID: 2100000, guid: c162d4e19da904c4c882651802a6817e, type: 2}
+    scale: {x: 0.06981211, y: 0.06981215, z: 0.06981214}
+  - displayName: Log02 (15)
+    mesh: {fileID: 4300000, guid: 6a7e3b7e9a6ebb24f82dbede20898137, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 371a8d60ea9b8364d9f548faec90496c, type: 2}
+    scale: {x: 0.108859204, y: 0.108859226, z: 0.1088592}
+  - displayName: Log01 (7)
+    mesh: {fileID: 4300000, guid: 862d2c3f645ca594381e571018579402, type: 3}
+    materials:
+    - {fileID: 2100000, guid: c162d4e19da904c4c882651802a6817e, type: 2}
+    scale: {x: 0.10885922, y: 0.10885931, z: 0.10885922}
+  - displayName: Book05c (4)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 6b755e7b9a59f7f43b2bd9fdf4833ff5, type: 2}
+    scale: {x: 1.0778881, y: 1.0778881, z: 1.7980487}
+  - displayName: Book09d (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1.2854568, y: 1.2854567, z: 1.6449871}
+  - displayName: Book06c (11)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: f605af109aa52b84ea0d158b1142d7fd, type: 2}
+    scale: {x: 1.0000005, y: 1.0000005, z: 1.0000004}
+  - displayName: Book08 (5)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 5204538a0de74f04ba27ebe09f48edcf, type: 2}
+    scale: {x: 1.1300002, y: 1.1299999, z: 1.8971928}
+  - displayName: Book01 (28)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 1abc2f8a1e5d18348ae601b4cf25140a, type: 2}
+    scale: {x: 1.0500004, y: 1.0500004, z: 1.0500003}
+  - displayName: Book09d (12)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1.0500005, y: 1.0500005, z: 1.0500004}
+  - displayName: Book06c (21)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: f605af109aa52b84ea0d158b1142d7fd, type: 2}
+    scale: {x: 1.0700008, y: 1.0700005, z: 1.8045467}
+  - displayName: Book09d (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1.0850636, y: 1.0850632, z: 1.3885455}
+  - displayName: Book09d (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1.0742126, y: 1.0742122, z: 1.3746601}
+  - displayName: Book09d (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1.0998743, y: 1.099874, z: 1.407499}
+  - displayName: Book09b (12)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 984a0f0e3fb77f046ba8ca7361b57781, type: 2}
+    scale: {x: 1.1100031, y: 1.1100025, z: 1.5756084}
+  - displayName: Book04 (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: a4f8af3ce67ffc54dada3a251f5dc4c9, type: 2}
+    scale: {x: 1.0000001, y: 1.0000004, z: 1.0000002}
+  - displayName: Book01 (18)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 1abc2f8a1e5d18348ae601b4cf25140a, type: 2}
+    scale: {x: 0.99999994, y: 0.99999994, z: 0.9999999}
+  - displayName: Book06 (3)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: f2f852789c4a5df4084703acabc2e83f, type: 2}
+    scale: {x: 1.0000004, y: 1.0000004, z: 1.0000004}
+  - displayName: Book05c (9)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 6b755e7b9a59f7f43b2bd9fdf4833ff5, type: 2}
+    scale: {x: -1.0000001, y: 1.0000002, z: 1.0000004}
+  - displayName: Book05b (13)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 0dc0b454f8042144dafc0ae9568f2539, type: 2}
+    scale: {x: -0.9999999, y: 0.99999994, z: 0.9999999}
+  - displayName: Book09b (12)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 984a0f0e3fb77f046ba8ca7361b57781, type: 2}
+    scale: {x: -1.1100032, y: 1.1100024, z: 1.5756088}
+  - displayName: Book04 (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: a4f8af3ce67ffc54dada3a251f5dc4c9, type: 2}
+    scale: {x: -0.99999994, y: 1, z: 1}
+  - displayName: Book01 (18)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 1abc2f8a1e5d18348ae601b4cf25140a, type: 2}
+    scale: {x: -1.0000001, y: 1.0000001, z: 1}
+  - displayName: Book05c (4)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 6b755e7b9a59f7f43b2bd9fdf4833ff5, type: 2}
+    scale: {x: 1.0427941, y: 1.0427947, z: 1.7395083}
+  - displayName: Book05 (1)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 7315c15f0332f6b48889c537699a69a7, type: 2}
+    scale: {x: 1.0000002, y: 1.0000001, z: 1.0000002}
+  - displayName: Book09e (2)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 0a46ee12002d4bd4fa83a3ed8967ba0a, type: 2}
+    scale: {x: 0.9200008, y: 0.92000043, z: 1.1353515}
+  - displayName: Book14 (1)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 213d585de74b97d4d9c273e2564ae753, type: 2}
+    scale: {x: 1.0474596, y: 1.0474595, z: 1.4070001}
+  - displayName: ClutterPichet03 (1)
+    mesh: {fileID: 4300000, guid: 38c602a6dd68c7645810280a021094d9, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 26d89b5e0eac982449da92cdfe946a30, type: 2}
+    scale: {x: 1.0000005, y: 1.0000002, z: 1.0000002}
+  - displayName: Basket01
+    mesh: {fileID: 4300002, guid: 98649ffb49c4bd34cad9921559bf3a47, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 06127da1c477d2d418e07715b914e57f, type: 2}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
+  - displayName: Basket03 (1)
+    mesh: {fileID: 4300002, guid: 36788196a59df014489cb8db08f94fd0, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 06127da1c477d2d418e07715b914e57f, type: 2}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
+  - displayName: Globe
+    mesh: {fileID: 4300002, guid: aa7bd5dc2dc02bf43a27603f593dad34, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 1ba00da92734fb7459e87c2664220af6, type: 2}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
+  - displayName: Skull02 (1)
+    mesh: {fileID: 4300000, guid: 2dc514a2299c0a94b8818454e269a40b, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 75be4b9e6eb241543a93fb8a278e4130, type: 2}
+    scale: {x: 1.0000002, y: 1.0000001, z: 1}
+  - displayName: Book02
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 224e78a4ed015fa4aae1540b675fa50e, type: 2}
+    scale: {x: 1.0000001, y: 1.0000002, z: 1.0000002}
+  - displayName: Book08
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 5204538a0de74f04ba27ebe09f48edcf, type: 2}
+    scale: {x: 1.0000001, y: 1.0000001, z: 1.0000002}
+  - displayName: Book09b
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 984a0f0e3fb77f046ba8ca7361b57781, type: 2}
+    scale: {x: 1.0000001, y: 1.0000001, z: 1.2631943}
+  - displayName: Book05c (4)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 6b755e7b9a59f7f43b2bd9fdf4833ff5, type: 2}
+    scale: {x: 1.1112249, y: 1.1112249, z: 1.8536583}
+  - displayName: Axe01
+    mesh: {fileID: 4300000, guid: afe46ecfa133d1a458dd53086810a6e9, type: 3}
+    materials:
+    - {fileID: 2100000, guid: afed15aa14656e24caf85a97cb40ca48, type: 2}
+    scale: {x: 1, y: 0.9999998, z: 0.99999994}
+  - displayName: WoodBar01
+    mesh: {fileID: 4300004, guid: af98ed05781abcf4e84bd099d8f8e580, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    scale: {x: 1.000001, y: 1.0000007, z: 1.0000005}
+  - displayName: JarLid
+    mesh: {fileID: 4300002, guid: 8f28708aab45e9c48a951b5c627f55cd, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 71b9adff55df1224f8d1f7907dbdcb83, type: 2}
+    scale: {x: 1.0000001, y: 1.0000004, z: 1.0000004}
+  - displayName: Jar
+    mesh: {fileID: 4300000, guid: 8f28708aab45e9c48a951b5c627f55cd, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 317b19003d0acec44aaf9b4d9cd44459, type: 2}
+    scale: {x: 1.0000001, y: 1.0000004, z: 1.0000004}
+  - displayName: Baby03
+    mesh: {fileID: 4300000, guid: 690b7cb2905879740a4fb2bab8d81cdd, type: 3}
+    materials:
+    - {fileID: 2100000, guid: f249aba9c99790e4aa49711aeadf9434, type: 2}
+    scale: {x: 0.6302654, y: 0.6302657, z: 0.63026583}
+  - displayName: JarInt
+    mesh: {fileID: 4300004, guid: 8f28708aab45e9c48a951b5c627f55cd, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 317b19003d0acec44aaf9b4d9cd44459, type: 2}
+    scale: {x: 1.0000001, y: 1.0000004, z: 1.0000004}
+  - displayName: Baby02
+    mesh: {fileID: 4300000, guid: c0a3215f86efd2b4ab9479ce6e06bab8, type: 3}
+    materials:
+    - {fileID: 2100000, guid: b20c62883ab67b44dacf7a214bd52c3a, type: 2}
+    scale: {x: 0.7076168, y: 0.7076167, z: 0.7076164}
+  - displayName: JarLid (2)
+    mesh: {fileID: 4300002, guid: 8f28708aab45e9c48a951b5c627f55cd, type: 3}
+    materials:
+    - {fileID: 2100000, guid: f1148dbb5e5b717459fcc12abeeab788, type: 2}
+    scale: {x: 1.0000001, y: 1.000001, z: 1.0000008}
+  - displayName: Baby01
+    mesh: {fileID: 4300000, guid: 6e7aa96c2df1d0d41b6d626cd518088b, type: 3}
+    materials:
+    - {fileID: 2100000, guid: cb9300a36d29fa44ebcf69b4d1d672cd, type: 2}
+    scale: {x: 4.8303742, y: 4.8303766, z: 4.8303747}
+  - displayName: Caldron01 (1)
+    mesh: {fileID: 4300000, guid: 88c6b5a5ddb41534b86cbcde7d44912f, type: 3}
+    materials:
+    - {fileID: 2100000, guid: d6ae0d9f877759e45a20a425b27e7fb5, type: 2}
+    scale: {x: 0.004047659, y: 0.004047659, z: 0.0040476583}
+  - displayName: Caldron01
+    mesh: {fileID: 4300000, guid: 88c6b5a5ddb41534b86cbcde7d44912f, type: 3}
+    materials:
+    - {fileID: 2100000, guid: baa2d174656860c4cae7a1b25a16a67e, type: 2}
+    scale: {x: 0.005871661, y: 0.0058716605, z: 0.0058716596}
+  - displayName: Box016
+    mesh: {fileID: 4300002, guid: 52f7b81a11630b34ea89090c3ed6ff48, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: 0a95b9b121d14d7489c8ac73a9d1cbfb, type: 2}
+    scale: {x: 1.0000001, y: 1.0000002, z: 1.0000004}
+  - displayName: Box017
+    mesh: {fileID: 4300008, guid: 52f7b81a11630b34ea89090c3ed6ff48, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: 0a95b9b121d14d7489c8ac73a9d1cbfb, type: 2}
+    scale: {x: 1.0000001, y: 1.0000001, z: 1.0000001}
+  - displayName: Cylinder061
+    mesh: {fileID: 4300024, guid: 52f7b81a11630b34ea89090c3ed6ff48, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 31bdab8d56470c84f9bf80e619c4b6a7, type: 2}
+    scale: {x: 1.0000001, y: 1.0000002, z: 1.0000004}
+  - displayName: Line002
+    mesh: {fileID: 4300026, guid: 52f7b81a11630b34ea89090c3ed6ff48, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 5679a458d12541443b5852291b0a6287, type: 2}
+    scale: {x: 1, y: 1, z: 1}
+  - displayName: Rig
+    mesh: {fileID: 4300020, guid: 26e6bae5ccf202c4784d944e0b4f7caf, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    - {fileID: 2100000, guid: 0a95b9b121d14d7489c8ac73a9d1cbfb, type: 2}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
+  - displayName: Tube
+    mesh: {fileID: 4300018, guid: 26e6bae5ccf202c4784d944e0b4f7caf, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 5679a458d12541443b5852291b0a6287, type: 2}
+    scale: {x: 1, y: 1, z: 1}
+  - displayName: Basket02
+    mesh: {fileID: 4300004, guid: 84f078272b2af1c44a578368037e7209, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 06127da1c477d2d418e07715b914e57f, type: 2}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
+  - displayName: Cylinder061
+    mesh: {fileID: 4300024, guid: 52f7b81a11630b34ea89090c3ed6ff48, type: 3}
+    materials:
+    - {fileID: 2100000, guid: e6c181110cfd13a418ca14946069ea71, type: 2}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
+  - displayName: Tripod
+    mesh: {fileID: 4300002, guid: 88c6b5a5ddb41534b86cbcde7d44912f, type: 3}
+    materials:
+    - {fileID: 2100000, guid: d6ae0d9f877759e45a20a425b27e7fb5, type: 2}
+    scale: {x: 0.0042458978, y: 0.0042458987, z: 0.004245899}
+  - displayName: Caldron
+    mesh: {fileID: 4300000, guid: 88c6b5a5ddb41534b86cbcde7d44912f, type: 3}
+    materials:
+    - {fileID: 2100000, guid: baa2d174656860c4cae7a1b25a16a67e, type: 2}
+    scale: {x: 0.0040129465, y: 0.004012947, z: 0.0040129474}
+  - displayName: painting04
+    mesh: {fileID: 4300000, guid: 223efe9992353ec4bbbcef7cfa1b7e23, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 368a37e4cade01b4eac242994264d9c9, type: 2}
+    scale: {x: 0.009433052, y: 0.01061191, z: 0.01759551}
+  - displayName: ClutterPichet03 (5)
+    mesh: {fileID: 4300000, guid: 38c602a6dd68c7645810280a021094d9, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 2ca3ead0e23b3ef4b8d3f37196f380fd, type: 2}
+    scale: {x: 1, y: 1.0000005, z: 1.0000005}
+  - displayName: Book09c
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: d7f69fbf6bb90c84990039965c72f755, type: 2}
+    scale: {x: 1, y: 1, z: 1}
+  - displayName: Skull01b
+    mesh: {fileID: 4300000, guid: c19276309eb41c9479db16d861cb9911, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 09aa0ce94b6769f4791f8252858680f6, type: 2}
+    scale: {x: 1.0000001, y: 1.0000001, z: 1.0000002}
+  - displayName: WallPiece_PlasterBare05
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: cf7def0978afb36448a31c1401bc53a2, type: 2}
+    scale: {x: 1.2, y: 2, z: 0.25}
+  - displayName: WallPiece_WoodRough03b
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: 5fc44ad1277c8a44ab05af80cbaebe94, type: 2}
+    scale: {x: 1.2, y: 2, z: 0.25}
+  - displayName: WallPiece_WoodRough03
+    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    materials:
+    - {fileID: 2100000, guid: 9067a3010d5cb9c48bfba4165d38354b, type: 2}
+    scale: {x: 1.2, y: 2, z: 0.25}
+  - displayName: Drawer01 (1)
+    mesh: {fileID: 4300000, guid: b81de83eb43ac5e4aa17b9cda21f2678, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 63a65d41b84ceb24aab76a4f3f841131, type: 2}
+    scale: {x: 0.17076598, y: 0.17076586, z: 0.17076589}
+  - displayName: painting02
+    mesh: {fileID: 4300000, guid: 63059505d427c2749bba923d868c0fc7, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 3fdabb86e84a35541ac58487a54b9d5e, type: 2}
+    scale: {x: 0.015973087, y: 0.012688264, z: 0.015973087}
+  - displayName: Painting01
+    mesh: {fileID: 4300000, guid: 63059505d427c2749bba923d868c0fc7, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 3d90d693afcdc2048816aed13167a1b2, type: 2}
+    scale: {x: 0.033533543, y: 0.021315645, z: 0.026833978}
+  - displayName: Basket02
+    mesh: {fileID: 4300004, guid: 84f078272b2af1c44a578368037e7209, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 06127da1c477d2d418e07715b914e57f, type: 2}
+    scale: {x: 1.3912311, y: 1.3912315, z: 1.3912315}
+  - displayName: Book05c (9)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 6b755e7b9a59f7f43b2bd9fdf4833ff5, type: 2}
+    scale: {x: 1.0000001, y: 0.99999994, z: 1.0000001}
+  - displayName: Book05b (13)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 0dc0b454f8042144dafc0ae9568f2539, type: 2}
+    scale: {x: 1.0000005, y: 1.0000004, z: 1.0000004}
+  - displayName: Book06b (7)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 506738a925a8a5a4fb245fbb36c34cfe, type: 2}
+    scale: {x: 1.0000004, y: 1.0000001, z: 1.0000001}
+  - displayName: Book09d (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1.0459654, y: 1.045965, z: 1.338512}
+  - displayName: Book05c (4)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 6b755e7b9a59f7f43b2bd9fdf4833ff5, type: 2}
+    scale: {x: 1.0641528, y: 1.0641528, z: 1.7751367}
+  - displayName: Book09d (10)
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1.0773722, y: 1.0773717, z: 1.3787029}
+  - displayName: Caldron
+    mesh: {fileID: 4300000, guid: 88c6b5a5ddb41534b86cbcde7d44912f, type: 3}
+    materials:
+    - {fileID: 2100000, guid: b1f7700fc9604d747bc04b2d11b9dd84, type: 2}
+    scale: {x: 0.005871662, y: 0.005871662, z: 0.0058716596}
+  - displayName: Book09d
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: fe9f824c3b425c04789d52a4cf6e5901, type: 2}
+    scale: {x: 1, y: 0.9999999, z: 0.9999995}
+  - displayName: ClutterPlate01
+    mesh: {fileID: 4300000, guid: 5f0a1b349c791764ca4b1e4befa2dc3a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 26d89b5e0eac982449da92cdfe946a30, type: 2}
+    scale: {x: 1.3977926, y: 1.3977933, z: 1.3977933}
+  - displayName: ClutterPichet03 (2)
+    mesh: {fileID: 4300000, guid: 38c602a6dd68c7645810280a021094d9, type: 3}
+    materials:
+    - {fileID: 2100000, guid: aab873145a2ffaa41b21820047f247c7, type: 2}
+    scale: {x: 1, y: 1.0000004, z: 1.0000002}
+  - displayName: Painting01 (1)
+    mesh: {fileID: 4300000, guid: 63059505d427c2749bba923d868c0fc7, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 3d90d693afcdc2048816aed13167a1b2, type: 2}
+    scale: {x: 0.050295003, y: 0.03198, z: 0.040245}
+  - displayName: painting03
+    mesh: {fileID: 4300000, guid: b9ae5b04624a71f4aadb405a286ad092, type: 3}
+    materials:
+    - {fileID: 2100000, guid: f73d322960055a441afcbcdf03a8c26f, type: 2}
+    scale: {x: 0.01709448, y: 0.01709448, z: 0.020307768}
+  - displayName: Book10
+    mesh: {fileID: 4300000, guid: 60694673404b80d45920d4cb862f845a, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 7c93511165f9c7143a5c1b446f2b2285, type: 2}
+    scale: {x: 1.0000001, y: 1.0000001, z: 1}
+  - displayName: DragonSkull
+    mesh: {fileID: 4300000, guid: 15ecce01c5049e34d9d5f79efd3a079b, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 9ff2e80dbd4dec4409cfa878ef98a4ba, type: 2}
+    scale: {x: 0.30000025, y: 0.30000016, z: 0.30000022}
+  - displayName: Board
+    mesh: {fileID: 4300000, guid: 51ec20c97ee0e0549991b21cf5cbdce8, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 8bb543d77c2b84248b3658d104e61522, type: 2}
+    - {fileID: 2100000, guid: 4cf0fa5bb9003da4da57a64ce103ccd2, type: 2}
+    scale: {x: 0.7617159, y: 0.7617159, z: 0.7617159}
+  - displayName: Stove
+    mesh: {fileID: 4300000, guid: 8805f767d23dae74fa395054dbf599cd, type: 3}
+    materials:
+    - {fileID: 2100000, guid: 953fbf426a20e5c4da246775714d1fdb, type: 2}
+    scale: {x: 0.0026509676, y: 0.0026509673, z: 0.0026509673}
+  - displayName: Object008
+    mesh: {fileID: 4300002, guid: 88c6b5a5ddb41534b86cbcde7d44912f, type: 3}
+    materials:
+    - {fileID: 2100000, guid: baa2d174656860c4cae7a1b25a16a67e, type: 2}
+    scale: {x: 0.0049370904, y: 0.0049370914, z: 0.0049370914}

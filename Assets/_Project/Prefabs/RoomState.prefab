@@ -108,3 +108,7 @@ MonoBehaviour:
   roomSceneName: Room
   gameSceneNames:
   - Game_Test
+  - Map_Asylum
+  - Map_Industrial
+  - Map_Hospital
+  - Map_AlchemistHouse

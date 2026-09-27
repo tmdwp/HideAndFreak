@@ -112,3 +112,31 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# 게임에서 사용하지 않는 외부 에셋 팩 (용량이 커서 저장소에서 제외, 필요하면 에셋 스토어에서 임포트)
+# 사용을 시작하면 이 목록에서 빼고 Docs/AssetLicenses.md와 크레딧에 추가한다.
+/[Aa]ssets/Flooded_Grounds/
+/[Aa]ssets/Flooded_Grounds.meta
+/[Aa]ssets/Doors Small Sound Pack/
+/[Aa]ssets/Doors Small Sound Pack.meta
+/[Aa]ssets/Horror SFX - 082918/
+/[Aa]ssets/Horror SFX - 082918.meta
+/[Aa]ssets/free horror ambience 2/
+/[Aa]ssets/free horror ambience 2.meta
+/[Aa]ssets/Modern Vending Machine/
+/[Aa]ssets/Modern Vending Machine.meta
+/[Aa]ssets/Scalable Grid Prototype Materials/
+/[Aa]ssets/Scalable Grid Prototype Materials.meta
+/[Aa]ssets/TestMap/
+/[Aa]ssets/TestMap.meta
+/[Aa]ssets/TestMap.unity
+/[Aa]ssets/TestMap.unity.meta
+/[Aa]ssets/TestMapSettings.lighting
+/[Aa]ssets/TestMapSettings.lighting.meta
+/[Aa]ssets/Lights.unity
+/[Aa]ssets/Lights.unity.meta
+/[Aa]ssets/_TerrainAutoUpgrade/
+/[Aa]ssets/_TerrainAutoUpgrade.meta
+/[Aa]ssets/ToolboxAsset.meta
+/[Aa]ssets/HorrorHospitalPackFJM.unitypackage
+/[Aa]ssets/HorrorHospitalPackFJM.unitypackage.meta

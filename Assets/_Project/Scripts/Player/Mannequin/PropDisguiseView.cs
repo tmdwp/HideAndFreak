@@ -124,7 +124,8 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private void SetBodyVisible(bool visible)
         {
-            foreach (Renderer bodyRenderer in bodyRenderers)
+            // 외형(CharacterSkinView)이 있으면 외형 렌더러를 숨긴다.
+            foreach (Renderer bodyRenderer in CharacterSkinView.ResolveBodyRenderers(this, bodyRenderers))
                 bodyRenderer.enabled = visible;
         }
     }

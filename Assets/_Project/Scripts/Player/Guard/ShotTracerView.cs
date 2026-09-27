@@ -3,20 +3,39 @@ using UnityEngine;
 namespace GuardVsMannequin.Player.Guard
 {
     /// <summary>
-    /// 사격 궤적과 탄착 지점을 잠깐 표시한다. (정식 VFX 도입 전 임시 표현)
-    /// 궤적은 총구 위치에서 시작해, 1인칭 사격자 화면에서도 대각선으로 보이게 한다.
+    /// 사격 연출. 총구에서 총알 이펙트가 날아가 끝점에서 명중 이펙트를 보여준다.
+    /// 판정은 서버의 히트스캔이 이미 끝낸 상태이며, 여기서는 보이는 것만 처리한다.
+    /// 총알 이펙트가 지정되지 않았으면 예전처럼 선(LineRenderer)과 탄착 표시로 대신한다.
     /// </summary>
     [RequireComponent(typeof(LineRenderer))]
     public class ShotTracerView : MonoBehaviour
     {
+        private const float EffectLifetime = 2f;
+
         [SerializeField] private float tracerDuration = 0.15f;
         [SerializeField] private float impactDuration = 0.4f;
 
-        [Tooltip("궤적 시작점. 카메라 오른쪽 아래에 두어 사격자 화면에서도 선이 보이게 한다.")]
+        [Tooltip("총구를 제공하는 총 외형. 있으면 보는 사람 기준 총구에서 연출을 시작한다.")]
+        [SerializeField] private GuardWeaponView weaponView;
+
+        [Tooltip("총 외형이 없을 때의 연출 시작점.")]
         [SerializeField] private Transform muzzle;
 
-        [Tooltip("탄착 지점에 잠깐 표시할 오브젝트. 실행 시 아바타에서 분리된다.")]
+        [Tooltip("탄착 지점에 잠깐 표시할 오브젝트. (총알 이펙트가 없을 때) 실행 시 아바타에서 분리된다.")]
         [SerializeField] private Transform impactMarker;
+
+        [Header("이펙트 (비우면 선으로 표시)")]
+        [Tooltip("총구에서 끝점까지 날아가는 총알 이펙트.")]
+        [SerializeField] private GameObject bulletPrefab;
+
+        [Tooltip("끝점에 부딪혔을 때의 이펙트.")]
+        [SerializeField] private GameObject hitPrefab;
+
+        [Tooltip("총구 화염 이펙트.")]
+        [SerializeField] private GameObject muzzleFlashPrefab;
+
+        [Tooltip("총알 이펙트의 이동 속도(m/s). 판정은 즉시 끝나므로 보기 좋은 속도로 둔다.")]
+        [SerializeField] private float bulletSpeed = 90f;
 
         private LineRenderer lineRenderer;
         private float tracerHideTime;
@@ -50,7 +69,7 @@ namespace GuardVsMannequin.Player.Guard
         }
 
         /// <summary>
-        /// 표시 시간이 지나면 숨긴다.
+        /// 표시 시간이 지나면 선과 탄착 표시를 숨긴다.
         /// </summary>
         private void Update()
         {
@@ -62,15 +81,50 @@ namespace GuardVsMannequin.Player.Guard
         }
 
         /// <summary>
-        /// 총구에서 끝점까지 궤적을 표시하고, 무언가에 맞았으면 탄착 지점을 표시한다.
+        /// 총구에서 끝점까지 사격을 연출한다.
         /// </summary>
         /// <param name="origin">서버가 판정에 사용한 원점. 총구가 없을 때 대신 사용한다.</param>
-        /// <param name="endPoint">궤적 끝점.</param>
+        /// <param name="endPoint">사격 끝점.</param>
         /// <param name="didHit">사거리 안에서 충돌했는지 여부.</param>
         public void Show(Vector3 origin, Vector3 endPoint, bool didHit)
         {
-            Vector3 start = muzzle != null ? muzzle.position : origin;
-            lineRenderer.SetPosition(0, start);
+            Transform start = GetMuzzle();
+            Vector3 startPosition = start != null ? start.position : origin;
+
+            if (muzzleFlashPrefab != null && start != null)
+            {
+                // 총과 함께 움직이도록 총구에 붙인다.
+                GameObject flash = Instantiate(muzzleFlashPrefab, start.position, start.rotation, start);
+                Destroy(flash, EffectLifetime);
+            }
+
+            if (bulletPrefab != null)
+            {
+                GameObject bullet = Instantiate(bulletPrefab, startPosition, Quaternion.LookRotation(endPoint - startPosition + Vector3.forward * 0.0001f));
+                BulletEffect effect = bullet.AddComponent<BulletEffect>();
+                effect.Launch(endPoint, bulletSpeed, didHit ? hitPrefab : null);
+                return;
+            }
+
+            ShowLine(startPosition, endPoint, didHit);
+        }
+
+        /// <summary>
+        /// 보는 사람 기준 총구를 고른다.
+        /// </summary>
+        private Transform GetMuzzle()
+        {
+            if (weaponView != null && weaponView.Muzzle != null)
+                return weaponView.Muzzle;
+            return muzzle;
+        }
+
+        /// <summary>
+        /// 이펙트가 없을 때의 대체 연출: 선과 탄착 표시.
+        /// </summary>
+        private void ShowLine(Vector3 startPosition, Vector3 endPoint, bool didHit)
+        {
+            lineRenderer.SetPosition(0, startPosition);
             lineRenderer.SetPosition(1, endPoint);
             lineRenderer.enabled = true;
             tracerHideTime = Time.time + tracerDuration;

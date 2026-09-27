@@ -8,7 +8,7 @@ namespace GuardVsMannequin.Localization
 {
     /// <summary>
     /// 화면에 보이는 문장을 언어별로 제공한다.
-    /// 문장은 Resources/Localization/strings.csv(열: key, ko, en, ...)에서 읽는다.
+    /// 문장은 strings.csv(열: key, ko, en, ...)에서 읽는다. 빌드 폴더의 GameData/Localization/strings.csv가 우선이다.
     /// 새 언어는 CSV에 열을 하나 추가하는 것만으로 설정 화면의 언어 목록에 나타난다.
     /// 번역이 비어 있으면 첫 번째 언어(ko)로, 키 자체가 없으면 키 이름을 보여준다.
     /// </summary>
@@ -126,28 +126,33 @@ namespace GuardVsMannequin.Localization
                 return;
             isLoaded = true;
 
-            TextAsset asset = Resources.Load<TextAsset>(TablePath);
-            if (asset == null)
+            // 빌드 폴더의 GameData/Localization/strings.csv를 먼저 보고, 없거나 깨졌으면 내장 원본을 쓴다.
+            if (!DataFiles.TryLoad<List<string[]>>(TablePath, ".csv", TryParseTable, out List<string[]> rows))
             {
-                Debug.LogError($"[Loc] 문장 파일을 찾을 수 없습니다: Resources/{TablePath}.csv");
+                Debug.LogError($"[Loc] 문장 파일을 사용할 수 없습니다: {TablePath}.csv");
                 languages.Add("ko");
                 currentLanguage = "ko";
                 return;
             }
 
-            LoadTable(asset.text);
+            LoadTable(rows);
             currentLanguage = ChooseInitialLanguage();
         }
 
         /// <summary>
-        /// CSV를 읽어 키별·언어별 문장 표를 만든다.
+        /// CSV를 행 목록으로 읽는다. 머리글(key, 언어...)과 문장 한 줄 이상이 없으면 깨진 파일로 본다.
         /// </summary>
-        private static void LoadTable(string csv)
+        private static bool TryParseTable(string csv, out List<string[]> rows)
         {
-            List<string[]> rows = CsvParser.Parse(csv);
-            if (rows.Count == 0)
-                return;
+            rows = CsvParser.Parse(csv);
+            return rows.Count >= 2 && rows[0].Length >= 2;
+        }
 
+        /// <summary>
+        /// CSV 행 목록으로 키별·언어별 문장 표를 만든다.
+        /// </summary>
+        private static void LoadTable(List<string[]> rows)
+        {
             string[] header = rows[0];
             for (int column = 1; column < header.Length; column++)
                 languages.Add(header[column]);

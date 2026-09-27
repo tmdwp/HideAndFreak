@@ -44,22 +44,22 @@ namespace GuardVsMannequin.Editor
     public static class TestEnvironmentSetupTool
     {
         private const string RootFolder = "Assets/_Project";
-        private const string MaterialFolder = RootFolder + "/Art/Materials";
+        internal const string MaterialFolder = RootFolder + "/Art/Materials";
         private const string PrefabFolder = RootFolder + "/Prefabs";
-        private const string SoFolder = RootFolder + "/ScriptableObjects";
-        private const string SceneFolder = RootFolder + "/Scenes";
+        internal const string SoFolder = RootFolder + "/ScriptableObjects";
+        internal const string SceneFolder = RootFolder + "/Scenes";
 
-        private const string InputActionsPath = RootFolder + "/Input/GameInput.inputactions";
+        internal const string InputActionsPath = RootFolder + "/Input/GameInput.inputactions";
         private const string PropDatabasePath = SoFolder + "/PropDatabase_Test.asset";
         private const string GuardPrefabPath = PrefabFolder + "/Guard.prefab";
         private const string MannequinPrefabPath = PrefabFolder + "/Mannequin.prefab";
         private const string GeneratorPrefabPath = PrefabFolder + "/Generator.prefab";
         private const string FakeMannequinPrefabPath = PrefabFolder + "/FakeMannequin.prefab";
-        private const string NoiseLibraryPath = SoFolder + "/NoiseLibrary.asset";
-        private const string ScenePath = SceneFolder + "/Game_Test.unity";
-        private const string LobbyScenePath = SceneFolder + "/Lobby.unity";
-        private const string RoomScenePath = SceneFolder + "/Room.unity";
-        private const string RoomStatePrefabPath = PrefabFolder + "/RoomState.prefab";
+        internal const string NoiseLibraryPath = SoFolder + "/NoiseLibrary.asset";
+        internal const string ScenePath = SceneFolder + "/Game_Test.unity";
+        internal const string LobbyScenePath = SceneFolder + "/Lobby.unity";
+        internal const string RoomScenePath = SceneFolder + "/Room.unity";
+        internal const string RoomStatePrefabPath = PrefabFolder + "/RoomState.prefab";
         private const string DefaultPrefabObjectsPath = "Assets/DefaultPrefabObjects.asset";
 
         private const float MapHalfSize = 20f;
@@ -107,6 +107,9 @@ namespace GuardVsMannequin.Editor
             Loc.Reload();
             GameSettingDefinitions.ClearCache();
 
+            // 캐릭터 외형(마네킹 3종, 가드)과 리볼버 모델을 먼저 만든다. (프리팹이 참조)
+            CharacterAssetBuilder.BuildAll();
+
             Dictionary<string, Material> materials = CreateMaterials();
             InputActionAsset inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath);
             if (inputActions == null)
@@ -134,7 +137,7 @@ namespace GuardVsMannequin.Editor
             MenuSceneBuilder.BuildLobbyScene(LobbyScenePath, RoomScenePath,
                 AssetDatabase.LoadAssetAtPath<DefaultPrefabObjects>(DefaultPrefabObjectsPath));
 
-            SetBuildScenes(LobbyScenePath, RoomScenePath, ScenePath);
+            RegisterBuildScenes();
             KeepLinearFogShaderVariants();
             SteamBuildProcessor.EnsureRunInBackground();
 
@@ -154,8 +157,53 @@ namespace GuardVsMannequin.Editor
             serialized.FindProperty("_isGlobal").boolValue = true;
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
-            root.AddComponent<RoomState>();
+            RoomState roomState = root.AddComponent<RoomState>();
+            SetGameSceneNames(roomState);
             return SavePrefab(root, RoomStatePrefabPath);
+        }
+
+        /// <summary>
+        /// 룸 상태에 맵 ID 순서의 게임 씬 이름을 등록한다. (MapCatalog)
+        /// </summary>
+        private static void SetGameSceneNames(RoomState roomState)
+        {
+            var serialized = new SerializedObject(roomState);
+            SerializedProperty names = serialized.FindProperty("gameSceneNames");
+            string[] sceneNames = MapCatalog.SceneNames;
+            names.arraySize = sceneNames.Length;
+            for (int i = 0; i < sceneNames.Length; i++)
+                names.GetArrayElementAtIndex(i).stringValue = sceneNames[i];
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// 저장된 네트워크 프리팹(가드, 마네킹, 전원 장치, 가짜 마네킹)을 불러온다. 하나라도 없으면 false.
+        /// (맵 생성 도구가 "테스트 환경 생성"으로 만든 프리팹을 재사용할 때 사용)
+        /// </summary>
+        internal static bool TryLoadScenePrefabs(out ScenePrefabs prefabs)
+        {
+            prefabs = new ScenePrefabs
+            {
+                guard = AssetDatabase.LoadAssetAtPath<NetworkObject>(GuardPrefabPath),
+                mannequin = AssetDatabase.LoadAssetAtPath<NetworkObject>(MannequinPrefabPath),
+                generator = AssetDatabase.LoadAssetAtPath<NetworkObject>(GeneratorPrefabPath),
+                fakeMannequin = AssetDatabase.LoadAssetAtPath<NetworkObject>(FakeMannequinPrefabPath)
+            };
+            return prefabs.guard != null && prefabs.mannequin != null && prefabs.generator != null && prefabs.fakeMannequin != null;
+        }
+
+        /// <summary>
+        /// 빌드 설정에 로비 → 룸 → 테스트 맵 → 생성된 맵 순서로 씬을 등록한다. (없는 맵 씬은 건너뛴다)
+        /// </summary>
+        internal static void RegisterBuildScenes()
+        {
+            var paths = new List<string> { LobbyScenePath, RoomScenePath };
+            foreach (MapCatalog.Entry map in MapCatalog.Maps)
+            {
+                if (File.Exists(map.ScenePath))
+                    paths.Add(map.ScenePath);
+            }
+            SetBuildScenes(paths.ToArray());
         }
 
         #region 에셋
@@ -234,7 +282,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 씬에서 스폰하는 네트워크 프리팹 묶음.
         /// </summary>
-        private struct ScenePrefabs
+        internal struct ScenePrefabs
         {
             public NetworkObject guard;
             public NetworkObject mannequin;
@@ -371,14 +419,20 @@ namespace GuardVsMannequin.Editor
             Camera playerCamera = CreatePlayerCamera(cameraPivot, Vector3.zero);
 
             SetField(character, "cameraPivot", cameraPivot);
-            ConfigureOwnership(root, character, playerCamera, new Behaviour[] { inputReader, driver }, new[] { body, visor });
+            ConfigureOwnership(root, character, playerCamera, new Behaviour[] { inputReader, driver }, new[] { body, visor }, hideSkinForOwner: true);
             AddMoveSpeedController(root, PlayerRole.Guard);
 
-            // 사격: 조준 → 소음 → 총 → 궤적 표시
+            // 외형: Ethan + 더미 애니메이션 (외형이 없으면 기본 도형)
+            AddSkinView(root, PlayerRole.Guard, CharacterAssetBuilder.GuardSkinPath, root.transform, new[] { body, visor });
+
+            // 총: 소유자에게는 1인칭 리볼버, 다른 플레이어에게는 손에 든 리볼버
+            GuardWeaponView weaponView = AddWeaponView(root, cameraPivot);
+
+            // 사격: 조준 → 소음 → 총 → 총알 연출
             root.AddComponent<CameraAimProvider>();
             AddNoiseEmitter(root, noiseLibrary);
             GunTool gun = root.AddComponent<GunTool>();
-            SetField(gun, "tracerView", CreateTracer(root.transform, cameraPivot, materials["Tracer"]));
+            SetField(gun, "tracerView", CreateTracer(root.transform, cameraPivot, materials["Tracer"], weaponView));
 
             // 탐지기: 반경 파동 표시
             DetectorTool detector = root.AddComponent<DetectorTool>();
@@ -421,7 +475,7 @@ namespace GuardVsMannequin.Editor
         {
             GameObject root = CreateAvatarRoot("Mannequin", inputActions, out MannequinCharacter character, out PlayerInputReader inputReader, out PlayerMovementDriver driver);
 
-            // 가짜 마네킹과 완전히 같은 외형이어야 한다. (CreateMannequinVisual 공용)
+            // 가짜 마네킹과 완전히 같은 외형이어야 한다. (CreateMannequinVisual 공용, 외형은 맵이 바꿀 수 있음)
             Transform visual = CreateMannequinVisual(root.transform, materials, out Renderer body, out Renderer face);
 
             Transform followTarget = new GameObject("FollowTarget").transform;
@@ -544,6 +598,7 @@ namespace GuardVsMannequin.Editor
             root.AddComponent<NetworkTransform>();
             root.AddComponent<FakeMannequin>();
 
+            // 외형(CharacterSkinView)도 CreateMannequinVisual이 실제 마네킹과 똑같이 붙인다.
             Transform visual = CreateMannequinVisual(root.transform, materials, out _, out _);
             AddEmotes(root, visual);
             root.AddComponent<FakeMannequinBrain>();
@@ -562,7 +617,50 @@ namespace GuardVsMannequin.Editor
 
             body = CreateVisual(visual, PrimitiveType.Capsule, "Body", new Vector3(0f, 0.9f, 0f), new Vector3(0.8f, 0.9f, 0.8f), materials["Mannequin"]);
             face = CreateVisual(visual, PrimitiveType.Cube, "FaceMarker", new Vector3(0f, 1.5f, 0.3f), new Vector3(0.3f, 0.1f, 0.2f), materials["Visor"]);
+
+            // 기본 외형은 더미. 맵(MapInfo)이 마네킹 외형을 지정하면 실행 시 그것으로 바뀐다.
+            AddSkinView(parent.gameObject, PlayerRole.Mannequin, CharacterAssetBuilder.DummySkinPath, visual, new[] { body, face });
             return visual;
+        }
+
+        /// <summary>
+        /// 캐릭터 외형 컴포넌트를 추가한다. 외형 에셋이 없으면 기본 도형이 그대로 보인다.
+        /// </summary>
+        private static void AddSkinView(GameObject root, PlayerRole role, string defaultSkinPath, Transform visualRoot, Renderer[] fallback)
+        {
+            CharacterSkinView skinView = root.AddComponent<CharacterSkinView>();
+            var serialized = new SerializedObject(skinView);
+            serialized.FindProperty("role").enumValueIndex = (int)role;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            SetField(skinView, "defaultSkin", AssetDatabase.LoadAssetAtPath<CharacterSkin>(defaultSkinPath));
+            SetField(skinView, "visualRoot", visualRoot);
+            SetArray(skinView, "fallbackRenderers", fallback);
+        }
+
+        /// <summary>
+        /// 가드 총 외형을 추가한다. 1인칭 리볼버는 카메라 피벗 아래 오른쪽에 둔다.
+        /// </summary>
+        private static GuardWeaponView AddWeaponView(GameObject root, Transform cameraPivot)
+        {
+            GameObject revolver = AssetDatabase.LoadAssetAtPath<GameObject>(CharacterAssetBuilder.RevolverPath);
+            GuardWeaponView weaponView = root.AddComponent<GuardWeaponView>();
+            SetField(weaponView, "aimPivot", cameraPivot);
+            SetField(weaponView, "thirdPersonGunPrefab", revolver);
+
+            if (revolver != null)
+            {
+                var firstPerson = (GameObject)PrefabUtility.InstantiatePrefab(revolver);
+                firstPerson.name = "FirstPersonGun";
+                firstPerson.transform.SetParent(cameraPivot, false);
+                firstPerson.transform.localPosition = new Vector3(0.18f, -0.2f, 0.3f);
+                SetField(weaponView, "firstPersonGun", firstPerson.transform);
+            }
+            else
+            {
+                Debug.LogWarning("[TestSetup] 리볼버 모델이 없어 총 외형 없이 가드를 만듭니다. '캐릭터·무기 에셋 생성'을 먼저 실행하세요.");
+            }
+            return weaponView;
         }
 
         /// <summary>
@@ -650,20 +748,26 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 소유권 설정 컴포넌트를 추가하고 참조를 연결한다.
         /// </summary>
-        private static void ConfigureOwnership(GameObject root, Character character, Camera playerCamera, Behaviour[] ownerOnly, Renderer[] hiddenForOwner)
+        private static void ConfigureOwnership(GameObject root, Character character, Camera playerCamera, Behaviour[] ownerOnly, Renderer[] hiddenForOwner,
+            bool hideSkinForOwner = false)
         {
             PlayerOwnershipSetup ownership = root.AddComponent<PlayerOwnershipSetup>();
             SetField(ownership, "character", character);
             SetField(ownership, "playerCamera", playerCamera);
             SetArray(ownership, "ownerOnlyBehaviours", ownerOnly);
             SetArray(ownership, "hiddenForOwner", hiddenForOwner);
+
+            // 1인칭 역할(가드)은 외형 모델도 본인 화면에서 그림자만 남긴다.
+            var serialized = new SerializedObject(ownership);
+            serialized.FindProperty("hideSkinForOwner").boolValue = hideSkinForOwner;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>
-        /// 사격 궤적(LineRenderer), 총구 위치, 탄착 표시를 만든다.
-        /// 총구는 카메라 피벗의 오른쪽 아래에 두어 1인칭 화면에서도 궤적이 대각선으로 보이게 한다.
+        /// 사격 연출(총알·명중·총구 화염 이펙트)을 만든다. 이펙트가 없으면 선(LineRenderer)과 탄착 표시로 대신한다.
+        /// 연출은 총 외형의 총구에서 시작하고, 총 외형이 없으면 카메라 피벗 오른쪽 아래의 예비 총구를 쓴다.
         /// </summary>
-        private static ShotTracerView CreateTracer(Transform parent, Transform cameraPivot, Material material)
+        private static ShotTracerView CreateTracer(Transform parent, Transform cameraPivot, Material material, GuardWeaponView weaponView)
         {
             var tracerObject = new GameObject("ShotTracer");
             tracerObject.transform.SetParent(parent, false);
@@ -686,6 +790,10 @@ namespace GuardVsMannequin.Editor
             ShotTracerView view = tracerObject.AddComponent<ShotTracerView>();
             SetField(view, "muzzle", muzzle);
             SetField(view, "impactMarker", impact.transform);
+            SetField(view, "weaponView", weaponView);
+            SetField(view, "bulletPrefab", AssetDatabase.LoadAssetAtPath<GameObject>(CharacterAssetBuilder.BulletPrefabPath));
+            SetField(view, "hitPrefab", AssetDatabase.LoadAssetAtPath<GameObject>(CharacterAssetBuilder.HitPrefabPath));
+            SetField(view, "muzzleFlashPrefab", AssetDatabase.LoadAssetAtPath<GameObject>(CharacterAssetBuilder.MuzzleFlashPrefabPath));
             return view;
         }
 
@@ -738,7 +846,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 충돌체가 없는 표시용 도형을 만든다.
         /// </summary>
-        private static Renderer CreateVisual(Transform parent, PrimitiveType type, string name, Vector3 localPosition, Vector3 localScale, Material material)
+        internal static Renderer CreateVisual(Transform parent, PrimitiveType type, string name, Vector3 localPosition, Vector3 localScale, Material material)
         {
             GameObject visual = GameObject.CreatePrimitive(type);
             visual.name = name;
@@ -837,7 +945,7 @@ namespace GuardVsMannequin.Editor
         /// FishNet 내부의 NetworkObject.CreateSceneId(Scene, bool, out int)를 호출한다.
         /// 공개 API가 없어 리플렉션을 사용하며, 실패하면 FishNet 메뉴를 안내한다.
         /// </summary>
-        private static void GenerateNetworkSceneIds(Scene scene)
+        internal static void GenerateNetworkSceneIds(Scene scene)
         {
             MethodInfo method = typeof(NetworkObject).GetMethod("CreateSceneId", BindingFlags.Static | BindingFlags.NonPublic,
                 null, new[] { typeof(Scene), typeof(bool), typeof(int).MakeByRefType() }, null);
@@ -916,7 +1024,7 @@ namespace GuardVsMannequin.Editor
         /// 아바타가 없을 때 쓰는 씬 카메라를 만든다.
         /// 대기 중에는 맵을 내려다보고, 사망/미참가 상태에서는 생존자의 시야로 관전한다.
         /// </summary>
-        private static SpectatorController CreateSceneCamera()
+        internal static SpectatorController CreateSceneCamera()
         {
             var cameraObject = new GameObject("SceneCamera");
             cameraObject.tag = "MainCamera";
@@ -1083,7 +1191,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// GameSystems에서 UI가 참조할 컴포넌트 묶음.
         /// </summary>
-        private struct GameSystemsRefs
+        internal struct GameSystemsRefs
         {
             public GameStateMachine stateMachine;
             public PlayerRegistry playerRegistry;
@@ -1094,7 +1202,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 게임 진행에 필요한 서버 시스템을 가진 씬 네트워크 오브젝트를 만든다.
         /// </summary>
-        private static GameSystemsRefs CreateGameSystems(ScenePrefabs prefabs, NavMeshSurface navMeshSurface)
+        internal static GameSystemsRefs CreateGameSystems(ScenePrefabs prefabs, NavMeshSurface navMeshSurface)
         {
             var systems = new GameObject("GameSystems");
             systems.AddComponent<NetworkObject>();
@@ -1146,7 +1254,7 @@ namespace GuardVsMannequin.Editor
         /// 게임 HUD와 저체력 효과 볼륨을 만든다. (접속은 로비/룸 씬에서 처리하므로 게임 씬에는 NetworkManager가 없다)
         /// 씬 네트워크 오브젝트는 클라이언트에서 스폰 전까지 비활성이므로 별도 오브젝트에 둔다.
         /// </summary>
-        private static void CreateUi(GameSystemsRefs systems, SpectatorController spectator)
+        internal static void CreateUi(GameSystemsRefs systems, SpectatorController spectator)
         {
             // uGUI HUD와 ESC 메뉴(게임 중에는 닫을 때 커서를 다시 잠금)
             EditorUiFactory.CreateEventSystem();
@@ -1169,7 +1277,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 충돌체가 있는 정적 블록을 만든다.
         /// </summary>
-        private static GameObject CreateBlock(Transform parent, string name, Vector3 position, Vector3 scale, Material material)
+        internal static GameObject CreateBlock(Transform parent, string name, Vector3 position, Vector3 scale, Material material)
         {
             GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
             block.name = name;
@@ -1184,7 +1292,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 오브젝트를 변신 가능 사물로 지정한다.
         /// </summary>
-        private static void AddTransformable(GameObject target, int propId)
+        internal static void AddTransformable(GameObject target, int propId)
         {
             TransformableProp prop = target.AddComponent<TransformableProp>();
             prop.SetPropId(propId);
@@ -1193,7 +1301,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 역할이 지정된 스폰 지점을 만든다.
         /// </summary>
-        private static void CreateSpawnPoint(Transform parent, PlayerRole role, Vector3 position, Quaternion rotation)
+        internal static void CreateSpawnPoint(Transform parent, PlayerRole role, Vector3 position, Quaternion rotation)
         {
             var pointObject = new GameObject($"SpawnPoint_{role}");
             pointObject.transform.SetParent(parent, false);
@@ -1228,7 +1336,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 빌드 설정의 씬 순서를 정한다. (로비 → 룸 → 게임)
         /// </summary>
-        private static void SetBuildScenes(params string[] orderedPaths)
+        internal static void SetBuildScenes(params string[] orderedPaths)
         {
             // 지정한 씬을 순서대로 앞에 두고(첫 번째가 시작 씬), 나머지 기존 씬은 뒤에 유지한다.
             List<EditorBuildSettingsScene> others = EditorBuildSettings.scenes.Where(s => !orderedPaths.Contains(s.path)).ToList();

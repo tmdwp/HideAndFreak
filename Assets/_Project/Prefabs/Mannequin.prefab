@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 1707562345109812889}
   - component: {fileID: 2863810353114395617}
   - component: {fileID: 8597384182301706604}
+  - component: {fileID: 8982155293469663719}
   - component: {fileID: 5575777677741418536}
   - component: {fileID: 178145158723463962}
   - component: {fileID: 1253789041520945570}
@@ -375,6 +376,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerMovementDriver
   lookSensitivity: {x: 0.1, y: 0.1}
+--- !u!114 &8982155293469663719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f5f8c178b4498f43bfce3c8081dfa8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.CharacterSkinView
+  role: 2
+  defaultSkin: {fileID: 11400000, guid: c27012141a81a7842ad367d626e37925, type: 2}
+  visualRoot: {fileID: 8459712865084029878}
+  fallbackRenderers:
+  - {fileID: 5027871171780702361}
+  - {fileID: 2495850511174593684}
 --- !u!114 &5575777677741418536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,6 +415,7 @@ MonoBehaviour:
   - {fileID: 2863810353114395617}
   - {fileID: 8597384182301706604}
   hiddenForOwner: []
+  hideSkinForOwner: 0
 --- !u!114 &178145158723463962
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,6 +3,7 @@ using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using GuardVsMannequin.Core;
 using GuardVsMannequin.Localization;
+using GuardVsMannequin.Map;
 using GuardVsMannequin.Player.Emotes;
 using GuardVsMannequin.Props;
 using UnityEngine;
@@ -31,8 +32,10 @@ namespace GuardVsMannequin.Player.Mannequin
         /// <summary>변신 상태가 바뀌었을 때. 인자는 새 PropId(해제 시 NoProp). 각 피어에서 한 번씩 호출된다.</summary>
         public event Action<int> DisguiseChanged;
 
-        /// <summary>외형 조회에 사용할 데이터베이스.</summary>
-        public PropDatabase Database => propDatabase;
+        /// <summary>외형 조회에 사용할 데이터베이스. 맵이 목록을 지정하면 그것을, 아니면 프리팹의 기본 목록을 쓴다.</summary>
+        public PropDatabase Database => MapInfo.Current != null && MapInfo.Current.PropDatabase != null
+            ? MapInfo.Current.PropDatabase
+            : propDatabase;
 
         /// <summary>현재 변신한 PropId. 변신하지 않았으면 NoProp.</summary>
         public int CurrentPropId => currentPropId.Value;
@@ -120,7 +123,7 @@ namespace GuardVsMannequin.Player.Mannequin
                 return false;
 
             TransformableProp prop = hit.collider.GetComponentInParent<TransformableProp>();
-            if (prop == null || !propDatabase.IsValid(prop.PropId))
+            if (prop == null || !Database.IsValid(prop.PropId))
                 return false;
 
             propId = prop.PropId;
@@ -133,7 +136,7 @@ namespace GuardVsMannequin.Player.Mannequin
         [ServerRpc]
         private void TransformServerRpc(int propId)
         {
-            if (IsDisguised || !propDatabase.IsValid(propId))
+            if (IsDisguised || !Database.IsValid(propId))
                 return;
             if (!CanTransformIn(GameServices.CurrentStateOrWaiting))
                 return;

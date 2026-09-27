@@ -354,11 +354,15 @@ public interface ITransformable { int PropId { get; } }
 - [x] 사람이 관리하기 쉬운 데이터를 텍스트 파일로 분리 (문장, 크레딧, 게임 설정 기본값·범위)
 - [x] 사냥 시간에도 마네킹 변신 허용 (진입 시 강제 해제는 유지, 변신 중 공격 불가)
 - [x] 보안 보강: Steam 방 Tugboat 루프백 바인딩, 접속 검증(`RoomAuthenticator`), 로비 공개 범위 설정, 닉네임 정리, 서버 이동 검증(`MovementValidator`)
-- [ ] 정식 맵 제작 (천장 개방 맵은 투명 천장, 프롭 실루엣 문제는 의도된 재미로 유지) — 3D 에셋 준비 후 진행
+- [x] 텍스트 데이터 파일을 빌드 후에도 수정 가능하게 (빌드 폴더 `GameData`, 없거나 깨지면 내장 원본 → 코드 기본값)
+- [x] 캐릭터 외형: 마네킹 3종(더미·슬라임·유령, 맵마다 선택), 가드(Ethan + 더미 애니메이션)
+- [x] 가드 리볼버(1인칭·3인칭)와 총구에서 나가는 총알·명중·총구 화염 이펙트
+- [x] 맵 4종 자동 생성 도구 (Asylum, Industrial, Hospital, Alchemist House) — 생성 후 배치 확인·조정 필요
+- [ ] 정식 맵 다듬기: 자동 배치된 스폰·전원 장치·출발 지점·조명 위치 조정 (천장 개방 맵은 투명 천장, 프롭 실루엣 문제는 의도된 재미로 유지)
 - [ ] 밸런스 조정, 최적화 (실시간 조명 개수, 네트워크 전송량)
 - [ ] (검토) TextMeshPro + 한글 폰트 에셋으로 UI 폰트 교체
 
-**상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리·다국어·이동 속도 검증 완료 (2026-09-26) / 데이터 파일 분리·사냥 시간 변신·보안 보강 검증 전
+**상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리·다국어·이동 속도 검증 완료 (2026-09-26) / 데이터 파일 분리·사냥 시간 변신·보안 보강·외부 데이터 파일·캐릭터 외형·총·맵 4종 검증 전
 
 **구현 메모**
 - 개인 설정(`GameOptions`: 감도 배율, 전체/배경 음악/효과음 음량)과 키 바인딩은 `OptionsStore`가 **PlayerPrefs**(이 PC)에 저장한다. 호스트가 정하는 게임 설정(`GameSettings`)과는 별개다.
@@ -386,6 +390,15 @@ public interface ITransformable { int PropId { get; } }
   - 로비 공개 범위는 `SteamLobbyService.lobbyType`(기본 FriendsOnly). Public은 코드를 아는 누구나 들어올 수 있고 AppID 480에서는 로비 검색에 보일 수 있다. **정식 AppID로 교체 전까지 FriendsOnly 권장.**
   - 닉네임은 서버에서 `<`, `>`, 제어 문자를 제거한다(리치 텍스트 태그로 UI를 깨뜨리는 것 방지).
   - `MovementValidator`(가드·마네킹 프리팹): 소유자 권한 이동을 서버가 검증한다. 최대 속도 × 1.3으로 이동 예산을 쌓고(최대 1.5초분 + 1m), 수평 이동·상승이 예산을 넘으면 마지막 정상 위치로 되돌린다(`TargetRpc`). 가드 대기 시간에는 가드가 `WaitingRoomArea`(대기실 오브젝트, 로컬 상자) 밖으로 나가면 되돌린다. 낙하는 검사하지 않는다. 새 맵에는 대기실에 `WaitingRoomArea`를 붙여야 한다.
+- **빌드 후 편집 가능한 데이터 파일**: `DataFiles`가 ① 빌드 폴더 `<게임>_Data/StreamingAssets/GameData/…` → ② 내장 원본(`Resources`) → ③ 코드 기본값 순서로 읽는다. 파일이 없거나, UTF-8이 아니거나(깨진 글자 포함), 해석에 실패하면 다음 순서로 넘어간다. 원본은 계속 `Assets/_Project/Resources`에서 편집하며, 빌드가 끝나면 `DataFilesBuildProcessor`가 `Localization`, `Credits`, `Data` 폴더와 안내문(README.txt)을 빌드 폴더로 복사한다. (Windows/Linux 빌드)
+- **캐릭터 외형**: `CharacterSkin`(모델 + 애니메이터) 에셋을 `CharacterSkinView`가 아바타에 붙인다. 맵의 `MapInfo`에 마네킹/가드 외형을 지정하면 그 맵에서만 바뀌고(가짜 마네킹 포함), 비우면 프리팹 기본 외형(마네킹=더미, 가드=Ethan)을 쓴다. 애니메이션은 위치 변화로 속도를 계산해 `Speed`, `MoveX`, `MoveZ` 중 컨트롤러에 있는 파라미터만 설정한다. 몸체 렌더러는 `CharacterSkinView.BodyRenderers`로 변신 숨김·1인칭 그림자 처리에 쓰인다.
+  - 외형·무기 모델은 메뉴 `GuardVsMannequin > 캐릭터·무기 에셋 생성`(테스트 환경 생성에 포함)이 만든다: 원본에서 스크립트·충돌체를 빼고, 발을 원점에 맞추고 키를 맞추고(사람 1.8m, 슬라임 1.3m, 유령 1.6m), 머티리얼을 URP Lit으로 변환해 `Assets/_Project/Art/Skins`에 저장. 휴머노이드(더미·Ethan)는 Kevin Iglesias 8방향 걷기·달리기 2D 블렌드 컨트롤러를 공유한다.
+  - 새 외형 추가: `Create > GuardVsMannequin > Character Skin`으로 에셋을 만들고 모델 프리팹(발 원점, 정면 +Z)과 컨트롤러를 지정 → 맵의 `MapInfo`에 넣는다. 정면이 다르면 `yawOffset`으로 보정.
+- **가드 총**: `GuardWeaponView`가 소유자에게는 카메라 앞 1인칭 리볼버, 다른 플레이어에게는 오른손 위치에서 조준 방향을 향하는 3인칭 리볼버를 보여준다(휴머노이드는 `HandAimIK`로 오른손을 조준 방향으로 뻗음). 판정은 그대로 서버 히트스캔이고, `ShotTracerView`가 보는 사람 기준 총구에서 총알 이펙트(`BulletEffect`)를 끝점까지 날리고 명중·총구 화염 이펙트를 재생한다. (MasterStylizedProjectiles의 OrangeGunShot)
+- **맵 자동 생성** (`GuardVsMannequin > 맵 생성`, `MapCatalog`의 순서 = 맵 번호): 원본 데모 씬을 가져와 정리(프리팹 연결 해제, 카메라·UI·에셋 스크립트 제거, 물리 고정) → 머티리얼 URP 변환(`UrpMaterialConverter`, 원본 에셋 머티리얼을 직접 바꿈) → 충돌체 없는 메시에 MeshCollider → 크기·이름 규칙으로 변신 사물/벽 조각 지정(맵 전용 `PropDatabase_<씬>`) → 임시 NavMesh로 플레이 가능한 바닥(실내 맵은 천장 있는 곳, 가장 넓게 이어진 영역)을 분석해 마네킹 스폰 10·전원 장치 후보 12·가드 출발 지점 5를 고르게 배치 → 조명을 실시간 MapLight로 바꾸고 부족하면 추가 → 투명 경계·천장, 맵 아래 닫힌 대기실 → 게임 시스템·HUD → 빌드 설정과 RoomState 맵 목록 등록.
+  - 새 맵의 가드 대기실은 맵과 떨어져 있어, 탐색 단계 시작 시 `GuardReleaseTeleporter`가 가드를 `GuardReleasePoint`로 옮긴다(`MovementValidator.ServerTeleport`). 테스트 맵은 출발 지점이 없어 기존처럼 문이 열린다.
+  - 빌드 설정에 없는 맵을 고르면 `RoomState`가 테스트 맵으로 대신한다.
+- 새로 추가된 외부 에셋 중 Unity 6에서 컴파일되지 않던 옛 스크립트(Standard Assets `Utility` 3개와 에디터 스크립트 2개, Flooded_Grounds PostProcessing 에디터 2개)는 제거된 API만 대체 API로 바꿨다. (파일마다 "GuardVsMannequin 프로젝트 수정" 주석)
 - 인스펙터 툴팁·개발용 로그는 한국어로 유지한다. (플레이어에게 보이지 않음)
 - HUD(`GameHud`)는 같은 표시 로직을 uGUI Text/패널로 옮겼다. UI는 모두 에디터 툴(`SharedUiBuilder`, `MenuSceneBuilder`)로 씬에 생성되어 인스펙터에서 편집할 수 있다.
 
