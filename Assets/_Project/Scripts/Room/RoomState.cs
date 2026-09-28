@@ -139,6 +139,17 @@ namespace GuardVsMannequin.Room
         }
 
         /// <summary>
+        /// 설정 항목에 값을 직접 지정한다. 항목 범위와 인원 조건으로 보정된다. (호스트 전용, 키보드 입력)
+        /// </summary>
+        [Server]
+        public void SetSettingValue(GameSettingId id, float value)
+        {
+            if (isInGame.Value || id == GameSettingId.Map)
+                return;
+            ApplySettings(GameSettingDefinitions.SetClamped(settings.Value, id, value));
+        }
+
+        /// <summary>
         /// 조건을 확인하고 모든 플레이어를 게임 씬으로 보낸다. (호스트 전용)
         /// </summary>
         [Server]

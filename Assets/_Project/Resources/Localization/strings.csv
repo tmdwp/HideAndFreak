@@ -79,6 +79,8 @@ setting.DetectorCooldown,탐지기 쿨타임,Detector Cooldown
 setting.GuardMaxHealth,가드 체력,Guard Health
 setting.MannequinMaxHealth,마네킹 체력,Mannequin Health
 setting.HuntHealthMultiplier,사냥 시간 마네킹 체력 배율,Hunt Mannequin Health Multiplier
+setting.GunDamage,가드 총 피해량,Guard Gun Damage
+setting.MannequinAttackDamage,마네킹 공격 피해량,Mannequin Attack Damage
 setting.MannequinAttackRange,마네킹 공격 범위,Mannequin Attack Range
 setting.GuardMoveSpeed,가드 이동 속도,Guard Move Speed
 setting.MannequinMoveSpeed,마네킹 이동 속도 (사냥 시간 1.5배),Mannequin Move Speed (x1.5 in Hunt)

@@ -51,7 +51,7 @@ namespace GuardVsMannequin.UI
             Cursor.visible = true;
 
             foreach (SettingRowView row in settingRows)
-                row.Bind(OnAdjustSetting);
+                row.Bind(OnAdjustSetting, OnSetSettingValue);
 
             primaryButton.onClick.AddListener(OnPrimaryClicked);
             leaveButton.onClick.AddListener(() => SessionServices.Session?.Leave());
@@ -168,6 +168,15 @@ namespace GuardVsMannequin.UI
         {
             if (IsHost && RoomState.Instance != null)
                 RoomState.Instance.AdjustSetting(id, direction);
+        }
+
+        /// <summary>
+        /// 호스트가 키보드로 입력한 값을 적용한다. (범위·인원 조건은 서버가 보정)
+        /// </summary>
+        private void OnSetSettingValue(GameSettingId id, float value)
+        {
+            if (IsHost && RoomState.Instance != null)
+                RoomState.Instance.SetSettingValue(id, value);
         }
 
         /// <summary>

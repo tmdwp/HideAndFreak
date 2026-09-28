@@ -30,6 +30,12 @@ namespace GuardVsMannequin.Core
         /// <summary>마네킹 기본 이동 속도(m/s). 사냥 시간에는 <see cref="GameConstants.MannequinHuntSpeedMultiplier"/>배가 된다.</summary>
         public float mannequinMoveSpeed;
 
+        /// <summary>가드 총 한 발의 피해량.</summary>
+        public int gunDamage;
+
+        /// <summary>마네킹 공격 한 번의 피해량. (사냥 시간)</summary>
+        public int mannequinAttackDamage;
+
         /// <summary>
         /// 코드에 적힌 기본값으로 채운 설정을 만든다.
         /// 실제 게임의 초기 설정은 Resources/Data/default_game_settings.json(<see cref="DefaultGameSettings"/>)을 따르며,
@@ -54,7 +60,9 @@ namespace GuardVsMannequin.Core
                 huntHealthMultiplier = 10f,
                 mannequinAttackRange = 2f,
                 guardMoveSpeed = 2f,
-                mannequinMoveSpeed = 1.5f
+                mannequinMoveSpeed = 1.5f,
+                gunDamage = GameConstants.Damage,
+                mannequinAttackDamage = GameConstants.Damage
             };
         }
     }

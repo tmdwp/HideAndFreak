@@ -35,6 +35,9 @@ namespace GuardVsMannequin.Player.Guard
         /// <summary>호스트 설정의 총 쿨타임.</summary>
         private static float Cooldown => GameServices.State?.Settings.gunCooldown ?? 0f;
 
+        /// <summary>한 발의 피해량. (호스트 설정, 최소 1)</summary>
+        private static int Damage => Mathf.Max(1, GameServices.State?.Settings.gunDamage ?? GameConstants.Damage);
+
         /// <summary>
         /// 조준, 입력, 소음 구현을 캐시한다.
         /// </summary>
@@ -103,7 +106,7 @@ namespace GuardVsMannequin.Player.Guard
             {
                 endPoint = hit.point;
                 IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
-                target?.TakeDamage(GameConstants.Damage, NetworkObject);
+                target?.TakeDamage(Damage, NetworkObject);
             }
 
             ShotFiredObserversRpc(origin, endPoint, didHit);

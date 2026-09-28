@@ -36,6 +36,9 @@ namespace GuardVsMannequin.Player.Mannequin
         /// <summary>호스트 설정의 공격 범위.</summary>
         private static float AttackRange => GameServices.State?.Settings.mannequinAttackRange ?? 2f;
 
+        /// <summary>공격 한 번의 피해량. (호스트 설정, 최소 1)</summary>
+        private static int Damage => Mathf.Max(1, GameServices.State?.Settings.mannequinAttackDamage ?? GameConstants.Damage);
+
         /// <summary>
         /// 구성 요소를 캐시한다.
         /// </summary>
@@ -97,7 +100,7 @@ namespace GuardVsMannequin.Player.Mannequin
                 origin = transform.position + Vector3.up * 1.5f;
 
             IDamageable target = FindTarget(new Ray(origin, direction.normalized));
-            target?.TakeDamage(GameConstants.Damage, NetworkObject);
+            target?.TakeDamage(Damage, NetworkObject);
 
             AttackObserversRpc();
         }

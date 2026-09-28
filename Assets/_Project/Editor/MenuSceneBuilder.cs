@@ -330,7 +330,7 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 설정 한 줄(이름 | - | 값 | +)을 만든다.
+        /// 설정 한 줄(이름 | - | 값 | +)을 만든다. 맵 이외의 값은 눌러서 키보드로 입력할 수 있는 칸이다.
         /// </summary>
         private static SettingRowView CreateSettingRow(Transform parent, GameSettingId id)
         {
@@ -343,8 +343,22 @@ namespace GuardVsMannequin.Editor
             Button decrease = EditorUiFactory.CreateButton(row, "Decrease", "-", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(decrease, 48f);
 
-            Text value = EditorUiFactory.CreateText(row, "Value", "-", 21, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
-            EditorUiFactory.SetWidth(value, 150f);
+            // 맵은 이름으로 고르므로 -/+ 버튼만, 나머지는 값을 눌러 키보드로도 입력할 수 있게 한다.
+            Text value;
+            InputField valueInput = null;
+            if (id == GameSettingId.Map)
+            {
+                value = EditorUiFactory.CreateText(row, "Value", "-", 21, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
+                EditorUiFactory.SetWidth(value, 150f);
+            }
+            else
+            {
+                valueInput = EditorUiFactory.CreateInputField(row, "ValueInput", string.Empty);
+                value = valueInput.textComponent;
+                value.alignment = TextAnchor.MiddleCenter;
+                value.fontSize = 21;
+                EditorUiFactory.SetWidth(valueInput, 150f);
+            }
 
             Button increase = EditorUiFactory.CreateButton(row, "Increase", "+", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(increase, 48f);
@@ -355,6 +369,7 @@ namespace GuardVsMannequin.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
             TestEnvironmentSetupTool.SetField(view, "labelText", label);
             TestEnvironmentSetupTool.SetField(view, "valueText", value);
+            TestEnvironmentSetupTool.SetField(view, "valueInput", valueInput);
             TestEnvironmentSetupTool.SetField(view, "decreaseButton", decrease);
             TestEnvironmentSetupTool.SetField(view, "increaseButton", increase);
             return view;

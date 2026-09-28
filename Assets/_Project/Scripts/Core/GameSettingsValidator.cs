@@ -8,12 +8,14 @@ namespace GuardVsMannequin.Core
     /// </summary>
     public static class GameSettingsValidator
     {
+        // 최후의 안전선. 룸에서 고를 수 있는 범위는 game_settings.csv에서 정하며, 이 값보다 넓힐 수 없다.
         public const float MinPreparationTime = 15f;
-        public const float MaxPreparationTime = 30f;
+        public const float MaxPreparationTime = 180f;
         public const float MinPlayTime = 120f;
-        public const float MaxPlayTime = 240f;
+        public const float MaxPlayTime = 1800f;
+        public const float MaxHuntTime = 900f;
         public const float MinMoveSpeed = 0.5f;
-        public const float MaxMoveSpeed = 6f;
+        public const float MaxMoveSpeed = 20f;
 
         /// <summary>
         /// 현재 참가 인원을 기준으로 설정값을 보정한 결과를 반환한다.
@@ -24,7 +26,7 @@ namespace GuardVsMannequin.Core
         {
             settings.preparationTime = Mathf.Clamp(settings.preparationTime, MinPreparationTime, MaxPreparationTime);
             settings.playTime = Mathf.Clamp(settings.playTime, MinPlayTime, MaxPlayTime);
-            settings.huntTime = Mathf.Max(1f, settings.huntTime);
+            settings.huntTime = Mathf.Clamp(settings.huntTime, 1f, MaxHuntTime);
 
             settings.guardCount = Mathf.Clamp(settings.guardCount, 1, GetMaxGuardCount(playerCount));
 
@@ -41,6 +43,8 @@ namespace GuardVsMannequin.Core
             settings.mannequinMaxHealth = Mathf.Max(1, settings.mannequinMaxHealth);
             settings.huntHealthMultiplier = Mathf.Max(1f, settings.huntHealthMultiplier);
             settings.mannequinAttackRange = Mathf.Max(0.1f, settings.mannequinAttackRange);
+            settings.gunDamage = Mathf.Max(1, settings.gunDamage);
+            settings.mannequinAttackDamage = Mathf.Max(1, settings.mannequinAttackDamage);
             settings.guardMoveSpeed = Mathf.Clamp(settings.guardMoveSpeed, MinMoveSpeed, MaxMoveSpeed);
             settings.mannequinMoveSpeed = Mathf.Clamp(settings.mannequinMoveSpeed, MinMoveSpeed, MaxMoveSpeed);
             return settings;

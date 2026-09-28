@@ -366,6 +366,8 @@ public interface ITransformable { int PropId { get; } }
 
 **구현 메모**
 - 설정 화면은 탭으로 나뉜다: **그래픽**(화면 모드: 전체 화면(창)/창 모드/최대화 창, 해상도(누르면 펼쳐지는 스크롤 목록), 언어) · **사운드**(음량) · **조작 키**(마우스 감도, 키 설정). 코드는 틀(`SettingsPanelView`: 탭·열기/닫기·모두 기본값)과 설정 묶음(`ISettingsSection`: `DisplaySettingsSection`, `LanguageSettingsSection`, `SoundSettingsSection`, `ControlSettingsSection`)으로 나뉘며, 새 설정은 묶음 컴포넌트를 페이지에 두기만 하면 자동으로 연결된다.
+- 룸 게임 설정 범위 확대(2026-09-29): 대기 15~180초, 탐색 120~1800초, 사냥 30~900초, 체력 가드 1~100·마네킹 1~500, 사냥 체력 배율 1~100, 공격 범위 1~30m, 이동 속도 0.5~20. 피해량 설정 추가(가드 총·마네킹 공격, 1~500, 기본 1). `GameSettingId`에 새 항목은 끝에만 추가한다(UI 프리팹이 번호로 저장).
+- 룸 게임 설정(맵 제외)은 -/+ 버튼 외에 값을 눌러 키보드로 입력할 수 있다(호스트만). 누르면 단위 없는 숫자로 바뀌고 Enter/다른 곳 클릭으로 적용되며, 서버(`RoomState.SetSettingValue`)가 항목 범위와 인원 조건으로 보정한다. 숫자가 아니면 원래 값으로 돌아간다.
 - 넘칠 수 있는 목록은 스크롤: 룸의 참가자·게임 설정 목록, 크레딧, 결과 화면 참가자, 키 설정.
 - 게임 이름: **Hide&Freak** (로비 제목·크레딧·창 제목). 코드 네임스페이스와 저장소 이름은 GuardVsMannequin/GuardVsMonster 유지. 창 제목(productName)이 바뀌면 PlayerPrefs 저장 위치도 바뀌어 개인 설정이 한 번 초기화된다. 화면 설정은 `DisplaySettings`가 `Screen.SetResolution`으로 바로 적용하고, 해상도 목록은 모니터 지원 해상도(가로×세로 중복 제거)다. 플레이어가 한 번이라도 고르면 다음 실행 때도 적용된다. (에디터에서는 적용하지 않음) "모두 기본값으로"는 언어와 화면 설정을 유지한다.
 - 개인 설정(`GameOptions`: 감도 배율, 전체/배경 음악/효과음 음량, 화면 크기·모드)과 키 바인딩은 `OptionsStore`가 **PlayerPrefs**(이 PC)에 저장한다. 호스트가 정하는 게임 설정(`GameSettings`)과는 별개다.

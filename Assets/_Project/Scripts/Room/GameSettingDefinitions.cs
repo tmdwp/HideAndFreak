@@ -25,7 +25,10 @@ namespace GuardVsMannequin.Room
         HuntHealthMultiplier,
         MannequinAttackRange,
         GuardMoveSpeed,
-        MannequinMoveSpeed
+        MannequinMoveSpeed,
+        // 새 항목은 끝에 추가한다. (UI 프리팹이 번호로 저장하므로 중간에 넣으면 기존 줄이 어긋남) 표시 순서는 CSV가 정한다.
+        GunDamage,
+        MannequinAttackDamage
     }
 
     /// <summary>
@@ -69,19 +72,21 @@ namespace GuardVsMannequin.Room
             new(GameSettingId.Map, 1f, 0f, 4f, string.Empty),
             new(GameSettingId.PreparationTime, 5f, GameSettingsValidator.MinPreparationTime, GameSettingsValidator.MaxPreparationTime, "unit.seconds"),
             new(GameSettingId.PlayTime, 30f, GameSettingsValidator.MinPlayTime, GameSettingsValidator.MaxPlayTime, "unit.seconds"),
-            new(GameSettingId.HuntTime, 15f, 30f, 180f, "unit.seconds"),
+            new(GameSettingId.HuntTime, 15f, 30f, GameSettingsValidator.MaxHuntTime, "unit.seconds"),
             new(GameSettingId.GuardCount, 1f, 1f, GameConstants.MaxPlayers / 2, "unit.people"),
             new(GameSettingId.ObjectiveCount, 1f, 0f, GameConstants.MaxPlayers + 2, "unit.times"),
             new(GameSettingId.GeneratorCount, 1f, 1f, 12f, "unit.count"),
             new(GameSettingId.GeneratorDestroyTime, 1f, 3f, 30f, "unit.seconds"),
             new(GameSettingId.GunCooldown, 0.5f, 0.5f, 10f, "unit.seconds"),
             new(GameSettingId.DetectorCooldown, 1f, 3f, 30f, "unit.seconds"),
-            new(GameSettingId.GuardMaxHealth, 1f, 1f, 10f, string.Empty),
-            new(GameSettingId.MannequinMaxHealth, 1f, 1f, 5f, string.Empty),
-            new(GameSettingId.HuntHealthMultiplier, 1f, 1f, 20f, "unit.multiplier"),
-            new(GameSettingId.MannequinAttackRange, 0.5f, 1f, 5f, "unit.meters"),
+            new(GameSettingId.GuardMaxHealth, 1f, 1f, 100f, string.Empty),
+            new(GameSettingId.MannequinMaxHealth, 1f, 1f, 500f, string.Empty),
+            new(GameSettingId.HuntHealthMultiplier, 1f, 1f, 100f, "unit.multiplier"),
+            new(GameSettingId.MannequinAttackRange, 0.5f, 1f, 30f, "unit.meters"),
             new(GameSettingId.GuardMoveSpeed, 0.1f, GameSettingsValidator.MinMoveSpeed, GameSettingsValidator.MaxMoveSpeed, "unit.speed"),
-            new(GameSettingId.MannequinMoveSpeed, 0.1f, GameSettingsValidator.MinMoveSpeed, GameSettingsValidator.MaxMoveSpeed, "unit.speed")
+            new(GameSettingId.MannequinMoveSpeed, 0.1f, GameSettingsValidator.MinMoveSpeed, GameSettingsValidator.MaxMoveSpeed, "unit.speed"),
+            new(GameSettingId.GunDamage, 1f, 1f, 500f, string.Empty),
+            new(GameSettingId.MannequinAttackDamage, 1f, 1f, 500f, string.Empty)
         };
 
         private static List<Definition> definitions;
@@ -140,6 +145,8 @@ namespace GuardVsMannequin.Room
                 GameSettingId.MannequinAttackRange => settings.mannequinAttackRange,
                 GameSettingId.GuardMoveSpeed => settings.guardMoveSpeed,
                 GameSettingId.MannequinMoveSpeed => settings.mannequinMoveSpeed,
+                GameSettingId.GunDamage => settings.gunDamage,
+                GameSettingId.MannequinAttackDamage => settings.mannequinAttackDamage,
                 _ => 0f
             };
         }
@@ -154,6 +161,36 @@ namespace GuardVsMannequin.Room
             // 0.1 단위 조정에서 생기는 부동소수 오차 제거
             value = (float)Math.Round(value, 2);
             return SetValue(settings, id, Mathf.Clamp(value, definition.min, definition.max));
+        }
+
+        /// <summary>
+        /// 항목 값을 직접 지정한 설정을 반환한다. (항목 범위로 제한, 정수 항목은 반올림, 소수는 둘째 자리까지)
+        /// 키보드로 값을 입력할 때 사용한다.
+        /// </summary>
+        public static GameSettings SetClamped(GameSettings settings, GameSettingId id, float value)
+        {
+            Definition definition = Get(id);
+            value = (float)Math.Round(value, 2);
+            return SetValue(settings, id, Mathf.Clamp(value, definition.min, definition.max));
+        }
+
+        /// <summary>
+        /// 입력 칸에 보여줄 숫자만의 문자열. (단위 없이, 소수점은 항상 '.')
+        /// </summary>
+        public static string FormatNumber(GameSettings settings, GameSettingId id)
+        {
+            float value = GetValue(settings, id);
+            return Mathf.Approximately(value, Mathf.Round(value))
+                ? Mathf.RoundToInt(value).ToString(CultureInfo.InvariantCulture)
+                : value.ToString("0.##", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// 입력한 문자열을 숫자로 읽는다. 쉼표 소수점도 받아준다.
+        /// </summary>
+        public static bool TryParseInput(string text, out float value)
+        {
+            return float.TryParse((text ?? string.Empty).Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
         }
 
         /// <summary>
@@ -194,6 +231,8 @@ namespace GuardVsMannequin.Room
                 case GameSettingId.MannequinAttackRange: settings.mannequinAttackRange = value; break;
                 case GameSettingId.GuardMoveSpeed: settings.guardMoveSpeed = value; break;
                 case GameSettingId.MannequinMoveSpeed: settings.mannequinMoveSpeed = value; break;
+                case GameSettingId.GunDamage: settings.gunDamage = rounded; break;
+                case GameSettingId.MannequinAttackDamage: settings.mannequinAttackDamage = rounded; break;
             }
             return settings;
         }
