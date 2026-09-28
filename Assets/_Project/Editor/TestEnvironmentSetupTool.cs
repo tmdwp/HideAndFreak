@@ -62,6 +62,9 @@ namespace GuardVsMannequin.Editor
         internal const string RoomStatePrefabPath = PrefabFolder + "/RoomState.prefab";
         private const string DefaultPrefabObjectsPath = "Assets/DefaultPrefabObjects.asset";
 
+        /// <summary>게임 이름. (창 제목, 빌드 정보)</summary>
+        internal const string ProductName = "Hide&Freak";
+
         private const float MapHalfSize = 20f;
         private const float WallHeight = 4f;
         private const float WallThickness = 0.5f;
@@ -138,6 +141,8 @@ namespace GuardVsMannequin.Editor
                 AssetDatabase.LoadAssetAtPath<DefaultPrefabObjects>(DefaultPrefabObjectsPath));
 
             RegisterBuildScenes();
+            // 게임 이름(창 제목). 저장 위치(PlayerPrefs, 로그)도 이 이름을 따른다.
+            PlayerSettings.productName = ProductName;
             KeepLinearFogShaderVariants();
             SteamBuildProcessor.EnsureRunInBackground();
 
@@ -198,7 +203,7 @@ namespace GuardVsMannequin.Editor
         internal static void RegisterBuildScenes()
         {
             var paths = new List<string> { LobbyScenePath, RoomScenePath };
-            foreach (MapCatalog.Entry map in MapCatalog.Maps)
+            foreach (MapCatalog.Entry map in MapCatalog.AllMaps)
             {
                 if (File.Exists(map.ScenePath))
                     paths.Add(map.ScenePath);
@@ -1278,14 +1283,12 @@ namespace GuardVsMannequin.Editor
         /// </summary>
         internal static void CreateUi(GameSystemsRefs systems, SpectatorController spectator)
         {
-            // uGUI HUD와 ESC 메뉴(게임 중에는 닫을 때 커서를 다시 잠금)
+            // uGUI HUD와 ESC 메뉴: 프리팹(Prefabs/UI/HudCanvas)을 쓰고, 없으면 기본 모양으로 만들어 저장한다.
             EditorUiFactory.CreateEventSystem();
-            Canvas canvas = EditorUiFactory.CreateCanvas("HudCanvas");
-            canvas.gameObject.AddComponent<OsFontApplier>();
+            GameObject prefab = UiPrefabLibrary.GetOrBuildRoot(UiPrefabLibrary.HudCanvasPath, BuildHudCanvas);
+            GameHud gameHud = UiPrefabLibrary.Instantiate(prefab).GetComponent<GameHud>();
 
-            GameHud gameHud = SharedUiBuilder.CreateGameHud(canvas.transform);
-            SharedUiBuilder.CreatePauseMenu(canvas.transform, lockCursorOnClose: true);
-
+            // 씬 오브젝트 참조는 프리팹에 담을 수 없으므로 씬의 인스턴스에 연결한다.
             SetField(gameHud, "stateMachine", systems.stateMachine);
             SetField(gameHud, "playerRegistry", systems.playerRegistry);
             SetField(gameHud, "objectiveTracker", systems.objectiveTracker);
@@ -1294,6 +1297,18 @@ namespace GuardVsMannequin.Editor
 
             // 저체력 시야 효과용 전역 볼륨 (런타임에 프로필 생성)
             new GameObject("LowHealthVolume").AddComponent<LowHealthVignette>();
+        }
+
+        /// <summary>
+        /// 게임 HUD 캔버스의 기본 모양(HUD + ESC 메뉴, 닫으면 커서를 다시 잠금)을 만든다.
+        /// </summary>
+        private static GameObject BuildHudCanvas()
+        {
+            Canvas canvas = EditorUiFactory.CreateCanvas("HudCanvas");
+            canvas.gameObject.AddComponent<OsFontApplier>();
+            SharedUiBuilder.CreateGameHud(canvas.transform);
+            SharedUiBuilder.CreatePauseMenu(canvas.transform, lockCursorOnClose: true);
+            return canvas.gameObject;
         }
 
         /// <summary>

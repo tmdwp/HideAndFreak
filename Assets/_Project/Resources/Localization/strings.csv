@@ -5,7 +5,7 @@ key,ko,en
 language.name,한국어,English
 
 # 로비
-lobby.title,가드 vs 마네킹,Guard vs Mannequin
+lobby.title,Hide&Freak,Hide&Freak
 lobby.steam.header,Steam,Steam
 lobby.steam.connected,Steam 연결됨,Steam connected
 lobby.steam.unavailable,Steam을 사용할 수 없습니다. (Steam을 실행하면 Steam 방을 만들 수 있습니다),Steam is unavailable. (Run Steam to create Steam rooms.)
@@ -102,6 +102,14 @@ map.4,연금술사의 집,Alchemist House
 # 설정 화면
 options.title,설정,Settings
 options.language,언어,Language
+options.tab.graphics,그래픽,Graphics
+options.tab.sound,사운드,Sound
+options.tab.controls,조작 키,Controls
+options.screenMode,화면 모드,Display Mode
+options.screenMode.borderless,전체 화면 (창),Borderless Fullscreen
+options.screenMode.windowed,창 모드,Windowed
+options.screenMode.maximized,최대화 창,Maximized Window
+options.resolution,해상도,Resolution
 options.sensitivity,마우스 감도,Mouse Sensitivity
 options.masterVolume,전체 음량,Master Volume
 options.bgmVolume,배경 음악,Music

@@ -26,6 +26,23 @@ namespace GuardVsMannequin.Settings
         /// <summary>표시 언어 코드(ko, en ...). 비어 있으면 시스템 언어를 따른다.</summary>
         public string languageCode;
 
+        /// <summary>화면 가로 해상도. 0이면 아직 고르지 않은 것(현재 화면 유지).</summary>
+        public int screenWidth;
+
+        /// <summary>화면 세로 해상도. 0이면 아직 고르지 않은 것(현재 화면 유지).</summary>
+        public int screenHeight;
+
+        /// <summary>화면 모드. (<see cref="DisplaySettings.Modes"/>의 번호, 0 = 전체 화면 창)</summary>
+        public int screenMode;
+
+        /// <summary>
+        /// 화면 설정이 같은지 비교한다. (다를 때만 해상도를 다시 적용하기 위함)
+        /// </summary>
+        public bool HasSameDisplay(GameOptions other)
+        {
+            return screenWidth == other.screenWidth && screenHeight == other.screenHeight && screenMode == other.screenMode;
+        }
+
         /// <summary>
         /// 기본값으로 채운 설정을 만든다.
         /// </summary>

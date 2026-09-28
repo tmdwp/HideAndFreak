@@ -247,6 +247,135 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
+        /// 누르면 스크롤 목록이 펼쳐지는 선택 상자를 만든다. (항목이 많으면 목록 안에서 스크롤)
+        /// </summary>
+        /// <param name="parent">부모.</param>
+        /// <param name="name">오브젝트 이름.</param>
+        /// <param name="fontSize">글자 크기.</param>
+        /// <param name="listHeight">펼쳐진 목록의 높이. 넘치는 항목은 스크롤한다.</param>
+        public static Dropdown CreateDropdown(Transform parent, string name, int fontSize, float listHeight)
+        {
+            const float itemHeight = 40f;
+            const float scrollbarWidth = 18f;
+            Color fieldColor = new Color(0.14f, 0.15f, 0.18f, 1f);
+
+            RectTransform root = CreateRect(parent, name);
+            Image background = root.gameObject.AddComponent<Image>();
+            background.color = fieldColor;
+
+            Text caption = CreateText(root, "Label", "-", fontSize, TextAnchor.MiddleCenter, TextColor);
+            Stretch(caption.rectTransform);
+            caption.rectTransform.offsetMax = new Vector2(-36f, 0f);
+            Text arrow = CreateText(root, "Arrow", "▼", fontSize - 6, TextAnchor.MiddleRight, TextColor);
+            StretchWithPadding(arrow.rectTransform, 12f);
+
+            // 펼쳐지는 목록(템플릿): 선택 상자 바로 아래에 붙는다.
+            RectTransform template = CreateRect(root, "Template");
+            template.anchorMin = new Vector2(0f, 0f);
+            template.anchorMax = new Vector2(1f, 0f);
+            template.pivot = new Vector2(0.5f, 1f);
+            template.anchoredPosition = new Vector2(0f, -2f);
+            template.sizeDelta = new Vector2(0f, listHeight);
+            template.gameObject.AddComponent<Image>().color = new Color(0.1f, 0.11f, 0.13f, 1f);
+            ScrollRect scroll = template.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 30f;
+
+            RectTransform viewport = CreateRect(template, "Viewport");
+            Stretch(viewport);
+            viewport.offsetMax = new Vector2(-scrollbarWidth, 0f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+
+            RectTransform content = CreateRect(viewport, "Content");
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.sizeDelta = new Vector2(0f, itemHeight);
+
+            RectTransform item = CreateRect(content, "Item");
+            item.anchorMin = new Vector2(0f, 0.5f);
+            item.anchorMax = new Vector2(1f, 0.5f);
+            item.sizeDelta = new Vector2(0f, itemHeight);
+            Toggle toggle = item.gameObject.AddComponent<Toggle>();
+
+            RectTransform itemBackground = CreateRect(item, "Item Background");
+            Stretch(itemBackground);
+            Image itemBackgroundImage = itemBackground.gameObject.AddComponent<Image>();
+            itemBackgroundImage.color = new Color(0.18f, 0.2f, 0.24f, 1f);
+
+            RectTransform checkmark = CreateRect(item, "Item Checkmark");
+            checkmark.anchorMin = new Vector2(0f, 0f);
+            checkmark.anchorMax = new Vector2(0f, 1f);
+            checkmark.pivot = new Vector2(0f, 0.5f);
+            checkmark.sizeDelta = new Vector2(6f, 0f);
+            Image checkmarkImage = checkmark.gameObject.AddComponent<Image>();
+            checkmarkImage.color = AccentColor;
+
+            Text itemLabel = CreateText(item, "Item Label", "-", fontSize - 2, TextAnchor.MiddleCenter, TextColor);
+            Stretch(itemLabel.rectTransform);
+
+            toggle.targetGraphic = itemBackgroundImage;
+            toggle.graphic = checkmarkImage;
+            toggle.isOn = true;
+
+            // 세로 스크롤바
+            RectTransform scrollbarRect = CreateRect(template, "Scrollbar");
+            scrollbarRect.anchorMin = new Vector2(1f, 0f);
+            scrollbarRect.anchorMax = new Vector2(1f, 1f);
+            scrollbarRect.pivot = new Vector2(1f, 1f);
+            scrollbarRect.sizeDelta = new Vector2(scrollbarWidth, 0f);
+            scrollbarRect.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.1f, 1f);
+            Scrollbar scrollbar = scrollbarRect.gameObject.AddComponent<Scrollbar>();
+            RectTransform slidingArea = CreateRect(scrollbarRect, "Sliding Area");
+            Stretch(slidingArea);
+            RectTransform handle = CreateRect(slidingArea, "Handle");
+            handle.offsetMin = handle.offsetMax = Vector2.zero;
+            Image handleImage = handle.gameObject.AddComponent<Image>();
+            handleImage.color = ButtonColor;
+            scrollbar.handleRect = handle;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+
+            scroll.viewport = viewport;
+            scroll.content = content;
+            scroll.verticalScrollbar = scrollbar;
+            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            template.gameObject.SetActive(false);
+
+            Dropdown dropdown = root.gameObject.AddComponent<Dropdown>();
+            dropdown.targetGraphic = background;
+            dropdown.template = template;
+            dropdown.captionText = caption;
+            dropdown.itemText = itemLabel;
+            return dropdown;
+        }
+
+        /// <summary>
+        /// 내용이 길면 스크롤되는 텍스트 영역을 만든다. 반환한 Text에 내용을 넣는다.
+        /// 영역의 레이아웃 높이는 호출한 쪽에서 정한다(스크롤 루트 = 반환값.transform.parent.parent.parent).
+        /// </summary>
+        public static Text CreateScrollText(Transform parent, string name, string content, int fontSize, TextAnchor alignment, Color color)
+        {
+            RectTransform list = CreateScrollList(parent, name, 0f);
+            Text text = CreateText(list, "Text", content, fontSize, alignment, color);
+            return text;
+        }
+
+        /// <summary>
+        /// 스크롤 목록/텍스트의 루트(ScrollRect)가 부모 레이아웃에서 남는 높이를 차지하게 한다.
+        /// </summary>
+        /// <param name="scrollContent">CreateScrollList의 반환값(Content) 또는 CreateScrollText가 만든 Text의 부모.</param>
+        /// <param name="minHeight">최소 높이.</param>
+        public static void FillRemainingHeight(Transform scrollContent, float minHeight)
+        {
+            Transform root = scrollContent.parent.parent;
+            LayoutElement element = GetLayoutElement(root);
+            element.flexibleHeight = 1f;
+            element.minHeight = minHeight;
+        }
+
+        /// <summary>
         /// 레이아웃 안에서의 높이를 고정한다.
         /// </summary>
         public static void SetHeight(Component target, float height)

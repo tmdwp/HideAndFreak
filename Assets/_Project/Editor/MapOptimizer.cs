@@ -52,6 +52,28 @@ namespace GuardVsMannequin.Editor
         private static void OptimizeAlchemistHouse() => OptimizeSingle(4);
 
         /// <summary>
+        /// 열려 있는 맵 씬(직접 만든 맵 포함)을 최적화하고 저장한다. 먼저 씬을 저장해야 한다.
+        /// </summary>
+        [MenuItem("GuardVsMannequin/맵 최적화/현재 열린 맵 최적화")]
+        public static void OptimizeActiveScene()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                EditorUtility.DisplayDialog("맵 최적화", "씬을 먼저 저장하세요.", "확인");
+                return;
+            }
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+
+            // 목록에 없는 씬은 실내 맵으로 본다. (경계 밖 여유 거리가 짧음)
+            MapCatalog.Entry entry = MapCatalog.FindByScenePath(scene.path);
+            Optimize(scene, entry == null || entry.indoor);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+
+        /// <summary>
         /// 맵 하나를 최적화한다.
         /// </summary>
         private static void OptimizeSingle(int mapId)

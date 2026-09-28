@@ -1,43 +1,34 @@
 using System;
 using GuardVsMannequin.Localization;
-using GuardVsMannequin.Settings;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace GuardVsMannequin.UI
 {
     /// <summary>
-    /// 설정 화면: 언어, 마우스 감도, 음량(전체/배경 음악/효과음), 키 설정.
-    /// 값을 바꾸는 즉시 저장되고 적용된다. 로비와 게임 중 ESC 메뉴에서 같은 화면을 쓴다.
+    /// 설정 화면의 틀: 탭 전환, 열기/닫기, "모두 기본값으로".
+    /// 실제 설정은 하위의 설정 묶음(<see cref="ISettingsSection"/>)이 각자 처리한다.
+    /// - 그래픽 탭: <see cref="DisplaySettingsSection"/>(화면 모드, 해상도), <see cref="LanguageSettingsSection"/>(언어)
+    /// - 사운드 탭: <see cref="SoundSettingsSection"/>
+    /// - 조작 키 탭: <see cref="ControlSettingsSection"/>
+    /// 새 설정을 추가할 때는 ISettingsSection 컴포넌트를 원하는 페이지 안에 두면 자동으로 연결된다.
+    /// 로비와 게임 중 ESC 메뉴에서 같은 화면을 쓴다.
     /// </summary>
     public class SettingsPanelView : MonoBehaviour
     {
-        [SerializeField] private InputActionAsset inputActions;
-
-        [Header("언어")]
-        [SerializeField] private Button previousLanguageButton;
-        [SerializeField] private Button nextLanguageButton;
-        [SerializeField] private Text languageValueText;
-
-        [Header("감도와 음량")]
-        [SerializeField] private Slider sensitivitySlider;
-        [SerializeField] private Text sensitivityValueText;
-        [SerializeField] private Slider masterVolumeSlider;
-        [SerializeField] private Text masterVolumeValueText;
-        [SerializeField] private Slider bgmVolumeSlider;
-        [SerializeField] private Text bgmVolumeValueText;
-        [SerializeField] private Slider sfxVolumeSlider;
-        [SerializeField] private Text sfxVolumeValueText;
-
-        [Header("키 설정")]
-        [SerializeField] private RebindRowView[] rebindRows;
+        [Header("탭 (버튼과 페이지는 같은 순서)")]
+        [SerializeField] private Button[] tabButtons;
+        [SerializeField] private GameObject[] pages;
+        [Tooltip("선택된 탭 버튼 색. 탭 버튼에 이미지를 넣었다면 흰색으로 두면 이미지 색 그대로 보인다.")]
+        [SerializeField] private Color selectedTabColor = new Color(0.85f, 0.55f, 0.20f, 1f);
+        [SerializeField] private Color normalTabColor = new Color(0.22f, 0.25f, 0.30f, 1f);
 
         [Header("버튼")]
         [SerializeField] private Button resetAllButton;
         [SerializeField] private Button closeButton;
 
-        private InputActionAsset editingActions;
+        private ISettingsSection[] sections = Array.Empty<ISettingsSection>();
+        private int currentPage;
         private bool isInitialized;
 
         /// <summary>화면이 닫혔을 때.</summary>
@@ -47,7 +38,7 @@ namespace GuardVsMannequin.UI
         public bool IsOpen => gameObject.activeSelf;
 
         /// <summary>
-        /// 처음 열릴 때 한 번 편집용 입력 에셋과 UI 이벤트를 준비한다.
+        /// 처음 열릴 때 한 번 설정 묶음을 찾아 준비하고 버튼을 연결한다. (꺼진 페이지 안의 묶음도 포함)
         /// </summary>
         private void Initialize()
         {
@@ -55,54 +46,42 @@ namespace GuardVsMannequin.UI
                 return;
             isInitialized = true;
 
-            editingActions = Instantiate(inputActions);
-            OptionsStore.ApplyBindings(editingActions);
+            sections = GetComponentsInChildren<ISettingsSection>(true);
+            foreach (ISettingsSection section in sections)
+                section.Initialize();
 
-            for (int i = 0; i < rebindRows.Length && i < KeyBindingCatalog.All.Count; i++)
-                rebindRows[i].Bind(editingActions, KeyBindingCatalog.All[i].labelKey, OnBindingEdited);
-
-            previousLanguageButton.onClick.AddListener(() => ChangeLanguage(-1));
-            nextLanguageButton.onClick.AddListener(() => ChangeLanguage(1));
-            Loc.LanguageChanged += OnLanguageChanged;
-
-            sensitivitySlider.minValue = GameOptions.MinSensitivity;
-            sensitivitySlider.maxValue = GameOptions.MaxSensitivity;
-            foreach (Slider volume in new[] { masterVolumeSlider, bgmVolumeSlider, sfxVolumeSlider })
+            for (int i = 0; i < tabButtons.Length; i++)
             {
-                volume.minValue = 0f;
-                volume.maxValue = 1f;
+                int pageIndex = i;
+                tabButtons[i].onClick.AddListener(() => ShowPage(pageIndex));
             }
 
-            sensitivitySlider.onValueChanged.AddListener(_ => SaveOptionsFromSliders());
-            masterVolumeSlider.onValueChanged.AddListener(_ => SaveOptionsFromSliders());
-            bgmVolumeSlider.onValueChanged.AddListener(_ => SaveOptionsFromSliders());
-            sfxVolumeSlider.onValueChanged.AddListener(_ => SaveOptionsFromSliders());
             resetAllButton.onClick.AddListener(ResetAll);
             closeButton.onClick.AddListener(Close);
+            Loc.LanguageChanged += OnLanguageChanged;
         }
 
         /// <summary>
-        /// 편집용 입력 에셋을 해제한다.
+        /// 언어 변경 구독을 해제한다.
         /// </summary>
         private void OnDestroy()
         {
             Loc.LanguageChanged -= OnLanguageChanged;
-            if (editingActions != null)
-                Destroy(editingActions);
         }
 
         /// <summary>
-        /// 화면을 열고 저장된 값을 표시한다.
+        /// 화면을 열고 저장된 값을 표시한다. 마지막으로 본 페이지를 다시 연다.
         /// </summary>
         public void Open()
         {
             gameObject.SetActive(true);
             Initialize();
-            LoadIntoControls();
+            RefreshAll();
+            ShowPage(currentPage);
         }
 
         /// <summary>
-        /// 화면을 닫는다.
+        /// 화면을 닫는다. (키 설정 중에는 닫지 않음)
         /// </summary>
         public void Close()
         {
@@ -114,102 +93,53 @@ namespace GuardVsMannequin.UI
         }
 
         /// <summary>
-        /// 저장된 설정을 슬라이더와 키 목록에 표시한다. (저장 이벤트는 발생시키지 않음)
+        /// 페이지 하나만 보이게 하고 해당 탭을 강조한다. (키 설정 중에는 바꾸지 않음)
         /// </summary>
-        private void LoadIntoControls()
+        private void ShowPage(int pageIndex)
         {
-            GameOptions options = OptionsStore.Current;
-            sensitivitySlider.SetValueWithoutNotify(options.mouseSensitivity);
-            masterVolumeSlider.SetValueWithoutNotify(options.masterVolume);
-            bgmVolumeSlider.SetValueWithoutNotify(options.bgmVolume);
-            sfxVolumeSlider.SetValueWithoutNotify(options.sfxVolume);
-            RefreshValueTexts(options);
-            languageValueText.text = Loc.GetLanguageName(Loc.CurrentLanguage);
+            if (RebindRowView.IsAnyRebinding || pages.Length == 0)
+                return;
 
-            OptionsStore.ApplyBindings(editingActions);
-            foreach (RebindRowView row in rebindRows)
-                row.Refresh();
+            currentPage = Mathf.Clamp(pageIndex, 0, pages.Length - 1);
+            for (int i = 0; i < pages.Length; i++)
+                pages[i].SetActive(i == currentPage);
+
+            for (int i = 0; i < tabButtons.Length; i++)
+            {
+                if (tabButtons[i].targetGraphic != null)
+                    tabButtons[i].targetGraphic.color = i == currentPage ? selectedTabColor : normalTabColor;
+            }
         }
 
         /// <summary>
-        /// 슬라이더 값을 저장한다. (감도와 음량은 바로 적용됨)
+        /// 모든 설정 묶음이 저장된 값을 다시 표시한다.
         /// </summary>
-        private void SaveOptionsFromSliders()
+        private void RefreshAll()
         {
-            GameOptions options = OptionsStore.Current;
-            options.mouseSensitivity = sensitivitySlider.value;
-            options.masterVolume = masterVolumeSlider.value;
-            options.bgmVolume = bgmVolumeSlider.value;
-            options.sfxVolume = sfxVolumeSlider.value;
-
-            OptionsStore.SetOptions(options);
-            RefreshValueTexts(OptionsStore.Current);
+            foreach (ISettingsSection section in sections)
+                section.Refresh();
         }
 
         /// <summary>
-        /// 슬라이더 옆 숫자를 갱신한다.
-        /// </summary>
-        private void RefreshValueTexts(GameOptions options)
-        {
-            sensitivityValueText.text = options.mouseSensitivity.ToString("0.00");
-            masterVolumeValueText.text = Mathf.RoundToInt(options.masterVolume * 100f) + "%";
-            bgmVolumeValueText.text = Mathf.RoundToInt(options.bgmVolume * 100f) + "%";
-            sfxVolumeValueText.text = Mathf.RoundToInt(options.sfxVolume * 100f) + "%";
-        }
-
-        /// <summary>
-        /// 키를 바꾸면 저장한다. 게임 중이면 입력에 바로 적용된다.
-        /// </summary>
-        private void OnBindingEdited()
-        {
-            OptionsStore.SaveBindings(editingActions);
-        }
-
-        /// <summary>
-        /// 감도, 음량, 모든 키를 기본값으로 되돌린다. (언어는 유지)
+        /// 모든 설정 묶음을 기본값으로 되돌린다. (언어·화면 설정은 각 묶음이 유지)
         /// </summary>
         private void ResetAll()
         {
             if (RebindRowView.IsAnyRebinding)
                 return;
 
-            editingActions.RemoveAllBindingOverrides();
-            OptionsStore.SaveBindings(editingActions);
-            GameOptions defaults = GameOptions.CreateDefault();
-            defaults.languageCode = OptionsStore.Current.languageCode;
-            OptionsStore.SetOptions(defaults);
-            LoadIntoControls();
+            foreach (ISettingsSection section in sections)
+                section.ResetToDefaults();
+            RefreshAll();
         }
 
         /// <summary>
-        /// 언어 목록(strings.csv 머리글 순서)에서 이전/다음 언어로 바꾼다.
-        /// </summary>
-        private void ChangeLanguage(int direction)
-        {
-            if (RebindRowView.IsAnyRebinding)
-                return;
-
-            var languages = Loc.Languages;
-            if (languages.Count == 0)
-                return;
-
-            int index = 0;
-            for (int i = 0; i < languages.Count; i++)
-            {
-                if (languages[i] == Loc.CurrentLanguage)
-                    index = i;
-            }
-            index = (index + direction + languages.Count) % languages.Count;
-            Loc.SetLanguage(languages[index]);
-        }
-
-        /// <summary>
-        /// 언어가 바뀌면 코드로 채운 문장(언어 이름, 키 이름)을 다시 표시한다.
+        /// 언어가 바뀌면 코드로 채운 문장(언어 이름, 화면 모드, 키 이름)을 다시 표시한다.
         /// </summary>
         private void OnLanguageChanged()
         {
             if (IsOpen)
-                LoadIntoControls();
+                RefreshAll();
         }
     }
 }

@@ -17,3 +17,9 @@ MonoBehaviour:
   animatorController: {fileID: 9100000, guid: 1b31e1a9529134e47a927f9426852d1e, type: 2}
   yawOffset: 0
   useAimIK: 0
+  weaponGrip:
+    followHandRotation: 0
+    handPositionOffset: {x: 0, y: 0.02, z: 0.06}
+    handRotationOffset: {x: 0, y: 0, z: 0}
+    gunScale: 1
+    ikHandPosition: {x: 0.18, y: -0.15, z: 0.45}

@@ -160,10 +160,19 @@ namespace GuardVsMannequin.Editor
         #region 로비 UI
 
         /// <summary>
-        /// 로비 화면을 만든다. 제목 아래에 Steam 패널(왼쪽)과 직접 접속 패널(오른쪽)을 나란히 두고,
-        /// 하단 패널에 안내 문구와 공용 메뉴(설정, 크레딧, 종료)를 둔다.
+        /// 로비 화면 프리팹(없으면 기본 모양으로 만들어 저장)을 씬에 넣는다. 직접 고친 프리팹은 그대로 쓴다.
         /// </summary>
         private static void CreateLobbyUi()
+        {
+            GameObject prefab = UiPrefabLibrary.GetOrBuildRoot(UiPrefabLibrary.LobbyCanvasPath, BuildLobbyCanvas);
+            UiPrefabLibrary.Instantiate(prefab);
+        }
+
+        /// <summary>
+        /// 로비 화면의 기본 모양을 만든다. 제목 아래에 Steam 패널(왼쪽)과 직접 접속 패널(오른쪽)을 나란히 두고,
+        /// 하단 패널에 안내 문구와 공용 메뉴(설정, 크레딧, 종료)를 둔다.
+        /// </summary>
+        private static GameObject BuildLobbyCanvas()
         {
             Canvas canvas = EditorUiFactory.CreateCanvas("LobbyCanvas");
             canvas.gameObject.AddComponent<OsFontApplier>();
@@ -236,6 +245,7 @@ namespace GuardVsMannequin.Editor
             // 설정과 크레딧 화면 (메뉴 위에 그려지도록 마지막에 만든다)
             TestEnvironmentSetupTool.SetField(view, "settingsPanel", SharedUiBuilder.CreateSettingsPanel(canvas.transform));
             TestEnvironmentSetupTool.SetField(view, "creditsPanel", SharedUiBuilder.CreateCreditsPanel(canvas.transform));
+            return canvas.gameObject;
         }
 
         #endregion
@@ -243,9 +253,19 @@ namespace GuardVsMannequin.Editor
         #region 룸 UI
 
         /// <summary>
-        /// 룸 화면(참가자·방 코드 / 게임 설정 / 하단 버튼)을 만든다.
+        /// 룸 화면 프리팹(없으면 기본 모양으로 만들어 저장)을 씬에 넣는다. 직접 고친 프리팹은 그대로 쓴다.
         /// </summary>
         private static void CreateRoomUi()
+        {
+            GameObject prefab = UiPrefabLibrary.GetOrBuildRoot(UiPrefabLibrary.RoomCanvasPath, BuildRoomCanvas);
+            UiPrefabLibrary.Instantiate(prefab);
+        }
+
+        /// <summary>
+        /// 룸 화면(참가자·방 코드 / 게임 설정 / 하단 버튼)의 기본 모양을 만든다.
+        /// 게임 설정 줄은 game_settings.csv의 항목 수만큼 만든다. (항목을 추가하면 UI 프리팹 초기화가 필요)
+        /// </summary>
+        private static GameObject BuildRoomCanvas()
         {
             Canvas canvas = EditorUiFactory.CreateCanvas("RoomCanvas");
             canvas.gameObject.AddComponent<OsFontApplier>();
@@ -254,8 +274,9 @@ namespace GuardVsMannequin.Editor
             RectTransform left = EditorUiFactory.CreatePanel(canvas.transform, "MembersPanel", new Vector2(0.03f, 0.16f), new Vector2(0.45f, 0.95f), EditorUiFactory.PanelColor);
             EditorUiFactory.AddVerticalLayout(left, 14f, 28);
             AddHeader(left, "room.members.header");
-            Text memberList = AddLine(left, "MemberList", string.Empty, 26, EditorUiFactory.TextColor);
-            EditorUiFactory.SetHeight(memberList, 420f);
+            // 참가자(최대 10명)가 넘치면 스크롤한다.
+            Text memberList = EditorUiFactory.CreateScrollText(left, "MemberList", string.Empty, 26, TextAnchor.UpperLeft, EditorUiFactory.TextColor);
+            EditorUiFactory.FillRemainingHeight(memberList.transform.parent, 200f);
 
             Text roomCode = AddLine(left, "RoomCode", string.Empty, 22, EditorUiFactory.TextColor);
             RectTransform codeRow = EditorUiFactory.CreateRow(left, "CodeButtons", 52f, 10f);
@@ -266,11 +287,13 @@ namespace GuardVsMannequin.Editor
 
             // 오른쪽: 게임 설정
             RectTransform right = EditorUiFactory.CreatePanel(canvas.transform, "SettingsPanel", new Vector2(0.47f, 0.16f), new Vector2(0.97f, 0.95f), EditorUiFactory.PanelColor);
-            // 항목이 16개라 줄 간격과 여백을 줄여 패널 안에 모두 들어가게 한다.
-            EditorUiFactory.AddVerticalLayout(right, 4f, 20);
+            EditorUiFactory.AddVerticalLayout(right, 8f, 20);
             Text settingsHint = AddLine(right, "SettingsHint", string.Empty, 26, EditorUiFactory.TextColor);
 
-            SettingRowView[] rows = GameSettingDefinitions.All.Select(definition => CreateSettingRow(right, definition.id)).ToArray();
+            // 설정 항목이 많아 패널을 넘치면 스크롤한다.
+            RectTransform settingList = EditorUiFactory.CreateScrollList(right, "SettingList", 4f);
+            EditorUiFactory.FillRemainingHeight(settingList, 200f);
+            SettingRowView[] rows = GameSettingDefinitions.All.Select(definition => CreateSettingRow(settingList, definition.id)).ToArray();
 
             // 하단: 상태, 나가기, 시작/준비
             RectTransform bottom = EditorUiFactory.CreatePanel(canvas.transform, "BottomBar", new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.13f), EditorUiFactory.PanelColor);
@@ -303,6 +326,7 @@ namespace GuardVsMannequin.Editor
 
             // ESC 메뉴: 룸에서는 커서를 잠그지 않는다.
             SharedUiBuilder.CreatePauseMenu(canvas.transform, lockCursorOnClose: false);
+            return canvas.gameObject;
         }
 
         /// <summary>

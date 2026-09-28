@@ -1,0 +1,161 @@
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace GuardVsMannequin.Editor
+{
+    /// <summary>
+    /// 맵을 직접 만들 때 쓰는 도우미 창. 메뉴 GuardVsMannequin > 맵 제작 > 맵 제작 도우미.
+    /// 위에서부터 순서대로 진행하면 게임에서 쓸 수 있는 맵이 된다.
+    /// 1. 새 맵 만들기 → 2. Map/Environment에 모델 배치 → 3. 충돌체·변신 사물·조명 등록 → 4. 지점 배치
+    /// → 5. 경계 맞추기 → 6. 검사 → 7. 최적화 → 8. 맵 목록 갱신
+    /// </summary>
+    public class MapMakerWindow : EditorWindow
+    {
+        private string newMapName = "MyMap";
+        private List<MapValidator.Issue> issues = new();
+        private bool validated;
+        private Vector2 scroll;
+
+        /// <summary>
+        /// 창을 연다.
+        /// </summary>
+        [MenuItem("GuardVsMannequin/맵 제작/맵 제작 도우미")]
+        private static void Open()
+        {
+            GetWindow<MapMakerWindow>("맵 제작 도우미").minSize = new Vector2(360f, 520f);
+        }
+
+        /// <summary>
+        /// 단계별 버튼과 검사 결과를 그린다.
+        /// </summary>
+        private void OnGUI()
+        {
+            scroll = EditorGUILayout.BeginScrollView(scroll);
+            Scene scene = SceneManager.GetActiveScene();
+            bool isMap = MapAuthoringTools.FindMapRoot(scene) != null;
+
+            EditorGUILayout.HelpBox(isMap
+                ? $"열린 맵: {scene.name}\n변경 후 씬 저장(Ctrl+S)을 잊지 마세요."
+                : "열린 씬이 맵이 아닙니다. 새 맵을 만들거나 맵 씬(Scenes 또는 Scenes/Custom)을 여세요.", isMap ? MessageType.Info : MessageType.Warning);
+
+            Section("1. 새 맵 만들기",
+                "게임 시스템·UI·대기실·경계·기본 지점이 들어 있는 빈 맵을 Scenes/Custom에 만듭니다.");
+            newMapName = EditorGUILayout.TextField("맵 이름 (영문)", newMapName);
+            if (GUILayout.Button("새 맵 만들기"))
+                MapAuthoringTools.CreateNewMap(newMapName);
+
+            using (new EditorGUI.DisabledScope(!isMap))
+            {
+                Section("2. 모델 배치",
+                    "맵 모델(프리팹)을 Hierarchy의 Map/Environment 아래로 끌어다 놓으세요. 시작용 바닥은 지워도 됩니다.\n" +
+                    "캐릭터 키 기준: 사람 1.8m, 문 높이 2m 이상 권장.");
+
+                Section("3. 선택한 오브젝트 등록", "Hierarchy에서 오브젝트를 선택한 뒤 누르세요. (자식 포함, Ctrl+Z로 되돌리기 가능)");
+                if (GUILayout.Button("충돌체 추가 (걸어 다닐 바닥·벽·사물)"))
+                    Report("충돌체", MapAuthoringTools.AddCollidersToSelection());
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("변신 사물로 등록"))
+                        Report("변신 사물", MapAuthoringTools.RegisterSelectedAsProps());
+                    if (GUILayout.Button("벽으로 등록"))
+                        Report("벽", MapAuthoringTools.RegisterSelectedAsWalls());
+                    if (GUILayout.Button("등록 해제"))
+                        Report("등록 해제", MapAuthoringTools.UnregisterSelected());
+                }
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("선택한 조명 등록"))
+                        Report("조명", MapAuthoringTools.RegisterLights(selectionOnly: true));
+                    if (GUILayout.Button("모든 조명 등록"))
+                        Report("조명", MapAuthoringTools.RegisterLights(selectionOnly: false));
+                }
+                EditorGUILayout.LabelField("등록한 조명은 사냥 시간에 꺼집니다.", EditorStyles.miniLabel);
+
+                Section("4. 지점 배치", "씬 뷰 화면 중앙 아래 바닥에 지점을 추가합니다. 추가 후 이동 도구(W)로 옮기세요.");
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("전원 장치 후보"))
+                        MapEditTools.AddGeneratorPoint();
+                    if (GUILayout.Button("마네킹 스폰"))
+                        MapEditTools.AddMannequinSpawn();
+                    if (GUILayout.Button("가드 출발 지점"))
+                        MapEditTools.AddGuardReleasePoint();
+                }
+                if (GUILayout.Button("전원 장치 후보 넓게 다시 배치 (바닥 자동 분석)"))
+                    MapEditTools.RespreadGenerators();
+                EditorGUILayout.LabelField("가드는 맵 아래 대기실에서 시작해, 탐색 단계가 되면 출발 지점으로 옮겨집니다.", EditorStyles.miniLabel);
+
+                Section("5. 경계", "플레이어가 맵 밖으로 나가지 않도록 투명 벽·천장을 Environment 크기에 맞춥니다.");
+                if (GUILayout.Button("경계를 맵 크기에 맞추기"))
+                    MapAuthoringTools.FitBoundaryToEnvironment();
+
+                Section("6. 검사", "게임에서 동작하는 데 필요한 것을 확인합니다.");
+                if (GUILayout.Button("맵 검사"))
+                {
+                    issues = MapValidator.Validate();
+                    validated = true;
+                }
+                DrawIssues();
+
+                Section("7. 최적화", "경계 밖 오브젝트 제거, 정적 플래그, 오클루전 컬링 굽기. (씬 저장 후, 수 분 걸릴 수 있음)");
+                if (GUILayout.Button("현재 맵 최적화"))
+                    MapOptimizer.OptimizeActiveScene();
+            }
+
+            Section("8. 맵 목록 갱신", "빌드 설정, 룸의 맵 목록, 맵 이름 문구(strings.csv), 맵 설정 범위를 맞춥니다. 맵을 추가·삭제한 뒤 실행하세요.");
+            if (GUILayout.Button("맵 목록 갱신"))
+                MapRegistrySync.Sync();
+
+            EditorGUILayout.EndScrollView();
+        }
+
+        /// <summary>
+        /// 단계 제목과 설명을 그린다.
+        /// </summary>
+        private static void Section(string title, string description)
+        {
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(description, EditorStyles.wordWrappedMiniLabel);
+        }
+
+        /// <summary>
+        /// 검사 결과를 오류·경고로 나눠 그린다. 관련 오브젝트가 있으면 "선택" 버튼으로 찾아간다.
+        /// </summary>
+        private void DrawIssues()
+        {
+            if (!validated)
+                return;
+            if (issues.Count == 0)
+            {
+                EditorGUILayout.HelpBox("문제가 없습니다.", MessageType.Info);
+                return;
+            }
+
+            foreach (MapValidator.Issue issue in issues)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.HelpBox(issue.message, issue.isError ? MessageType.Error : MessageType.Warning);
+                    if (issue.context != null && GUILayout.Button("선택", GUILayout.Width(44f), GUILayout.Height(38f)))
+                    {
+                        Selection.activeObject = issue.context;
+                        EditorGUIUtility.PingObject(issue.context);
+                        SceneView.FrameLastActiveSceneView();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 작업 결과를 창 알림으로 보여준다.
+        /// </summary>
+        private void Report(string label, int count)
+        {
+            ShowNotification(new GUIContent($"{label} {count}개"));
+            validated = false;
+        }
+    }
+}

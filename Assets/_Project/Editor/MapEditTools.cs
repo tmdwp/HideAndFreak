@@ -25,21 +25,21 @@ namespace GuardVsMannequin.Editor
         private const string ReleaseGroup = "GuardReleasePoints";
 
         [MenuItem("GuardVsMannequin/맵 편집/전원 장치 후보 추가 (씬 뷰 중앙)")]
-        private static void AddGeneratorPoint()
+        internal static void AddGeneratorPoint()
         {
             AddAtSceneViewCenter(GeneratorGroup, "GeneratorSpawnPoint",
                 (parent, position, rotation) => MapSceneBuilder.CreateMarker<GeneratorSpawnPoint>(parent, "GeneratorSpawnPoint", position, rotation));
         }
 
         [MenuItem("GuardVsMannequin/맵 편집/마네킹 스폰 지점 추가 (씬 뷰 중앙)")]
-        private static void AddMannequinSpawn()
+        internal static void AddMannequinSpawn()
         {
             AddAtSceneViewCenter(MannequinGroup, "SpawnPoint_Mannequin",
                 (parent, position, rotation) => TestEnvironmentSetupTool.CreateSpawnPoint(parent, PlayerRole.Mannequin, position, rotation));
         }
 
         [MenuItem("GuardVsMannequin/맵 편집/가드 출발 지점 추가 (씬 뷰 중앙)")]
-        private static void AddGuardReleasePoint()
+        internal static void AddGuardReleasePoint()
         {
             AddAtSceneViewCenter(ReleaseGroup, "GuardReleasePoint",
                 (parent, position, rotation) => MapSceneBuilder.CreateMarker<GuardReleasePoint>(parent, "GuardReleasePoint", position, rotation));
@@ -50,7 +50,7 @@ namespace GuardVsMannequin.Editor
         /// 개수는 룸 설정 최댓값(12개)과 기존 개수 중 큰 쪽이다.
         /// </summary>
         [MenuItem("GuardVsMannequin/맵 편집/전원 장치 후보 넓게 다시 배치")]
-        private static void RespreadGenerators()
+        internal static void RespreadGenerators()
         {
             Scene scene = SceneManager.GetActiveScene();
             Transform mapRoot = FindMapRoot(scene);
@@ -65,7 +65,7 @@ namespace GuardVsMannequin.Editor
             GeneratorSpawnPoint[] existing = group.GetComponentsInChildren<GeneratorSpawnPoint>(true);
             int count = Mathf.Max(MapSceneBuilder.GeneratorCandidateCount, existing.Length);
 
-            MapCatalog.Entry entry = MapCatalog.Maps.FirstOrDefault(m => m.ScenePath == scene.path);
+            MapCatalog.Entry entry = MapCatalog.FindByScenePath(scene.path);
             bool indoor = entry != null && entry.indoor;
 
             List<Vector3> floor = MapSceneBuilder.SampleFloorPoints(surface, indoor);

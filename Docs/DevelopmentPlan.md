@@ -365,7 +365,10 @@ public interface ITransformable { int PropId { get; } }
 **상태:** 설정·ESC 메뉴·크레딧·HUD·로비 패널 분리·다국어·이동 속도 검증 완료 (2026-09-26) / 데이터 파일 분리·사냥 시간 변신·보안 보강·외부 데이터 파일·캐릭터 외형·총·맵 4종 검증 전
 
 **구현 메모**
-- 개인 설정(`GameOptions`: 감도 배율, 전체/배경 음악/효과음 음량)과 키 바인딩은 `OptionsStore`가 **PlayerPrefs**(이 PC)에 저장한다. 호스트가 정하는 게임 설정(`GameSettings`)과는 별개다.
+- 설정 화면은 탭으로 나뉜다: **그래픽**(화면 모드: 전체 화면(창)/창 모드/최대화 창, 해상도(누르면 펼쳐지는 스크롤 목록), 언어) · **사운드**(음량) · **조작 키**(마우스 감도, 키 설정). 코드는 틀(`SettingsPanelView`: 탭·열기/닫기·모두 기본값)과 설정 묶음(`ISettingsSection`: `DisplaySettingsSection`, `LanguageSettingsSection`, `SoundSettingsSection`, `ControlSettingsSection`)으로 나뉘며, 새 설정은 묶음 컴포넌트를 페이지에 두기만 하면 자동으로 연결된다.
+- 넘칠 수 있는 목록은 스크롤: 룸의 참가자·게임 설정 목록, 크레딧, 결과 화면 참가자, 키 설정.
+- 게임 이름: **Hide&Freak** (로비 제목·크레딧·창 제목). 코드 네임스페이스와 저장소 이름은 GuardVsMannequin/GuardVsMonster 유지. 창 제목(productName)이 바뀌면 PlayerPrefs 저장 위치도 바뀌어 개인 설정이 한 번 초기화된다. 화면 설정은 `DisplaySettings`가 `Screen.SetResolution`으로 바로 적용하고, 해상도 목록은 모니터 지원 해상도(가로×세로 중복 제거)다. 플레이어가 한 번이라도 고르면 다음 실행 때도 적용된다. (에디터에서는 적용하지 않음) "모두 기본값으로"는 언어와 화면 설정을 유지한다.
+- 개인 설정(`GameOptions`: 감도 배율, 전체/배경 음악/효과음 음량, 화면 크기·모드)과 키 바인딩은 `OptionsStore`가 **PlayerPrefs**(이 PC)에 저장한다. 호스트가 정하는 게임 설정(`GameSettings`)과는 별개다.
 - 키 바인딩: 입력 에셋 복제본을 만드는 곳(`PlayerInputReader`, `SpectatorController`, `PauseMenuView`, 설정 화면)마다 `OptionsStore.ApplyBindings`로 저장된 바인딩을 적용하고, 게임 중 바꾸면 `BindingsChanged`로 즉시 반영한다. 바꿀 수 있는 키 목록은 `KeyBindingCatalog`.
 - 음량: Unity에는 AudioMixer 에셋을 코드로 만드는 공개 API가 없어, 지금은 **전체 = `AudioListener.volume`, 효과음/배경 음악 = `AudioVolumes` 배율**로 적용한다. 사운드 에셋 도입 시 AudioMixer 그룹으로 교체할 수 있도록 음량 조회를 `AudioVolumes` 한곳에 모았다. (배경 음악은 아직 없음)
 - ESC: 기존의 "커서 잠금 전환"을 메뉴로 교체했다(입력 액션 `ToggleCursor` → `Menu`). 커서 잠금은 `GameCursor`가 관리하며, 잠겨 있을 때만 이동·시점·클릭 입력을 받는다. 키 설정 중에는 ESC가 키 입력 취소로 쓰이므로 메뉴가 반응하지 않는다.
@@ -398,6 +401,7 @@ public interface ITransformable { int PropId { get; } }
 - **맵 자동 생성** (`GuardVsMannequin > 맵 생성`, `MapCatalog`의 순서 = 맵 번호): 원본 데모 씬을 가져와 정리(프리팹 연결 해제, 카메라·UI·에셋 스크립트 제거, 물리 고정) → 머티리얼 URP 변환(`UrpMaterialConverter`, 원본 에셋 머티리얼을 직접 바꿈) → 충돌체 없는 메시에 MeshCollider → 크기·이름 규칙으로 변신 사물/벽 조각 지정(맵 전용 `PropDatabase_<씬>`) → 임시 NavMesh로 플레이 가능한 바닥(실내 맵은 천장 있는 곳, 가장 넓게 이어진 영역)을 분석해 마네킹 스폰 10·전원 장치 후보 12·가드 출발 지점 5를 고르게 배치 → 조명을 실시간 MapLight로 바꾸고 부족하면 추가 → 투명 경계·천장, 맵 아래 닫힌 대기실 → 게임 시스템·HUD → 빌드 설정과 RoomState 맵 목록 등록.
   - 새 맵의 가드 대기실은 맵과 떨어져 있어, 탐색 단계 시작 시 `GuardReleaseTeleporter`가 가드를 `GuardReleasePoint`로 옮긴다(`MovementValidator.ServerTeleport`). 테스트 맵은 출발 지점이 없어 기존처럼 문이 열린다.
   - 빌드 설정에 없는 맵을 고르면 `RoomState`가 테스트 맵으로 대신한다.
+- **UI 프리팹과 맵 제작 도구**: 사용법은 `Docs/UiAndMapGuide.md`. UI는 `Prefabs/UI`의 프리팹(설정·크레딧 패널은 중첩 프리팹)으로 관리되어 씬 생성 도구를 다시 실행해도 직접 수정한 내용이 유지된다(`UiPrefabLibrary`). 맵은 "맵 제작 도우미" 창(`MapMakerWindow`)에서 새 맵 뼈대 생성 → 등록(`PropRegistrar` 공용) → 지점 배치 → 경계 → 검사(`MapValidator`) → 최적화 → 맵 목록 갱신(`MapRegistrySync`: 빌드 설정·RoomState·strings.csv·game_settings.csv) 순서로 만든다. 직접 만든 맵은 `Scenes/Custom`에 두면 자동 생성 맵 뒤 번호로 붙는다.
 - **맵 크기**: 걸을 수 있는 바닥이 800㎡보다 좁은 맵은 생성 시 환경 전체를 키운다(최대 2.5배, 조명 범위도 함께). `MapCatalog`의 `scale`에 값을 넣으면 그 배율로 고정된다(0 = 자동).
 - **전원 장치 배치**: 생성 시 후보 12개를 서로 최대한 멀리 배치하고, 매 판 `GeneratorSpawner`가 후보 중 서로 먼 것을 고른다(가장 먼 상위 3개 중 무작위). 편집은 `GuardVsMannequin > 맵 편집` 메뉴(씬 뷰 중앙에 전원 장치 후보·마네킹 스폰·가드 출발 지점 추가, 전원 장치 후보 넓게 다시 배치)나 씬에서 직접 옮기기·복제로 한다. 후보는 씬 뷰에 빨간 상자와 이름표로 보인다.
 - **캐릭터 애니메이션 규칙** (`CharacterAnimatorParameters`): 외형 컨트롤러에 `Speed`/`MoveX`/`MoveZ`(Float), `Attack`/`Shoot`/`Hit`(Trigger), `Emote1`~`Emote6`(Trigger) 또는 `Emote`(Trigger)+`EmoteId`(Int)를 만들면 게임이 자동으로 사용한다. 없는 파라미터는 건너뛰며, 감정 표현 애니메이션이 없으면 절차적 움직임으로 대신한다(`AnimatorEmoteView` → `ProceduralEmoteView`).

@@ -16,9 +16,27 @@ namespace GuardVsMannequin.Editor
         public const string InputActionsPath = "Assets/_Project/Input/GameInput.inputactions";
 
         /// <summary>
-        /// 설정 화면(언어, 감도, 음량, 키 설정)을 만든다. 처음에는 닫혀 있다.
+        /// 설정 화면 프리팹(없으면 기본 모양으로 만들어 저장)을 캔버스 안에 중첩 프리팹으로 넣는다. 처음에는 닫혀 있다.
         /// </summary>
         public static SettingsPanelView CreateSettingsPanel(Transform canvas)
+        {
+            GameObject prefab = UiPrefabLibrary.GetOrBuildPanel(UiPrefabLibrary.SettingsPanelPath, parent => BuildSettingsPanel(parent).gameObject);
+            return UiPrefabLibrary.Instantiate(prefab, canvas).GetComponent<SettingsPanelView>();
+        }
+
+        /// <summary>
+        /// 크레딧 화면 프리팹(없으면 기본 모양으로 만들어 저장)을 캔버스 안에 중첩 프리팹으로 넣는다. 처음에는 닫혀 있다.
+        /// </summary>
+        public static CreditsView CreateCreditsPanel(Transform canvas)
+        {
+            GameObject prefab = UiPrefabLibrary.GetOrBuildPanel(UiPrefabLibrary.CreditsPanelPath, parent => BuildCreditsPanel(parent).gameObject);
+            return UiPrefabLibrary.Instantiate(prefab, canvas).GetComponent<CreditsView>();
+        }
+
+        /// <summary>
+        /// 설정 화면의 기본 모양을 만든다. 탭(그래픽 / 사운드 / 조작)으로 페이지를 나눈다.
+        /// </summary>
+        private static SettingsPanelView BuildSettingsPanel(Transform canvas)
         {
             RectTransform panel = EditorUiFactory.CreatePanel(canvas, "SettingsPanel", new Vector2(0.2f, 0.06f), new Vector2(0.8f, 0.94f), new Color(0.06f, 0.07f, 0.09f, 0.98f));
             EditorUiFactory.AddVerticalLayout(panel, 10f, 28);
@@ -27,30 +45,25 @@ namespace GuardVsMannequin.Editor
             title.fontStyle = FontStyle.Bold;
             EditorUiFactory.SetHeight(title, 48f);
 
-            // 언어: ◀ 언어 이름 ▶ (strings.csv에 열을 추가하면 목록에 나타남)
-            RectTransform languageRow = EditorUiFactory.CreateRow(panel, "LanguageRow", 44f, 16f);
-            Text languageLabel = EditorUiFactory.CreateText(languageRow, "Label", "options.language", 24, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
-            EditorUiFactory.SetWidth(languageLabel, 200f);
-            Button previousLanguage = EditorUiFactory.CreateButton(languageRow, "PreviousLanguageButton", "◀", EditorUiFactory.ButtonColor);
-            EditorUiFactory.SetWidth(previousLanguage, 56f);
-            Text languageValue = EditorUiFactory.CreateText(languageRow, "Value", "-", 24, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
-            EditorUiFactory.SetFlexibleWidth(languageValue);
-            Button nextLanguage = EditorUiFactory.CreateButton(languageRow, "NextLanguageButton", "▶", EditorUiFactory.ButtonColor);
-            EditorUiFactory.SetWidth(nextLanguage, 56f);
+            // 탭 버튼 (순서 = 페이지 순서)
+            RectTransform tabs = EditorUiFactory.CreateRow(panel, "Tabs", 50f, 8f);
+            string[] tabKeys = { "options.tab.graphics", "options.tab.sound", "options.tab.controls" };
+            Button[] tabButtons = tabKeys.Select(key => EditorUiFactory.CreateButton(tabs, key.Substring(key.LastIndexOf('.') + 1) + "Tab", key, EditorUiFactory.ButtonColor)).ToArray();
+            foreach (Button tab in tabButtons)
+                EditorUiFactory.SetFlexibleWidth(tab);
 
-            Slider sensitivity = CreateSliderRow(panel, "Sensitivity", "options.sensitivity", out Text sensitivityValue);
-            Slider master = CreateSliderRow(panel, "MasterVolume", "options.masterVolume", out Text masterValue);
-            Slider bgm = CreateSliderRow(panel, "BgmVolume", "options.bgmVolume", out Text bgmValue);
-            Slider sfx = CreateSliderRow(panel, "SfxVolume", "options.sfxVolume", out Text sfxValue);
+            // 페이지를 겹쳐 두고 하나만 켠다.
+            RectTransform pagesRoot = EditorUiFactory.CreateRect(panel, "Pages");
+            LayoutElement pagesLayout = pagesRoot.gameObject.AddComponent<LayoutElement>();
+            pagesLayout.flexibleHeight = 1f;
+            pagesLayout.minHeight = 300f;
+            RectTransform graphicsPage = CreatePage(pagesRoot, "GraphicsPage");
+            RectTransform soundPage = CreatePage(pagesRoot, "SoundPage");
+            RectTransform controlsPage = CreatePage(pagesRoot, "ControlsPage");
 
-            Text keyHeader = EditorUiFactory.CreateText(panel, "KeyHeader", "options.keyHeader", 24, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
-            EditorUiFactory.SetHeight(keyHeader, 36f);
-
-            RectTransform list = EditorUiFactory.CreateScrollList(panel, "KeyList", 6f);
-            LayoutElement listLayout = list.parent.parent.gameObject.AddComponent<LayoutElement>();
-            listLayout.flexibleHeight = 1f;
-            listLayout.minHeight = 200f;
-            RebindRowView[] rows = KeyBindingCatalog.All.Select(entry => CreateRebindRow(list, entry)).ToArray();
+            BuildGraphicsPage(graphicsPage);
+            BuildSoundPage(soundPage);
+            BuildControlsPage(controlsPage);
 
             RectTransform buttons = EditorUiFactory.CreateRow(panel, "Buttons", 54f, 12f);
             Button resetAll = EditorUiFactory.CreateButton(buttons, "ResetAllButton", "options.resetAll", EditorUiFactory.ButtonColor);
@@ -58,20 +71,10 @@ namespace GuardVsMannequin.Editor
             EditorUiFactory.SetFlexibleWidth(resetAll);
             EditorUiFactory.SetFlexibleWidth(close);
 
+            // 틀(탭·닫기)만 연결한다. 각 설정은 페이지에 붙은 설정 묶음(ISettingsSection)이 처리한다.
             SettingsPanelView view = panel.gameObject.AddComponent<SettingsPanelView>();
-            TestEnvironmentSetupTool.SetField(view, "inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
-            TestEnvironmentSetupTool.SetField(view, "previousLanguageButton", previousLanguage);
-            TestEnvironmentSetupTool.SetField(view, "nextLanguageButton", nextLanguage);
-            TestEnvironmentSetupTool.SetField(view, "languageValueText", languageValue);
-            TestEnvironmentSetupTool.SetField(view, "sensitivitySlider", sensitivity);
-            TestEnvironmentSetupTool.SetField(view, "sensitivityValueText", sensitivityValue);
-            TestEnvironmentSetupTool.SetField(view, "masterVolumeSlider", master);
-            TestEnvironmentSetupTool.SetField(view, "masterVolumeValueText", masterValue);
-            TestEnvironmentSetupTool.SetField(view, "bgmVolumeSlider", bgm);
-            TestEnvironmentSetupTool.SetField(view, "bgmVolumeValueText", bgmValue);
-            TestEnvironmentSetupTool.SetField(view, "sfxVolumeSlider", sfx);
-            TestEnvironmentSetupTool.SetField(view, "sfxVolumeValueText", sfxValue);
-            TestEnvironmentSetupTool.SetArray(view, "rebindRows", rows);
+            TestEnvironmentSetupTool.SetArray(view, "tabButtons", tabButtons);
+            TestEnvironmentSetupTool.SetArray(view, "pages", new Object[] { graphicsPage.gameObject, soundPage.gameObject, controlsPage.gameObject });
             TestEnvironmentSetupTool.SetField(view, "resetAllButton", resetAll);
             TestEnvironmentSetupTool.SetField(view, "closeButton", close);
 
@@ -80,9 +83,75 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 크레딧 화면을 만든다. 처음에는 닫혀 있다. (내용은 Resources/Credits/credits.&lt;언어&gt;.txt)
+        /// 그래픽 페이지: 화면 모드(◀ ▶), 해상도(스크롤 목록), 언어(◀ ▶).
         /// </summary>
-        public static CreditsView CreateCreditsPanel(Transform canvas)
+        private static void BuildGraphicsPage(RectTransform page)
+        {
+            CreateSelectorRow(page, "ScreenMode", "options.screenMode", out Button previousMode, out Text modeValue, out Button nextMode);
+
+            RectTransform resolutionRow = EditorUiFactory.CreateRow(page, "ResolutionRow", 44f, 16f);
+            Text resolutionLabel = EditorUiFactory.CreateText(resolutionRow, "Label", "options.resolution", 24, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
+            EditorUiFactory.SetWidth(resolutionLabel, 200f);
+            Dropdown resolution = EditorUiFactory.CreateDropdown(resolutionRow, "ResolutionDropdown", 24, 320f);
+            EditorUiFactory.SetFlexibleWidth(resolution);
+
+            // 언어: strings.csv에 열을 추가하면 목록에 나타남
+            CreateSelectorRow(page, "Language", "options.language", out Button previousLanguage, out Text languageValue, out Button nextLanguage);
+
+            DisplaySettingsSection display = page.gameObject.AddComponent<DisplaySettingsSection>();
+            TestEnvironmentSetupTool.SetField(display, "previousScreenModeButton", previousMode);
+            TestEnvironmentSetupTool.SetField(display, "nextScreenModeButton", nextMode);
+            TestEnvironmentSetupTool.SetField(display, "screenModeValueText", modeValue);
+            TestEnvironmentSetupTool.SetField(display, "resolutionDropdown", resolution);
+
+            LanguageSettingsSection language = page.gameObject.AddComponent<LanguageSettingsSection>();
+            TestEnvironmentSetupTool.SetField(language, "previousLanguageButton", previousLanguage);
+            TestEnvironmentSetupTool.SetField(language, "nextLanguageButton", nextLanguage);
+            TestEnvironmentSetupTool.SetField(language, "languageValueText", languageValue);
+        }
+
+        /// <summary>
+        /// 사운드 페이지: 전체 / 배경 음악 / 효과음 음량.
+        /// </summary>
+        private static void BuildSoundPage(RectTransform page)
+        {
+            Slider master = CreateSliderRow(page, "MasterVolume", "options.masterVolume", out Text masterValue);
+            Slider bgm = CreateSliderRow(page, "BgmVolume", "options.bgmVolume", out Text bgmValue);
+            Slider sfx = CreateSliderRow(page, "SfxVolume", "options.sfxVolume", out Text sfxValue);
+
+            SoundSettingsSection sound = page.gameObject.AddComponent<SoundSettingsSection>();
+            TestEnvironmentSetupTool.SetField(sound, "masterVolumeSlider", master);
+            TestEnvironmentSetupTool.SetField(sound, "masterVolumeValueText", masterValue);
+            TestEnvironmentSetupTool.SetField(sound, "bgmVolumeSlider", bgm);
+            TestEnvironmentSetupTool.SetField(sound, "bgmVolumeValueText", bgmValue);
+            TestEnvironmentSetupTool.SetField(sound, "sfxVolumeSlider", sfx);
+            TestEnvironmentSetupTool.SetField(sound, "sfxVolumeValueText", sfxValue);
+        }
+
+        /// <summary>
+        /// 조작 키 페이지: 마우스 감도, 키 설정 목록(스크롤).
+        /// </summary>
+        private static void BuildControlsPage(RectTransform page)
+        {
+            Slider sensitivity = CreateSliderRow(page, "Sensitivity", "options.sensitivity", out Text sensitivityValue);
+            Text keyHeader = EditorUiFactory.CreateText(page, "KeyHeader", "options.keyHeader", 24, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
+            EditorUiFactory.SetHeight(keyHeader, 36f);
+
+            RectTransform list = EditorUiFactory.CreateScrollList(page, "KeyList", 6f);
+            EditorUiFactory.FillRemainingHeight(list, 200f);
+            RebindRowView[] rows = KeyBindingCatalog.All.Select(entry => CreateRebindRow(list, entry)).ToArray();
+
+            ControlSettingsSection controls = page.gameObject.AddComponent<ControlSettingsSection>();
+            TestEnvironmentSetupTool.SetField(controls, "inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
+            TestEnvironmentSetupTool.SetField(controls, "sensitivitySlider", sensitivity);
+            TestEnvironmentSetupTool.SetField(controls, "sensitivityValueText", sensitivityValue);
+            TestEnvironmentSetupTool.SetArray(controls, "rebindRows", rows);
+        }
+
+        /// <summary>
+        /// 크레딧 화면의 기본 모양을 만든다. (내용은 credits.&lt;언어&gt;.txt)
+        /// </summary>
+        private static CreditsView BuildCreditsPanel(Transform canvas)
         {
             RectTransform panel = EditorUiFactory.CreatePanel(canvas, "CreditsPanel", new Vector2(0.25f, 0.1f), new Vector2(0.75f, 0.9f), new Color(0.06f, 0.07f, 0.09f, 0.98f));
             EditorUiFactory.AddVerticalLayout(panel, 12f, 32);
@@ -91,8 +160,9 @@ namespace GuardVsMannequin.Editor
             title.fontStyle = FontStyle.Bold;
             EditorUiFactory.SetHeight(title, 48f);
 
-            Text body = EditorUiFactory.CreateText(panel, "Body", string.Empty, 24, TextAnchor.UpperCenter, EditorUiFactory.TextColor);
-            body.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
+            // 에셋이 늘어도 넘치지 않도록 스크롤 영역에 둔다.
+            Text body = EditorUiFactory.CreateScrollText(panel, "Body", string.Empty, 24, TextAnchor.UpperCenter, EditorUiFactory.TextColor);
+            EditorUiFactory.FillRemainingHeight(body.transform.parent, 200f);
 
             Button close = EditorUiFactory.CreateButton(panel, "CloseButton", "credits.close", EditorUiFactory.AccentColor);
             EditorUiFactory.SetHeight(close, 54f);
@@ -175,8 +245,9 @@ namespace GuardVsMannequin.Editor
             EditorUiFactory.AddVerticalLayout(result, 12f, 28);
             Text headline = EditorUiFactory.CreateText(result, "Headline", string.Empty, 34, TextAnchor.MiddleCenter, EditorUiFactory.AccentColor);
             EditorUiFactory.SetHeight(headline, 150f);
-            Text participants = EditorUiFactory.CreateText(result, "Participants", string.Empty, 24, TextAnchor.UpperCenter, EditorUiFactory.TextColor);
-            participants.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
+            // 참가자가 많으면 스크롤한다. (최대 10명)
+            Text participants = EditorUiFactory.CreateScrollText(result, "Participants", string.Empty, 24, TextAnchor.UpperCenter, EditorUiFactory.TextColor);
+            EditorUiFactory.FillRemainingHeight(participants.transform.parent, 120f);
             Text countdown = EditorUiFactory.CreateText(result, "Countdown", string.Empty, 22, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
             EditorUiFactory.SetHeight(countdown, 32f);
             Button returnButton = EditorUiFactory.CreateButton(result, "ReturnToRoomButton", "result.returnToRoom", EditorUiFactory.AccentColor);
@@ -196,6 +267,33 @@ namespace GuardVsMannequin.Editor
             TestEnvironmentSetupTool.SetField(hud, "resultCountdownText", countdown);
             TestEnvironmentSetupTool.SetField(hud, "returnToRoomButton", returnButton);
             return hud;
+        }
+
+        /// <summary>
+        /// 설정 페이지 하나를 만든다. 부모 영역을 꽉 채우고 내용을 위에서부터 쌓는다.
+        /// </summary>
+        private static RectTransform CreatePage(Transform parent, string name)
+        {
+            RectTransform page = EditorUiFactory.CreateRect(parent, name);
+            EditorUiFactory.Stretch(page);
+            EditorUiFactory.AddVerticalLayout(page, 10f, 4);
+            return page;
+        }
+
+        /// <summary>
+        /// 이름 | ◀ | 값 | ▶ 형태의 선택 줄을 만든다. (값 문구는 설정 화면 코드가 채운다)
+        /// </summary>
+        private static void CreateSelectorRow(Transform parent, string name, string label, out Button previous, out Text value, out Button next)
+        {
+            RectTransform row = EditorUiFactory.CreateRow(parent, name + "Row", 44f, 16f);
+            Text labelText = EditorUiFactory.CreateText(row, "Label", label, 24, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
+            EditorUiFactory.SetWidth(labelText, 200f);
+            previous = EditorUiFactory.CreateButton(row, "Previous" + name + "Button", "◀", EditorUiFactory.ButtonColor);
+            EditorUiFactory.SetWidth(previous, 56f);
+            value = EditorUiFactory.CreateText(row, "Value", "-", 24, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
+            EditorUiFactory.SetFlexibleWidth(value);
+            next = EditorUiFactory.CreateButton(row, "Next" + name + "Button", "▶", EditorUiFactory.ButtonColor);
+            EditorUiFactory.SetWidth(next, 56f);
         }
 
         /// <summary>

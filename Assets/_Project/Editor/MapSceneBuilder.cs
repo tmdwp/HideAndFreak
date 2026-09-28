@@ -50,7 +50,6 @@ namespace GuardVsMannequin.Editor
         private const float LampSpacingArea = 70f;
         private const int ShadowLightLimit = 24;
 
-        private static readonly Vector3 WallPieceScale = new Vector3(1.2f, 2f, 0.25f);
 
         // 이름에 들어 있으면 변신 사물에서 제외하는 단어 (구조물·조명·바닥재 등)
         private static readonly string[] NonPropKeywords =
@@ -98,13 +97,11 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 빌드 설정과 룸의 맵 목록을 갱신하고 에셋을 저장한다.
+        /// 빌드 설정, 룸의 맵 목록, 맵 이름 문구, 맵 설정 범위를 갱신하고 에셋을 저장한다.
         /// </summary>
         private static void FinishBuild()
         {
-            TestEnvironmentSetupTool.RegisterBuildScenes();
-            UpdateRoomStateSceneNames();
-            AssetDatabase.SaveAssets();
+            MapRegistrySync.Sync();
         }
 
         #endregion
@@ -307,7 +304,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 충돌체가 없는 메시에 메시 충돌체를 붙인다. (LOD는 가장 자세한 단계만, 아주 작은 장식은 제외)
         /// </summary>
-        private static int AddMissingColliders(Transform environment)
+        internal static int AddMissingColliders(Transform environment)
         {
             HashSet<Renderer> lowerLods = GetLowerLodRenderers(environment);
             int added = 0;
@@ -398,19 +395,11 @@ namespace GuardVsMannequin.Editor
         /// </summary>
         private static PropDatabase CreatePropDatabase(MapCatalog.Entry map, Transform environment, out int propCount, out int wallCount)
         {
-            string path = $"{TestEnvironmentSetupTool.SoFolder}/PropDatabase_{map.sceneName}.asset";
-            PropDatabase database = AssetDatabase.LoadAssetAtPath<PropDatabase>(path);
-            if (database == null)
-            {
-                database = ScriptableObject.CreateInstance<PropDatabase>();
-                AssetDatabase.CreateAsset(database, path);
-            }
+            PropDatabase database = GetOrCreatePropDatabase(map.sceneName);
             database.Clear();
 
-            Mesh cube = GetCubeMesh();
+            var registrar = new PropRegistrar(database);
             HashSet<Renderer> lowerLods = GetLowerLodRenderers(environment);
-            var propIds = new Dictionary<string, int>();
-            var wallIds = new Dictionary<Material, int>();
             propCount = 0;
             wallCount = 0;
 
@@ -429,57 +418,34 @@ namespace GuardVsMannequin.Editor
 
                 if (size.y >= 2f && thickness <= 0.6f && length >= 1f)
                 {
-                    Material wallMaterial = meshRenderer.sharedMaterial;
-                    if (wallMaterial == null)
-                        continue;
-                    if (!wallIds.TryGetValue(wallMaterial, out int wallId))
-                    {
-                        wallId = database.Add(new PropDefinition
-                        {
-                            displayName = $"WallPiece_{wallMaterial.name}",
-                            mesh = cube,
-                            materials = new[] { wallMaterial },
-                            scale = WallPieceScale
-                        });
-                        wallIds[wallMaterial] = wallId;
-                    }
-                    TestEnvironmentSetupTool.AddTransformable(meshRenderer.gameObject, wallId);
-                    wallCount++;
+                    if (registrar.RegisterWall(meshRenderer))
+                        wallCount++;
                     continue;
                 }
 
                 bool isProp = longest >= 0.3f && longest <= 2.6f && size.y <= 2.4f && size.x * size.z < 4f
                               && !HasKeyword(meshRenderer.transform, NonPropKeywords);
-                if (!isProp)
-                    continue;
-
-                Vector3 scale = meshRenderer.transform.lossyScale;
-                string key = $"{AssetKey(filter.sharedMesh)}|{string.Join(",", meshRenderer.sharedMaterials.Select(AssetKey))}|{scale.x:F2},{scale.y:F2},{scale.z:F2}";
-                if (!propIds.TryGetValue(key, out int propId))
-                {
-                    propId = database.Add(new PropDefinition
-                    {
-                        displayName = meshRenderer.name,
-                        mesh = filter.sharedMesh,
-                        materials = meshRenderer.sharedMaterials,
-                        scale = scale
-                    });
-                    propIds[key] = propId;
-                }
-                TestEnvironmentSetupTool.AddTransformable(meshRenderer.gameObject, propId);
-                propCount++;
+                if (isProp && registrar.RegisterProp(meshRenderer))
+                    propCount++;
             }
 
-            EditorUtility.SetDirty(database);
+            registrar.Save();
             return database;
         }
 
         /// <summary>
-        /// 같은 에셋인지 구분하기 위한 키. (에셋 경로 + 이름, 에셋이 아니면 이름만)
+        /// 맵 전용 사물 목록 에셋(ScriptableObjects/PropDatabase_&lt;씬 이름&gt;)을 가져오거나 만든다.
         /// </summary>
-        private static string AssetKey(Object asset)
+        internal static PropDatabase GetOrCreatePropDatabase(string sceneName)
         {
-            return asset == null ? "null" : $"{AssetDatabase.GetAssetPath(asset)}:{asset.name}";
+            string path = $"{TestEnvironmentSetupTool.SoFolder}/PropDatabase_{sceneName}.asset";
+            PropDatabase database = AssetDatabase.LoadAssetAtPath<PropDatabase>(path);
+            if (database == null)
+            {
+                database = ScriptableObject.CreateInstance<PropDatabase>();
+                AssetDatabase.CreateAsset(database, path);
+            }
+            return database;
         }
 
         /// <summary>
@@ -498,17 +464,6 @@ namespace GuardVsMannequin.Editor
         {
             string name = (target.name + " " + (target.parent != null ? target.parent.name : string.Empty)).ToLowerInvariant();
             return keywords.Any(name.Contains);
-        }
-
-        /// <summary>
-        /// Unity 기본 큐브 메시를 가져온다.
-        /// </summary>
-        private static Mesh GetCubeMesh()
-        {
-            GameObject temp = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Mesh mesh = temp.GetComponent<MeshFilter>().sharedMesh;
-            Object.DestroyImmediate(temp);
-            return mesh;
         }
 
         #endregion
@@ -687,7 +642,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 점마다 오브젝트를 만들고 플레이 영역 중심을 바라보게 한다.
         /// </summary>
-        private static void CreatePoints(Transform mapRoot, string groupName, List<Vector3> positions, Vector3 center,
+        internal static void CreatePoints(Transform mapRoot, string groupName, List<Vector3> positions, Vector3 center,
             System.Action<Transform, Vector3, Quaternion> create)
         {
             Transform group = new GameObject(groupName).transform;
@@ -803,7 +758,7 @@ namespace GuardVsMannequin.Editor
         /// 플레이 영역을 둘러싸는 투명 벽과 천장(충돌체만)을 만든다. 맵 루트 밖에 두어 NavMesh와 변신 대상에서 제외한다.
         /// 맵 정보에 쓸 천장 높이(바닥에서 투명 천장까지)를 반환한다.
         /// </summary>
-        private static float CreateBoundary(Bounds playArea, Transform environment)
+        internal static float CreateBoundary(Bounds playArea, Transform environment)
         {
             Bounds environmentBounds = CharacterAssetBuilder.GetRendererBounds(environment.gameObject);
             float floorY = playArea.min.y;
@@ -840,7 +795,7 @@ namespace GuardVsMannequin.Editor
         /// 맵 아래 떨어진 곳에 닫힌 가드 대기실을 만든다. (가드는 대기 시간 동안 맵을 볼 수 없다)
         /// 대기실 영역(이동 검증), 가드 스폰 지점, 탐색 단계 시작 시 가드를 맵으로 옮기는 장치를 포함한다.
         /// </summary>
-        private static void CreateWaitingRoom(Bounds playArea)
+        internal static void CreateWaitingRoom(Bounds playArea)
         {
             const float roomSize = 8f;
             const float roomHeight = 3f;
@@ -885,7 +840,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 대기 중 씬 카메라를 플레이 영역 위에서 내려다보게 한다.
         /// </summary>
-        private static void PlaceSceneCamera(Transform cameraTransform, Bounds playArea)
+        internal static void PlaceSceneCamera(Transform cameraTransform, Bounds playArea)
         {
             float distance = Mathf.Max(playArea.size.x, playArea.size.z) * 0.6f + 10f;
             Vector3 position = playArea.center + new Vector3(0f, distance * 0.8f, -distance * 0.6f);
@@ -893,26 +848,5 @@ namespace GuardVsMannequin.Editor
         }
 
         #endregion
-
-        /// <summary>
-        /// 룸 상태 프리팹의 맵 씬 목록을 MapCatalog 순서로 갱신한다.
-        /// </summary>
-        private static void UpdateRoomStateSceneNames()
-        {
-            GameObject contents = PrefabUtility.LoadPrefabContents(TestEnvironmentSetupTool.RoomStatePrefabPath);
-            RoomState roomState = contents.GetComponent<RoomState>();
-            if (roomState != null)
-            {
-                var serialized = new SerializedObject(roomState);
-                SerializedProperty names = serialized.FindProperty("gameSceneNames");
-                string[] sceneNames = MapCatalog.SceneNames;
-                names.arraySize = sceneNames.Length;
-                for (int i = 0; i < sceneNames.Length; i++)
-                    names.GetArrayElementAtIndex(i).stringValue = sceneNames[i];
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-                PrefabUtility.SaveAsPrefabAsset(contents, TestEnvironmentSetupTool.RoomStatePrefabPath);
-            }
-            PrefabUtility.UnloadPrefabContents(contents);
-        }
     }
 }

@@ -13,68 +13,23 @@ MonoBehaviour:
   m_Name: PropDatabase_Map_Industrial
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.PropDatabase
   definitions:
-  - displayName: WallPiece_Concrete_fence_v2
+  - displayName: WallPiece_Lattice_v1
     mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
     materials:
-    - {fileID: 2100000, guid: 9d41c32f719dc4b47bd0cbe39860bdae, type: 2}
+    - {fileID: 2100000, guid: 666d0826bcae23540ad89fb826867c32, type: 2}
     scale: {x: 1.2, y: 2, z: 0.25}
-  - displayName: WallPiece_Concrete_fence_v1
-    mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-    materials:
-    - {fileID: 2100000, guid: acd39752d1464d2409980e4ae106b986, type: 2}
-    scale: {x: 1.2, y: 2, z: 0.25}
-  - displayName: Wooden_box_v1_LD1square (13)
+  - displayName: Wooden_box_v1_LD1square (11)
     mesh: {fileID: 4300012, guid: dcf39c3c160b51b49af399efea061f40, type: 3}
     materials:
     - {fileID: 2100000, guid: 1a087c65608607042accf116f4319d39, type: 2}
-    scale: {x: 1, y: 1, z: 1}
-  - displayName: Wooden_box_v1_LD1 (2)
-    mesh: {fileID: 4300008, guid: dcf39c3c160b51b49af399efea061f40, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 1a087c65608607042accf116f4319d39, type: 2}
-    scale: {x: 1, y: 1, z: 1}
+    scale: {x: 2, y: 2, z: 2}
   - displayName: Barrel_v3_single (1)
     mesh: {fileID: 4300004, guid: 8bf7537d27999d4448c4145cad1f47e7, type: 3}
     materials:
     - {fileID: 2100000, guid: f15201246572bdb49bcb3594bf3000f3, type: 2}
-    scale: {x: 1, y: 1, z: 1}
-  - displayName: Barrel_v3_quadro
-    mesh: {fileID: 4300006, guid: 8bf7537d27999d4448c4145cad1f47e7, type: 3}
-    materials:
-    - {fileID: 2100000, guid: f15201246572bdb49bcb3594bf3000f3, type: 2}
-    scale: {x: 1, y: 1, z: 1}
-  - displayName: Palet_v1_set
-    mesh: {fileID: 4300006, guid: a0fa3deee73af2b49bf7f84e4421e5be, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 4a8145f028f3ea948a65028b51474a3f, type: 2}
-    scale: {x: 1, y: 1, z: 1}
-  - displayName: Palet_v1_single
-    mesh: {fileID: 4300004, guid: a0fa3deee73af2b49bf7f84e4421e5be, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 4a8145f028f3ea948a65028b51474a3f, type: 2}
-    scale: {x: 1, y: 1, z: 1}
-  - displayName: Conditioner_v1
-    mesh: {fileID: 4300002, guid: b096242168ee6ce4ca297701abcc3e14, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 5549011eb0be2f44a8bd15f42714f6e3, type: 2}
-    scale: {x: 1, y: 1, z: 1}
-  - displayName: Electric_box_v1
-    mesh: {fileID: 4300002, guid: a06f542e25b97724c9866dff7870460c, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 7929421cb15ed0c4f873c3a43793a4e1, type: 2}
-    scale: {x: 1.0000002, y: 1, z: 1.0000002}
-  - displayName: Electric_box_v2
-    mesh: {fileID: 4300002, guid: 5be67b90e3788794993aea72999671b3, type: 3}
-    materials:
-    - {fileID: 2100000, guid: 9c5619fe582a6fd4a9e176b10cfb600d, type: 2}
-    scale: {x: 1, y: 1, z: 1}
-  - displayName: Barrel_v2_quadro (1)
-    mesh: {fileID: 4300004, guid: 3693ef6778a2a2942b1a7b3f2e10c297, type: 3}
-    materials:
-    - {fileID: 2100000, guid: cd2f24c07b1bce24fa0066430da2910b, type: 2}
-    scale: {x: 1, y: 1, z: 1}
+    scale: {x: 2, y: 2, z: 2}
   - displayName: Barrel_v1_LD1 (2)
     mesh: {fileID: 4300010, guid: ffd14148582c4f84f867ad56a7b3dafd, type: 3}
     materials:
     - {fileID: 2100000, guid: db7eb35339cc6e249a3b76684d621373, type: 2}
-    scale: {x: 1, y: 1, z: 1}
+    scale: {x: 2, y: 2, z: 2}

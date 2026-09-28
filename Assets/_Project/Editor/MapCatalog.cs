@@ -4,8 +4,9 @@ namespace GuardVsMannequin.Editor
 {
     /// <summary>
     /// 게임에서 고를 수 있는 맵 목록. 순서가 곧 맵 ID(룸 설정의 맵 번호)이다.
-    /// 0번은 테스트 맵, 1번부터는 외부 에셋의 데모 씬으로 만든 맵이다(<see cref="MapSceneBuilder"/>).
-    /// 맵을 추가하면 strings.csv의 map.&lt;번호&gt;와 game_settings.csv의 Map 최댓값도 함께 늘린다.
+    /// 0번은 테스트 맵, 1~4번은 외부 에셋의 데모 씬으로 만든 맵(<see cref="MapSceneBuilder"/>),
+    /// 그 뒤는 Scenes/Custom 폴더에 직접 만든 맵이다(<see cref="MapMakerWindow"/>).
+    /// 맵이 늘거나 줄면 "맵 목록 갱신"(<see cref="MapRegistrySync"/>)이 빌드 설정·룸 맵 목록·맵 이름 문구·설정 범위를 맞춘다.
     /// </summary>
     public static class MapCatalog
     {
@@ -35,8 +36,13 @@ namespace GuardVsMannequin.Editor
             /// </summary>
             public float scale;
 
-            /// <summary>생성된 씬의 경로.</summary>
-            public string ScenePath => $"{TestEnvironmentSetupTool.SceneFolder}/{sceneName}.unity";
+            /// <summary>직접 만든 맵(Scenes/Custom 폴더)이면 true.</summary>
+            public bool customFolder;
+
+            /// <summary>씬 경로.</summary>
+            public string ScenePath => customFolder
+                ? $"{CustomMapFolder}/{sceneName}.unity"
+                : $"{TestEnvironmentSetupTool.SceneFolder}/{sceneName}.unity";
         }
 
         /// <summary>맵 목록. (인덱스 = 맵 ID)</summary>
@@ -69,7 +75,39 @@ namespace GuardVsMannequin.Editor
             },
         };
 
+        /// <summary>직접 만든 맵 씬을 두는 폴더. 이 폴더의 씬은 자동으로 맵 목록 뒤에 붙는다. (파일 이름 순)</summary>
+        public static string CustomMapFolder => $"{TestEnvironmentSetupTool.SceneFolder}/Custom";
+
+        /// <summary>
+        /// 전체 맵 목록 (인덱스 = 맵 ID). 자동 생성 맵(<see cref="Maps"/>) 뒤에 직접 만든 맵이 이어진다.
+        /// 직접 만든 맵을 추가·삭제하면 그 뒤 맵들의 번호가 바뀌므로 "맵 목록 갱신"을 실행한다.
+        /// </summary>
+        public static Entry[] AllMaps
+        {
+            get
+            {
+                var result = Maps.ToList();
+                if (!System.IO.Directory.Exists(CustomMapFolder))
+                    return result.ToArray();
+
+                foreach (string path in System.IO.Directory.GetFiles(CustomMapFolder, "*.unity").OrderBy(p => p))
+                {
+                    string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
+                    result.Add(new Entry { sceneName = sceneName, displayName = sceneName, customFolder = true });
+                }
+                return result.ToArray();
+            }
+        }
+
         /// <summary>맵 ID 순서의 게임 씬 이름. (RoomState에 등록)</summary>
-        public static string[] SceneNames => Maps.Select(map => map.sceneName).ToArray();
+        public static string[] SceneNames => AllMaps.Select(map => map.sceneName).ToArray();
+
+        /// <summary>
+        /// 씬 경로로 맵 항목을 찾는다. 없으면 null.
+        /// </summary>
+        public static Entry FindByScenePath(string scenePath)
+        {
+            return AllMaps.FirstOrDefault(map => map.ScenePath == scenePath);
+        }
     }
 }
