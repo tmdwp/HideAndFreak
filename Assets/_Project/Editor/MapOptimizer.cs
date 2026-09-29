@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GuardVsMannequin.Map;
 using GuardVsMannequin.Props;
+using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -120,17 +122,116 @@ namespace GuardVsMannequin.Editor
             keepArea.Expand(new Vector3(margin * 2f, margin * 2f, margin * 2f));
 
             Transform environment = environmentObject.transform;
+            Transform mapRoot = environment.parent;
             int inactive = RemoveInactive(environment);
             int outside = RemoveOutside(environment, keepArea);
             int empty = RemoveEmpty(environment);
+            int fixedBoxes = FixNegativeScaleBoxColliders(environment);
+            int areaLights = RemoveAreaLights(mapRoot);
+            int shadowLights = LimitLightShadows(mapRoot);
             int occluders = SetStaticFlags(environment);
 
+            bool navMeshBaked = BakeNavMesh(scene, mapRoot);
             EnsureOcclusionArea(boundaryObject.transform, playArea);
             BakeOcclusion(scene);
 
             Debug.Log($"[MapOptimizer] {scene.name}: 꺼진 오브젝트 {inactive}개, 경계 밖 {outside}개, 빈 오브젝트 {empty}개 제거. " +
-                      $"가리개 {occluders}개로 오클루전 컬링을 구웠습니다.");
+                      $"음수 크기 상자 충돌체 {fixedBoxes}개 교체, 영역 조명 {areaLights}개 제거, 그림자 끈 조명 {shadowLights}개. " +
+                      $"NavMesh {(navMeshBaked ? "저장" : "실패")}, 가리개 {occluders}개로 오클루전 컬링을 구웠습니다.");
         }
+
+        #region 조명·충돌체·NavMesh
+
+        /// <summary>
+        /// 영역(Area) 조명을 지운다. URP는 실시간 영역 조명을 지원하지 않아 빛을 내지 못하고 경고만 남기기 때문이다.
+        /// </summary>
+        private static int RemoveAreaLights(Transform mapRoot)
+        {
+            int removed = 0;
+            foreach (Light target in mapRoot.GetComponentsInChildren<Light>(true))
+            {
+                if (target.type != LightType.Rectangle && target.type != LightType.Disc)
+                    continue;
+                MapLight mapLight = target.GetComponent<MapLight>();
+                if (mapLight != null)
+                    Object.DestroyImmediate(mapLight);
+                Object.DestroyImmediate(target);
+                removed++;
+            }
+            return removed;
+        }
+
+        /// <summary>
+        /// 맵 조명(방향광 제외)의 그림자를 끈다. 그림자를 내는 실시간 조명이 많으면 그림자 지도가 부족해 화질이 떨어지고 느려진다.
+        /// (사냥 시간 손전등은 가드에 붙어 있어 영향받지 않는다)
+        /// </summary>
+        private static int LimitLightShadows(Transform mapRoot)
+        {
+            int changed = 0;
+            foreach (Light target in mapRoot.GetComponentsInChildren<Light>(true))
+            {
+                if (target.type == LightType.Directional || target.shadows == LightShadows.None)
+                    continue;
+                target.shadows = LightShadows.None;
+                changed++;
+            }
+            return changed;
+        }
+
+        /// <summary>
+        /// 크기가 음수(거울 배치)인 상자 충돌체를 메시 충돌체로 바꾼다. 상자 충돌체는 음수 크기를 지원하지 않아 경고와 함께 모양이 틀어진다.
+        /// </summary>
+        private static int FixNegativeScaleBoxColliders(Transform environment)
+        {
+            int replaced = 0;
+            foreach (BoxCollider box in environment.GetComponentsInChildren<BoxCollider>(true))
+            {
+                Vector3 scale = box.transform.lossyScale;
+                if (scale.x >= 0f && scale.y >= 0f && scale.z >= 0f)
+                    continue;
+
+                MeshFilter filter = box.GetComponent<MeshFilter>();
+                GameObject target = box.gameObject;
+                Object.DestroyImmediate(box);
+                if (filter != null && filter.sharedMesh != null)
+                    target.AddComponent<MeshCollider>().sharedMesh = filter.sharedMesh;
+                replaced++;
+            }
+            return replaced;
+        }
+
+        /// <summary>
+        /// 맵의 NavMesh를 에디터에서 구워 씬 폴더에 에셋으로 저장한다.
+        /// 빌드에서는 읽기가 허용되지 않은 메시를 실행 중에 구울 수 없으므로, 서버는 이 데이터를 그대로 쓴다.
+        /// </summary>
+        private static bool BakeNavMesh(Scene scene, Transform mapRoot)
+        {
+            NavMeshSurface surface = mapRoot != null ? mapRoot.GetComponent<NavMeshSurface>() : null;
+            if (surface == null)
+            {
+                Debug.LogWarning($"[MapOptimizer] {scene.name}: Map에 NavMeshSurface가 없어 NavMesh를 굽지 않았습니다.");
+                return false;
+            }
+
+            Physics.SyncTransforms();
+            surface.RemoveData();
+            surface.BuildNavMesh();
+            if (surface.navMeshData == null)
+                return false;
+
+            // 씬 이름과 같은 폴더(오클루전 데이터와 같은 곳)에 저장한다.
+            string folder = Path.Combine(Path.GetDirectoryName(scene.path) ?? string.Empty, scene.name).Replace('\\', '/');
+            if (!AssetDatabase.IsValidFolder(folder))
+                AssetDatabase.CreateFolder(Path.GetDirectoryName(folder)?.Replace('\\', '/'), scene.name);
+
+            string path = $"{folder}/NavMesh-{mapRoot.name}.asset";
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(surface.navMeshData, path);
+            EditorUtility.SetDirty(surface);
+            return true;
+        }
+
+        #endregion
 
         #region 제거
 

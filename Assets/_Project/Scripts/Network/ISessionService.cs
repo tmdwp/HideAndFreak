@@ -20,11 +20,23 @@ namespace GuardVsMannequin.Network
         /// <summary>로비 화면에 보여줄 마지막 안내 메시지. (연결 끊김, 실패 사유 등)</summary>
         string Notice { get; }
 
-        /// <summary>Steam 방을 만든다.</summary>
-        void HostSteamRoom();
+        /// <summary>내가 만든 방의 암호. 없으면 빈 문자열. (서버가 접속자를 확인할 때 사용)</summary>
+        string RoomPassword { get; }
 
-        /// <summary>방 코드로 Steam 방에 참가한다.</summary>
-        void JoinSteamRoom(string roomCode);
+        /// <summary>참가할 때 호스트에 보낼 암호. (호스트 자신은 방 암호와 같음)</summary>
+        string JoinPassword { get; }
+
+        /// <summary>
+        /// 초대 등으로 들어가려는 방에 암호가 필요할 때. 인자는 방 코드.
+        /// 로비 화면은 방 코드를 채운 입장 화면을 열어 암호를 입력받는다.
+        /// </summary>
+        event System.Action<string> PasswordRequired;
+
+        /// <summary>Steam 방을 만든다. 암호를 비우면 암호 없는 방이 된다.</summary>
+        void HostSteamRoom(string password);
+
+        /// <summary>방 코드로 Steam 방에 참가한다. 암호 없는 방이면 암호는 비워도 된다.</summary>
+        void JoinSteamRoom(string roomCode, string password);
 
         /// <summary>직접 접속 방을 만든다. (개발/LAN용)</summary>
         void HostDirectRoom();

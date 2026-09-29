@@ -24,6 +24,11 @@ namespace GuardVsMannequin.Player
         [Tooltip("오른손이 조준 방향을 향하도록 IK를 쓸지 여부. (총을 든 가드)")]
         public bool useAimIK;
 
+        [Tooltip("애니메이션 이벤트(클립 안에서 함수를 부르는 표시)를 실행할지 여부.\n" +
+                 "에셋 팩 애니메이션에는 팩 전용 스크립트를 부르는 이벤트가 들어 있는 경우가 많아, 받을 곳이 없으면 오류가 난다. " +
+                 "이벤트를 받는 컴포넌트를 직접 만들었을 때만 켠다.")]
+        public bool fireAnimationEvents;
+
         [Tooltip("총을 드는 외형(가드)의 손 위치 설정. 모델마다 손 크기·뼈 방향이 달라 외형별로 둔다.\n" +
                  "Play 중 이 에셋의 값을 바꾸면 바로 반영되고, Play를 꺼도 값이 유지된다.")]
         public WeaponGrip weaponGrip = new WeaponGrip();

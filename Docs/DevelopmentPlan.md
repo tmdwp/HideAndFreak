@@ -389,6 +389,9 @@ public interface ITransformable { int PropId { get; } }
   - 한국어·영어 외에 한자/가나 등을 쓰는 언어는 `OsFontApplier`의 폰트가 글자를 지원하는지 확인해야 한다.
 - **이동 속도**: `MoveSpeedController`(가드/마네킹 프리팹)가 동기화된 이번 판 설정으로 `maxWalkSpeed`/`maxFlySpeed`(벽타기)를 맞추고, 마네킹은 사냥 시간에 1.5배로 바꾼다. 가짜 마네킹(NavMeshAgent)도 마네킹 기본 속도를 따른다.
 - **사냥 시간 변신**: `MannequinTransformer.CanTransformIn`에 `Hunting`을 추가했다. 진입 순간의 강제 해제(`MannequinHuntingMode`)는 그대로 두어 사냥 시간 시작 시 모두 본모습이 드러난다. 변신 중에는 탐색 단계의 상호작용처럼 공격도 막는다(`MannequinAttackTool`). 1인칭에서 사물 메시가 시야를 가리지 않도록 본인 화면에서는 변신 외형도 그림자만 그린다(`PropDisguiseView.SetDisguiseShadowsOnly`). 해제 쿨타임 5초는 동일하다.
+- **로비 화면**: 메인(방 만들기 / 참가 / 설정 / 크레딧 / 종료) → 방 만들기(스팀 방 만들기[암호] / 직접 방 만들기) · 참가(스팀 방 입장[방 코드·암호] / IP로 참가). 뒤로 버튼·ESC로 이전 화면. 요소는 Layout Group 없이 고정 위치·크기(`EditorUiFactory.Place`)로 배치해 프리팹에서 자유롭게 옮길 수 있다.
+- **방 암호** (Steam 방): 호스트가 정한 암호를 참가자가 접속 요청(`JoinRequestBroadcast`: 버전+암호)으로 보내고 `RoomAuthenticator`가 확인한다. 로비 데이터에는 `HasPassword` 표시만 적고 암호는 적지 않는다. 초대로 들어온 방에 암호가 있으면 방 코드를 채운 입장 화면을 열어 암호를 받는다(`ISessionService.PasswordRequired`). 직접 방은 암호 없음.
+- **버전 확인** (`GameVersion` = Player Settings의 Version + 네트워크 규약 번호 `Protocol`): 클라이언트는 접속 즉시 버전을 보내고(`JoinRequestBroadcast`), `RoomAuthenticator`가 호스트와 다르거나 10초 안에 보내지 않으면(옛 빌드) 거부한다. Steam 방은 로비 데이터 `Version`으로 입장 전에 먼저 걸러낸다. 거부 이유(버전 불일치·가득 참·게임 중·로비 미경유)는 `ConnectionRejectedBroadcast`로 보내 로비에 안내한다. **빌드를 배포할 때 Player Settings의 Version을 올리고**, 네트워크로 주고받는 것을 바꿨는데 버전을 올리지 않았다면 `GameVersion.Protocol`을 올린다.
 - **보안** (호스트 = 서버인 P2P 구조라 호스트의 조작과 위치 정보를 이용한 월핵은 막을 수 없다. 게스트 쪽 부정행위와 무단 접속을 줄이는 것이 목표)
   - Steam 방에서는 Tugboat를 `127.0.0.1`/`::1`에만 연다(`TransportConnector`). 호스트 자신의 로컬 접속용이며, 방 코드 없이 IP로 들어오는 경로를 막는다. 직접 방은 인스펙터의 바인드 주소를 그대로 쓴다.
   - `RoomAuthenticator`(FishNet Authenticator, `SessionService`가 실행 시 등록): 판 진행 중 접속, 인원 초과, Steam 방의 비로비 SteamID·외부 IP 접속을 거부한다. 로비 멤버 목록 갱신이 늦을 수 있어 최대 5초 기다린다. `RoomState`는 **인증을 통과한 연결만** 참가자로 등록한다.
@@ -412,6 +415,10 @@ public interface ITransformable { int PropId { get; } }
   - 3인칭 총·조준 IK 손 위치(외형마다 다름): 외형 에셋 `Skin_*.asset`의 **Weapon Grip**. 에셋이라 Play 중 바꾼 값이 그대로 저장되고, '캐릭터·무기 에셋 생성'을 다시 실행해도 유지된다. 외형이 없는 가드는 `GuardWeaponView`의 예비 값(fallbackGrip)을 쓴다.
 - **총알 이펙트**: `ShotTracerView`의 총알·명중·총구 화염 밝기와 크기 배율(기본 0.35~0.4 / 0.4~0.6)로 조정한다. 파티클 시작 색의 RGB·알파와 시작 크기에 곱한다.
 - **변신 사물 외곽선**: 마네킹 본인 화면에서 조준 중인 변신 가능 사물(변신 판정과 같은 조건)에 `GuardVsMannequin/PropOutline` 셰이더로 화면 기준 일정한 두께의 외곽선을 그린다(`PropHighlighter`). 색·두께는 `Art/Materials/M_PropOutline`에서 조정. 변신 사물은 외곽선이 원래 메시를 써야 하므로 정적 배칭에서 제외한다.
+- **NavMesh 미리 굽기**: 빌드에서는 읽기가 허용되지 않은 메시(에셋 팩 모델 대부분)를 실행 중에 NavMesh로 구울 수 없다(로그: "does not allow read access ... not in player"). 그래서 맵 최적화가 NavMesh를 에디터에서 구워 `Scenes/<씬 이름>/NavMesh-Map.asset`으로 저장하고, `FakeMannequinSpawner`는 미리 구운 데이터가 있으면 다시 굽지 않는다. (테스트 맵은 기본 도형이라 실행 중에 굽는다)
+- 맵 최적화는 추가로 영역(Area) 조명 제거(URP 실시간 미지원), 맵 조명 그림자 끄기(그림자 지도 부족 방지, 방향광·손전등 제외), 음수 크기 상자 충돌체를 메시 충돌체로 교체한다.
+- `MovementValidator`의 이동 예산은 실제 경과 시간(`realtimeSinceStartup`)으로 쌓는다. `Time.deltaTime`은 프레임 멈춤 시 0.33초로 잘려, 서버가 잠깐 멈춘 뒤 도착한 정상 이동을 부정 이동으로 오판했다(사냥 시간 시작 시 확인). 몰아 쓰기 한도 3초. 서버 프레임 간격이 0.5초를 넘으면(에디터 일시정지·로딩) 그동안의 이동은 검사하지 않고 받아들인다.
+- 외형 애니메이터의 애니메이션 이벤트는 기본으로 끈다(`CharacterSkin.fireAnimationEvents`). 에셋 팩 클립의 이벤트가 외형 생성 때 제거된 팩 스크립트를 불러 "has no receiver" 오류가 났다(슬라임 공격 `AlertObservers`).
 - **맵 최적화** (`GuardVsMannequin > 맵 최적화`, 맵 생성 시 자동 실행): 투명 경계 밖(실내 3m·실외 12m 여유)의 환경 오브젝트와 꺼진 오브젝트를 지우고, 남은 환경에 Occludee·정적 배칭 플래그(1m 이상 불투명 메시는 Occluder)를 준 뒤, 플레이 영역을 덮는 Occlusion Area로 오클루전 컬링을 굽는다. 수동으로 옮긴 스폰·전원 장치 배치는 건드리지 않는다.
 - **빌드 최적화 설정** (`GuardVsMannequin > 빌드 최적화 설정 적용`): 셰이더 변형이 4천 개 넘게 나와 첫 빌드가 1시간 이상 걸리던 문제로, PC URP 에셋의 라이트 쿠키·라이트 레이어·LOD 크로스페이드·반사 프로브 블렌딩/박스 투영·부드러운 그림자를 끄고 캐스케이드를 2개로 줄이며, SSAO를 끄고, Windows 그래픽 API를 Direct3D11만 쓰게 한다. (손전등용 추가 조명 그림자는 유지. Mobile 품질 레벨은 원래 PC 빌드에서 제외되어 있음)
 - 새로 추가된 외부 에셋 중 Unity 6에서 컴파일되지 않던 옛 스크립트(Standard Assets `Utility` 3개와 에디터 스크립트 2개, Flooded_Grounds PostProcessing 에디터 2개)는 제거된 API만 대체 API로 바꿨다. (파일마다 "GuardVsMannequin 프로젝트 수정" 주석)

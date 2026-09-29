@@ -6,18 +6,25 @@ language.name,한국어,English
 
 # 로비
 lobby.title,Hide&Freak,Hide&Freak
-lobby.steam.header,Steam,Steam
 lobby.steam.connected,Steam 연결됨,Steam connected
 lobby.steam.unavailable,Steam을 사용할 수 없습니다. (Steam을 실행하면 Steam 방을 만들 수 있습니다),Steam is unavailable. (Run Steam to create Steam rooms.)
-lobby.steam.host,방 만들기,Create Room
 lobby.steam.codePlaceholder,방 코드 입력,Enter room code
-lobby.steam.join,코드로 참가,Join by Code
 lobby.steam.inviteHint,친구 초대는 Steam 친구 목록이나 오버레이에서 수락하면 자동으로 참가합니다.,Accept an invite from your Steam friends list or overlay to join automatically.
-lobby.direct.header,직접 접속 (개발 / LAN),Direct Connect (Dev / LAN)
-lobby.direct.hint,Steam 없이 IP로 접속합니다. 한 PC에서 여러 개를 띄워 테스트할 때 사용하세요.,Connects by IP without Steam. Use this to test several instances on one PC.
-lobby.direct.host,직접 방 만들기,Create Direct Room
+lobby.direct.hint,Steam 없이 IP로 접속합니다.,Connects by IP without Steam.
 lobby.direct.addressPlaceholder,호스트 IP (비우면 localhost),Host IP (blank = localhost)
-lobby.direct.join,IP로 참가,Join by IP
+lobby.menu.create,방 만들기,Create Room
+lobby.menu.join,참가,Join
+lobby.create.steam,스팀 방 만들기,Create Steam Room
+lobby.create.direct,직접 방 만들기,Create Direct Room
+lobby.steamCreate.hint,암호를 정하면 같은 암호를 입력한 사람만 들어올 수 있습니다. 비우면 방 코드만으로 들어올 수 있습니다.,Only players who enter the same password can join. Leave it blank to let anyone with the room code join.
+lobby.password.placeholder,암호 (비우면 없음),Password (blank = none)
+lobby.steamCreate.confirm,만들기,Create
+lobby.join.steam,스팀 방 입장,Join Steam Room
+lobby.join.direct,IP로 참가,Join by IP
+lobby.steamJoin.passwordPlaceholder,암호 (없으면 비워 두기),Password (leave blank if none)
+lobby.steamJoin.confirm,입장,Join
+lobby.directJoin.confirm,참가,Join
+lobby.back,뒤로,Back
 lobby.settings,설정,Settings
 lobby.credits,크레딧,Credits
 lobby.quit,종료,Quit
@@ -39,6 +46,12 @@ notice.hostDisconnected,호스트와의 연결이 끊겼습니다.,Disconnected 
 notice.lobbyCreateFailed,방을 만들지 못했습니다. ({0}),Could not create the room. ({0})
 notice.lobbyEnterFailed,방에 들어갈 수 없습니다. (방이 가득 찼거나 게임이 진행 중일 수 있습니다),Cannot enter the room. (It may be full or a game is in progress.)
 notice.lobbyDataInvalid,방 정보를 읽을 수 없습니다.,Could not read the room information.
+notice.rejected.version,호스트와 게임 버전이 달라 들어갈 수 없습니다. 같은 버전으로 맞춰 주세요. (호스트 ≠ 내 게임: {0}),Your game version doesn't match the host's. Please use the same version. (host ≠ yours: {0})
+notice.rejected.full,방이 가득 찼습니다.,The room is full.
+notice.rejected.password,암호가 틀렸습니다.,Wrong password.
+notice.passwordRequired,암호가 필요한 방입니다. 암호를 입력하고 입장을 누르세요.,This room needs a password. Enter it and press Join.
+notice.rejected.inGame,게임이 진행 중이라 들어갈 수 없습니다. 판이 끝난 뒤 다시 시도하세요.,A game is in progress. Try again after it ends.
+notice.rejected.notMember,방에 정상적으로 입장하지 못했습니다. 방 코드나 초대로 다시 시도하세요.,Could not enter the room properly. Try again with the room code or an invite.
 session.directRoomCode,직접 접속 방 (호스트 IP로 참가),Direct room (join by host IP)
 
 # 룸

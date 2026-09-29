@@ -219,6 +219,9 @@ namespace GuardVsMannequin.Player
                 animator.runtimeAnimatorController = skin.animatorController;
             animator.applyRootMotion = false;
 
+            // 에셋 팩 클립의 이벤트는 팩 스크립트(외형 생성 시 제거됨)를 부르므로 기본으로 끈다. ("has no receiver" 오류 방지)
+            animator.fireEvents = skin.fireAnimationEvents;
+
             animatorParameters.Clear();
             foreach (AnimatorControllerParameter parameter in animator.parameters)
                 animatorParameters.Add(parameter.name);

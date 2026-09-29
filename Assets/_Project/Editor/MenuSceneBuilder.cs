@@ -168,9 +168,20 @@ namespace GuardVsMannequin.Editor
             UiPrefabLibrary.Instantiate(prefab);
         }
 
+        // 로비 화면 배치 (1920×1080 기준, 화면 가운데 기준 픽셀). Layout Group을 쓰지 않아 프리팹에서 자유롭게 옮길 수 있다.
+        private static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
+        private static readonly Vector2 ScreenPosition = new Vector2(0f, -40f);
+        private static readonly Vector2 ScreenSize = new Vector2(720f, 560f);
+        private static readonly Vector2 ButtonSize = new Vector2(480f, 70f);
+        private static readonly Vector2 InputSize = new Vector2(480f, 64f);
+        private static readonly Color HintColor = new Color(0.7f, 0.7f, 0.7f);
+
         /// <summary>
-        /// 로비 화면의 기본 모양을 만든다. 제목 아래에 Steam 패널(왼쪽)과 직접 접속 패널(오른쪽)을 나란히 두고,
-        /// 하단 패널에 안내 문구와 공용 메뉴(설정, 크레딧, 종료)를 둔다.
+        /// 로비 화면의 기본 모양을 만든다. 화면(패널)을 겹쳐 두고 하나씩 보여준다.
+        /// 메인 ─ 방 만들기 ─ 스팀 방 만들기(암호) / 직접 방 만들기
+        ///      ─ 참가     ─ 스팀 방 입장(방 코드, 암호) / IP로 참가
+        ///      ─ 설정, 크레딧, 종료
+        /// 모든 요소는 고정 위치·크기(Layout Group 없음)라 프리팹에서 끌어서 옮기거나 크기를 바꿀 수 있다.
         /// </summary>
         private static GameObject BuildLobbyCanvas()
         {
@@ -178,74 +189,139 @@ namespace GuardVsMannequin.Editor
             canvas.gameObject.AddComponent<OsFontApplier>();
 
             Text title = EditorUiFactory.CreateText(canvas.transform, "Title", "lobby.title", 72, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
-            title.rectTransform.anchorMin = new Vector2(0f, 0.82f);
-            title.rectTransform.anchorMax = new Vector2(1f, 0.97f);
-            title.rectTransform.offsetMin = title.rectTransform.offsetMax = Vector2.zero;
+            EditorUiFactory.Place(title, new Vector2(0.5f, 1f), new Vector2(0f, -140f), new Vector2(1200f, 140f));
 
-            // 왼쪽: Steam 패널
-            RectTransform steamPanel = EditorUiFactory.CreatePanel(canvas.transform, "SteamPanel", new Vector2(0.08f, 0.3f), new Vector2(0.49f, 0.8f), EditorUiFactory.PanelColor);
-            EditorUiFactory.AddVerticalLayout(steamPanel, 14f, 32);
+            // 메인
+            RectTransform main = CreateScreen(canvas.transform, "MainMenu", null);
+            Button createMenuButton = CreateMenuButton(main, "CreateMenuButton", "lobby.menu.create", 150f, EditorUiFactory.AccentColor);
+            Button joinMenuButton = CreateMenuButton(main, "JoinMenuButton", "lobby.menu.join", 60f, EditorUiFactory.AccentColor);
+            Button settingsButton = CreateMenuButton(main, "SettingsButton", "lobby.settings", -30f, EditorUiFactory.ButtonColor);
+            Button creditsButton = CreateMenuButton(main, "CreditsButton", "lobby.credits", -120f, EditorUiFactory.ButtonColor);
+            Button quitButton = CreateMenuButton(main, "QuitButton", "lobby.quit", -210f, EditorUiFactory.ButtonColor);
 
-            AddHeader(steamPanel, "lobby.steam.header");
-            Text steamStatus = AddLine(steamPanel, "SteamStatus", string.Empty, 20, EditorUiFactory.TextColor);
-            Button hostSteam = EditorUiFactory.CreateButton(steamPanel, "HostSteamButton", "lobby.steam.host", EditorUiFactory.AccentColor);
-            EditorUiFactory.SetHeight(hostSteam, 64f);
+            // 방 만들기
+            RectTransform createMenu = CreateScreen(canvas.transform, "CreateMenu", "lobby.menu.create");
+            Button steamCreateMenuButton = CreateMenuButton(createMenu, "SteamCreateMenuButton", "lobby.create.steam", 100f, EditorUiFactory.AccentColor);
+            Button hostDirectButton = CreateMenuButton(createMenu, "HostDirectButton", "lobby.create.direct", 10f, EditorUiFactory.ButtonColor);
+            CreateHint(createMenu, "DirectHint", "lobby.direct.hint", -80f);
+            Button createBack = CreateMenuButton(createMenu, "BackButton", "lobby.back", -210f, EditorUiFactory.ButtonColor);
 
-            RectTransform codeRow = EditorUiFactory.CreateRow(steamPanel, "RoomCodeRow", 56f, 10f);
-            InputField roomCode = EditorUiFactory.CreateInputField(codeRow, "RoomCodeInput", "lobby.steam.codePlaceholder");
-            EditorUiFactory.SetFlexibleWidth(roomCode);
-            Button joinSteam = EditorUiFactory.CreateButton(codeRow, "JoinSteamButton", "lobby.steam.join", EditorUiFactory.ButtonColor);
-            EditorUiFactory.SetWidth(joinSteam, 200f);
+            // 스팀 방 만들기 (암호)
+            RectTransform steamCreate = CreateScreen(canvas.transform, "SteamCreatePanel", "lobby.create.steam");
+            CreateHint(steamCreate, "PasswordHint", "lobby.steamCreate.hint", 130f);
+            InputField hostPassword = CreateInput(steamCreate, "PasswordInput", "lobby.password.placeholder", 40f);
+            Button hostSteamButton = CreateMenuButton(steamCreate, "CreateButton", "lobby.steamCreate.confirm", -60f, EditorUiFactory.AccentColor);
+            Button steamCreateBack = CreateMenuButton(steamCreate, "BackButton", "lobby.back", -210f, EditorUiFactory.ButtonColor);
 
-            Text inviteHint = AddLine(steamPanel, "InviteHint", "lobby.steam.inviteHint", 18, new Color(0.7f, 0.7f, 0.7f));
-            EditorUiFactory.SetHeight(inviteHint, 56f);
+            // 참가
+            RectTransform joinMenu = CreateScreen(canvas.transform, "JoinMenu", "lobby.menu.join");
+            Button steamJoinMenuButton = CreateMenuButton(joinMenu, "SteamJoinMenuButton", "lobby.join.steam", 100f, EditorUiFactory.AccentColor);
+            Button directJoinMenuButton = CreateMenuButton(joinMenu, "DirectJoinMenuButton", "lobby.join.direct", 10f, EditorUiFactory.ButtonColor);
+            CreateHint(joinMenu, "InviteHint", "lobby.steam.inviteHint", -80f);
+            Button joinBack = CreateMenuButton(joinMenu, "BackButton", "lobby.back", -210f, EditorUiFactory.ButtonColor);
 
-            // 오른쪽: 직접 접속 패널 (개발 / LAN)
-            RectTransform directPanel = EditorUiFactory.CreatePanel(canvas.transform, "DirectPanel", new Vector2(0.51f, 0.3f), new Vector2(0.92f, 0.8f), EditorUiFactory.PanelColor);
-            EditorUiFactory.AddVerticalLayout(directPanel, 14f, 32);
+            // 스팀 방 입장 (방 코드, 암호)
+            RectTransform steamJoin = CreateScreen(canvas.transform, "SteamJoinPanel", "lobby.join.steam");
+            InputField roomCode = CreateInput(steamJoin, "RoomCodeInput", "lobby.steam.codePlaceholder", 120f);
+            InputField joinPassword = CreateInput(steamJoin, "PasswordInput", "lobby.steamJoin.passwordPlaceholder", 40f);
+            Button joinSteamButton = CreateMenuButton(steamJoin, "JoinButton", "lobby.steamJoin.confirm", -60f, EditorUiFactory.AccentColor);
+            Button steamJoinBack = CreateMenuButton(steamJoin, "BackButton", "lobby.back", -210f, EditorUiFactory.ButtonColor);
 
-            AddHeader(directPanel, "lobby.direct.header");
-            AddLine(directPanel, "DirectHint", "lobby.direct.hint", 20, EditorUiFactory.TextColor);
-            Button hostDirect = EditorUiFactory.CreateButton(directPanel, "HostDirectButton", "lobby.direct.host", EditorUiFactory.ButtonColor);
-            EditorUiFactory.SetHeight(hostDirect, 64f);
+            // IP로 참가
+            RectTransform directJoin = CreateScreen(canvas.transform, "DirectJoinPanel", "lobby.join.direct");
+            CreateHint(directJoin, "DirectHint", "lobby.direct.hint", 130f);
+            InputField address = CreateInput(directJoin, "AddressInput", "lobby.direct.addressPlaceholder", 40f);
+            Button joinDirectButton = CreateMenuButton(directJoin, "JoinButton", "lobby.directJoin.confirm", -60f, EditorUiFactory.AccentColor);
+            Button directJoinBack = CreateMenuButton(directJoin, "BackButton", "lobby.back", -210f, EditorUiFactory.ButtonColor);
 
-            RectTransform addressRow = EditorUiFactory.CreateRow(directPanel, "AddressRow", 56f, 10f);
-            InputField address = EditorUiFactory.CreateInputField(addressRow, "AddressInput", "lobby.direct.addressPlaceholder");
-            EditorUiFactory.SetFlexibleWidth(address);
-            Button joinDirect = EditorUiFactory.CreateButton(addressRow, "JoinDirectButton", "lobby.direct.join", EditorUiFactory.ButtonColor);
-            EditorUiFactory.SetWidth(joinDirect, 200f);
-
-            // 하단: 공용 메뉴(설정, 크레딧, 종료)와 안내 문구
-            RectTransform bottomPanel = EditorUiFactory.CreatePanel(canvas.transform, "BottomPanel", new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.27f), EditorUiFactory.PanelColor);
-            EditorUiFactory.AddVerticalLayout(bottomPanel, 12f, 24);
-
-            Text notice = AddLine(bottomPanel, "Notice", string.Empty, 22, EditorUiFactory.NoticeColor);
-            EditorUiFactory.SetHeight(notice, 56f);
-
-            RectTransform menuRow = EditorUiFactory.CreateRow(bottomPanel, "MenuRow", 56f, 12f);
-            Button settingsButton = EditorUiFactory.CreateButton(menuRow, "SettingsButton", "lobby.settings", EditorUiFactory.ButtonColor);
-            Button creditsButton = EditorUiFactory.CreateButton(menuRow, "CreditsButton", "lobby.credits", EditorUiFactory.ButtonColor);
-            Button quitButton = EditorUiFactory.CreateButton(menuRow, "QuitButton", "lobby.quit", EditorUiFactory.ButtonColor);
-            foreach (Button button in new[] { settingsButton, creditsButton, quitButton })
-                EditorUiFactory.SetFlexibleWidth(button);
+            // 아래: Steam 상태와 안내 문구 (모든 화면 공통)
+            Text steamStatus = EditorUiFactory.CreateText(canvas.transform, "SteamStatus", string.Empty, 22, TextAnchor.MiddleCenter, HintColor);
+            EditorUiFactory.Place(steamStatus, new Vector2(0.5f, 0f), new Vector2(0f, 130f), new Vector2(1400f, 40f));
+            Text notice = EditorUiFactory.CreateText(canvas.transform, "Notice", string.Empty, 24, TextAnchor.MiddleCenter, EditorUiFactory.NoticeColor);
+            EditorUiFactory.Place(notice, new Vector2(0.5f, 0f), new Vector2(0f, 80f), new Vector2(1600f, 50f));
 
             LobbyView view = canvas.gameObject.AddComponent<LobbyView>();
-            TestEnvironmentSetupTool.SetField(view, "hostSteamButton", hostSteam);
-            TestEnvironmentSetupTool.SetField(view, "roomCodeInput", roomCode);
-            TestEnvironmentSetupTool.SetField(view, "joinSteamButton", joinSteam);
-            TestEnvironmentSetupTool.SetField(view, "steamStatusText", steamStatus);
-            TestEnvironmentSetupTool.SetField(view, "hostDirectButton", hostDirect);
-            TestEnvironmentSetupTool.SetField(view, "addressInput", address);
-            TestEnvironmentSetupTool.SetField(view, "joinDirectButton", joinDirect);
+            TestEnvironmentSetupTool.SetField(view, "mainMenu", main.gameObject);
+            TestEnvironmentSetupTool.SetField(view, "createMenu", createMenu.gameObject);
+            TestEnvironmentSetupTool.SetField(view, "steamCreatePanel", steamCreate.gameObject);
+            TestEnvironmentSetupTool.SetField(view, "joinMenu", joinMenu.gameObject);
+            TestEnvironmentSetupTool.SetField(view, "steamJoinPanel", steamJoin.gameObject);
+            TestEnvironmentSetupTool.SetField(view, "directJoinPanel", directJoin.gameObject);
+
+            TestEnvironmentSetupTool.SetField(view, "createMenuButton", createMenuButton);
+            TestEnvironmentSetupTool.SetField(view, "joinMenuButton", joinMenuButton);
             TestEnvironmentSetupTool.SetField(view, "settingsButton", settingsButton);
             TestEnvironmentSetupTool.SetField(view, "creditsButton", creditsButton);
             TestEnvironmentSetupTool.SetField(view, "quitButton", quitButton);
+
+            TestEnvironmentSetupTool.SetField(view, "steamCreateMenuButton", steamCreateMenuButton);
+            TestEnvironmentSetupTool.SetField(view, "hostDirectButton", hostDirectButton);
+            TestEnvironmentSetupTool.SetField(view, "hostPasswordInput", hostPassword);
+            TestEnvironmentSetupTool.SetField(view, "hostSteamButton", hostSteamButton);
+
+            TestEnvironmentSetupTool.SetField(view, "steamJoinMenuButton", steamJoinMenuButton);
+            TestEnvironmentSetupTool.SetField(view, "directJoinMenuButton", directJoinMenuButton);
+            TestEnvironmentSetupTool.SetField(view, "roomCodeInput", roomCode);
+            TestEnvironmentSetupTool.SetField(view, "joinPasswordInput", joinPassword);
+            TestEnvironmentSetupTool.SetField(view, "joinSteamButton", joinSteamButton);
+            TestEnvironmentSetupTool.SetField(view, "addressInput", address);
+            TestEnvironmentSetupTool.SetField(view, "joinDirectButton", joinDirectButton);
+
+            TestEnvironmentSetupTool.SetArray(view, "backButtons", new UnityEngine.Object[] { createBack, steamCreateBack, joinBack, steamJoinBack, directJoinBack });
+            TestEnvironmentSetupTool.SetField(view, "steamStatusText", steamStatus);
             TestEnvironmentSetupTool.SetField(view, "noticeText", notice);
 
             // 설정과 크레딧 화면 (메뉴 위에 그려지도록 마지막에 만든다)
             TestEnvironmentSetupTool.SetField(view, "settingsPanel", SharedUiBuilder.CreateSettingsPanel(canvas.transform));
             TestEnvironmentSetupTool.SetField(view, "creditsPanel", SharedUiBuilder.CreateCreditsPanel(canvas.transform));
             return canvas.gameObject;
+        }
+
+        /// <summary>
+        /// 로비 화면(패널) 하나를 화면 가운데에 만든다. 제목 key가 있으면 위쪽에 제목을 둔다.
+        /// </summary>
+        private static RectTransform CreateScreen(Transform canvas, string name, string titleKey)
+        {
+            RectTransform screen = EditorUiFactory.CreateRect(canvas, name);
+            screen.gameObject.AddComponent<Image>().color = EditorUiFactory.PanelColor;
+            EditorUiFactory.Place(screen, Center, ScreenPosition, ScreenSize);
+
+            if (!string.IsNullOrEmpty(titleKey))
+            {
+                Text header = EditorUiFactory.CreateText(screen, "Header", titleKey, 36, TextAnchor.MiddleCenter, EditorUiFactory.AccentColor);
+                header.fontStyle = FontStyle.Bold;
+                EditorUiFactory.Place(header, Center, new Vector2(0f, 220f), new Vector2(640f, 60f));
+            }
+            return screen;
+        }
+
+        /// <summary>
+        /// 화면 가운데 세로 위치(y)에 메뉴 버튼을 만든다.
+        /// </summary>
+        private static Button CreateMenuButton(Transform screen, string name, string labelKey, float y, Color color)
+        {
+            Button button = EditorUiFactory.CreateButton(screen, name, labelKey, color);
+            EditorUiFactory.Place(button, Center, new Vector2(0f, y), ButtonSize);
+            return button;
+        }
+
+        /// <summary>
+        /// 화면 가운데 세로 위치(y)에 입력 칸을 만든다.
+        /// </summary>
+        private static InputField CreateInput(Transform screen, string name, string placeholderKey, float y)
+        {
+            InputField input = EditorUiFactory.CreateInputField(screen, name, placeholderKey);
+            EditorUiFactory.Place(input, Center, new Vector2(0f, y), InputSize);
+            return input;
+        }
+
+        /// <summary>
+        /// 화면 가운데 세로 위치(y)에 안내 문구를 만든다.
+        /// </summary>
+        private static void CreateHint(Transform screen, string name, string key, float y)
+        {
+            Text hint = EditorUiFactory.CreateText(screen, name, key, 20, TextAnchor.MiddleCenter, HintColor);
+            EditorUiFactory.Place(hint, Center, new Vector2(0f, y), new Vector2(640f, 70f));
         }
 
         #endregion

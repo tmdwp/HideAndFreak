@@ -376,6 +376,23 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
+        /// Layout Group 없이 고정 위치·크기로 배치한다. 에디터에서 끌어서 옮기거나 크기를 바꾸기 쉽다.
+        /// </summary>
+        /// <param name="target">배치할 UI.</param>
+        /// <param name="anchor">부모 안의 기준점 (0~1, 예: 가운데 (0.5, 0.5), 위 가운데 (0.5, 1))</param>
+        /// <param name="position">기준점에서의 위치(픽셀, 1920×1080 기준).</param>
+        /// <param name="size">크기(픽셀).</param>
+        public static void Place(Component target, Vector2 anchor, Vector2 position, Vector2 size)
+        {
+            var rect = (RectTransform)target.transform;
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+        }
+
+        /// <summary>
         /// 레이아웃 안에서의 높이를 고정한다.
         /// </summary>
         public static void SetHeight(Component target, float height)

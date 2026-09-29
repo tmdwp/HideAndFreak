@@ -460,7 +460,7 @@ MonoBehaviour:
   _addedNetworkObject: {fileID: 5274660207253486401}
   _networkObjectCache: {fileID: 0}
   speedTolerance: 1.3
-  maxBurstSeconds: 1.5
+  maxBurstSeconds: 3
   extraSlack: 1
   riseAllowance: 2
 --- !u!114 &4185462520517239729

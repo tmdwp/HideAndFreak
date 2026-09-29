@@ -1,4 +1,5 @@
 using System;
+using GuardVsMannequin.Core;
 using Steamworks;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ namespace GuardVsMannequin.Network
     public class SteamLobbyService : MonoBehaviour
     {
         private const string HostAddressKey = "HostAddress";
+        private const string VersionKey = "Version";
+        private const string HasPasswordKey = "HasPassword";
 
         [SerializeField] private int maxMembers = 10;
 
@@ -24,12 +27,13 @@ namespace GuardVsMannequin.Network
         private Callback<LobbyEnter_t> lobbyEnterCallback;
         private Callback<GameLobbyJoinRequested_t> joinRequestedCallback;
         private bool isCreatingLobby;
+        private bool creatingWithPassword;
 
         /// <summary>로비 생성이 끝났을 때. (로비 ID)</summary>
         public event Action<ulong> LobbyCreated;
 
-        /// <summary>다른 사람의 로비에 들어갔을 때. (호스트 SteamID)</summary>
-        public event Action<ulong> JoinedLobby;
+        /// <summary>다른 사람의 로비에 들어갔을 때. (로비 ID, 호스트 SteamID, 암호가 있는 방인지)</summary>
+        public event Action<ulong, ulong, bool> JoinedLobby;
 
         /// <summary>친구 초대를 수락하거나 친구 목록에서 참가를 눌렀을 때. (로비 ID)</summary>
         public event Action<ulong> JoinRequested;
@@ -57,8 +61,9 @@ namespace GuardVsMannequin.Network
 
         /// <summary>
         /// 인스펙터에서 정한 공개 범위로 로비를 만든다.
+        /// 암호 자체는 로비 데이터에 적지 않는다(누구나 읽을 수 있으므로). 암호가 있다는 표시만 적고, 확인은 호스트가 접속 때 한다.
         /// </summary>
-        public void CreateLobby()
+        public void CreateLobby(bool hasPassword)
         {
             if (!SteamBootstrap.IsInitialized)
             {
@@ -66,6 +71,7 @@ namespace GuardVsMannequin.Network
                 return;
             }
 
+            creatingWithPassword = hasPassword;
             isCreatingLobby = true;
             SteamAPICall_t call = SteamMatchmaking.CreateLobby(lobbyType, maxMembers);
             lobbyCreatedResult.Set(call);
@@ -146,6 +152,9 @@ namespace GuardVsMannequin.Network
             CurrentLobbyId = result.m_ulSteamIDLobby;
             CSteamID lobby = new CSteamID(CurrentLobbyId);
             SteamMatchmaking.SetLobbyData(lobby, HostAddressKey, SteamUser.GetSteamID().m_SteamID.ToString());
+            // 참가자가 호스트에 접속하기 전에 버전을 비교할 수 있게 적어 둔다.
+            SteamMatchmaking.SetLobbyData(lobby, VersionKey, GameVersion.Current);
+            SteamMatchmaking.SetLobbyData(lobby, HasPasswordKey, creatingWithPassword ? "1" : "0");
             LobbyCreated?.Invoke(CurrentLobbyId);
         }
 
@@ -167,6 +176,16 @@ namespace GuardVsMannequin.Network
             if (isCreatingLobby || SteamMatchmaking.GetLobbyOwner(lobby) == SteamUser.GetSteamID())
                 return;
 
+            // 버전이 다르면 접속하지 않고 나온다. (버전을 적지 않은 옛 빌드의 방도 다른 버전으로 본다)
+            string hostVersion = SteamMatchmaking.GetLobbyData(lobby, VersionKey);
+            if (hostVersion != GameVersion.Current)
+            {
+                string shownVersion = string.IsNullOrEmpty(hostVersion) ? "?" : hostVersion;
+                Failed?.Invoke("notice.rejected.version", $"{shownVersion} ≠ {GameVersion.Current}");
+                LeaveLobby();
+                return;
+            }
+
             string hostAddress = SteamMatchmaking.GetLobbyData(lobby, HostAddressKey);
             if (!ulong.TryParse(hostAddress, out ulong hostSteamId))
             {
@@ -175,7 +194,8 @@ namespace GuardVsMannequin.Network
                 return;
             }
 
-            JoinedLobby?.Invoke(hostSteamId);
+            bool hasPassword = SteamMatchmaking.GetLobbyData(lobby, HasPasswordKey) == "1";
+            JoinedLobby?.Invoke(CurrentLobbyId, hostSteamId, hasPassword);
         }
 
         /// <summary>

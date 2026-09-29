@@ -20,11 +20,14 @@ namespace GuardVsMannequin.Player
     {
         private const float CorrectionInterval = 0.25f;
 
+        // 서버 프레임 사이 간격이 이보다 길면 서버가 멈췄던 것으로 본다. (초)
+        private const float StallThreshold = 0.5f;
+
         [Tooltip("최대 속도에 곱하는 여유 배율.")]
         [SerializeField] private float speedTolerance = 1.3f;
 
-        [Tooltip("몰아서 쓸 수 있는 이동 예산(초). 지연 후 위치가 한꺼번에 도착하는 경우를 허용한다.")]
-        [SerializeField] private float maxBurstSeconds = 1.5f;
+        [Tooltip("몰아서 쓸 수 있는 이동 예산(초). 지연·프레임 멈춤 후 위치가 한꺼번에 도착하는 경우를 허용한다.")]
+        [SerializeField] private float maxBurstSeconds = 3f;
 
         [Tooltip("예산에 더하는 고정 여유 거리(m).")]
         [SerializeField] private float extraSlack = 1f;
@@ -38,6 +41,7 @@ namespace GuardVsMannequin.Player
         private float horizontalBudget;
         private float riseBudget;
         private float nextCorrectionTime;
+        private float lastBudgetTime;
         private bool isTracking;
 
         /// <summary>
@@ -58,6 +62,7 @@ namespace GuardVsMannequin.Player
             lastValidPosition = transform.position;
             horizontalBudget = GetMaxBudget(GetAllowedSpeed());
             riseBudget = horizontalBudget + riseAllowance;
+            lastBudgetTime = Time.realtimeSinceStartup;
             isTracking = true;
         }
 
@@ -69,10 +74,26 @@ namespace GuardVsMannequin.Player
             if (!isTracking || !IsServerInitialized || Owner == null || Owner.IsLocalClient)
                 return;
 
+            // 실제로 흐른 시간만큼 예산을 쌓는다. Time.deltaTime은 프레임이 멈추면 최대 0.33초로 잘려,
+            // 멈춘 동안 클라이언트가 정상적으로 움직인 거리를 부정 이동으로 오판하게 된다.
+            float now = Time.realtimeSinceStartup;
+            float elapsed = now - lastBudgetTime;
+            lastBudgetTime = now;
+
             float speed = GetAllowedSpeed();
             float maxBudget = GetMaxBudget(speed);
-            horizontalBudget = Mathf.Min(horizontalBudget + speed * Time.deltaTime, maxBudget);
-            riseBudget = Mathf.Min(riseBudget + speed * Time.deltaTime, maxBudget + riseAllowance);
+
+            // 서버가 오래 멈췄다가(에디터 일시정지, 로딩 등) 돌아오면 그동안의 이동은 확인할 수 없으므로 받아들인다.
+            // 서버 멈춤은 클라이언트가 일으킬 수 없으므로 부정 이동에 악용되지 않는다.
+            if (elapsed > StallThreshold)
+            {
+                lastValidPosition = transform.position;
+                horizontalBudget = maxBudget;
+                riseBudget = maxBudget + riseAllowance;
+                return;
+            }
+            horizontalBudget = Mathf.Min(horizontalBudget + speed * elapsed, maxBudget);
+            riseBudget = Mathf.Min(riseBudget + speed * elapsed, maxBudget + riseAllowance);
 
             Vector3 current = transform.position;
             Vector3 delta = current - lastValidPosition;

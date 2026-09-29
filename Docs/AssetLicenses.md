@@ -27,6 +27,8 @@
 | Standard Assets (Ethan) | Unity Technologies | Unity Asset Store EULA (확인 필요) | `Assets/Standard Assets` | 가드 외형 |
 | Mid Poly Gun Weapons (Revolver) | RyanNein (확인 필요) | (확인 필요) | `Assets/RyanNein` | 가드 리볼버 |
 | Master Stylized Projectiles | (확인 필요) | (확인 필요) | `Assets/MasterStylizedProjectiles` | 총알·명중·총구 화염 이펙트 (OrangeGunShot) |
+| Casual Game Sounds U6 | (확인 필요) | (확인 필요) | `Assets/Casual Game Sounds U6` | 게임 소음 (`NoiseLibrary`) |
+| Sci-Fi Weapons - Bullet Hell Sound Effects Pack | (확인 필요) | (확인 필요) | `Assets/Sci-Fi Weapons-Bullet Hell Sound Effects Pack` | 게임 소음 (`NoiseLibrary`) |
 
 ## 프로젝트에 있으나 아직 사용하지 않는 에셋
 사용을 시작하면 위 표로 옮기고 크레딧에 추가하세요. 빌드에는 참조된 에셋만 들어갑니다.
