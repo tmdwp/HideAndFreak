@@ -15,6 +15,7 @@ namespace GuardVsMannequin.Editor
     public sealed class PropRegistrar
     {
         private static readonly Vector3 WallPieceScale = new Vector3(1.2f, 2f, 0.25f);
+        private const string WallPiecePrefix = "WallPiece_";
 
         private readonly PropDatabase database;
         private readonly Dictionary<string, int> propIds = new();
@@ -31,7 +32,7 @@ namespace GuardVsMannequin.Editor
             {
                 if (!database.TryGet(id, out PropDefinition definition))
                     continue;
-                if (definition.displayName != null && definition.displayName.StartsWith("WallPiece_") && definition.materials.Length > 0 && definition.materials[0] != null)
+                if (IsWallPiece(definition) && definition.materials.Length > 0 && definition.materials[0] != null)
                     wallIds[definition.materials[0]] = id;
                 else
                     propIds[Key(definition.mesh, definition.materials, definition.scale, definition.rotation)] = id;
@@ -81,7 +82,7 @@ namespace GuardVsMannequin.Editor
             {
                 wallId = database.Add(new PropDefinition
                 {
-                    displayName = $"WallPiece_{material.name}",
+                    displayName = WallPiecePrefix + material.name,
                     mesh = GetCubeMesh(),
                     materials = new[] { material },
                     scale = WallPieceScale
@@ -132,7 +133,7 @@ namespace GuardVsMannequin.Editor
             {
                 if (!visited.Add(prop.PropId) || !database.TryGet(prop.PropId, out PropDefinition definition))
                     continue;
-                if (definition.displayName != null && definition.displayName.StartsWith("WallPiece_"))
+                if (IsWallPiece(definition))
                     continue;
 
                 Vector3 rotation = TiltOf(prop.transform);
@@ -142,6 +143,14 @@ namespace GuardVsMannequin.Editor
                 updated++;
             }
             return updated;
+        }
+
+        /// <summary>
+        /// 벽 조각 항목인지 확인한다. (벽 조각은 이름 앞에 WallPiecePrefix가 붙는다)
+        /// </summary>
+        private static bool IsWallPiece(PropDefinition definition)
+        {
+            return definition.displayName != null && definition.displayName.StartsWith(WallPiecePrefix);
         }
 
         /// <summary>

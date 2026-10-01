@@ -34,10 +34,14 @@ namespace GuardVsMannequin.Room
         private readonly SyncDictionary<int, RoomMember> members = new();
         private readonly SyncVar<bool> isInGame = new();
 
-        // 서버: 클라이언트별 마지막 "로딩 중" 알림 시각 (unscaledTime)
-        private readonly System.Collections.Generic.Dictionary<int, float> lastLoadingReports = new();
+        // 서버: 클라이언트별 "로딩 중" 알림 기록
+        private readonly LoadingReportTracker loadingReports = new(LoadingReportTimeout);
         // 클라이언트: 다음 "로딩 중" 알림 시각
         private float nextLoadingReportTime;
+        private RoomSceneSet scenes;
+
+        /// <summary>룸·게임 씬 이름 처리. (직렬화된 이름으로 처음 쓸 때 만든다)</summary>
+        private RoomSceneSet Scenes => scenes ??= new RoomSceneSet(roomSceneName, gameSceneNames);
 
         /// <summary>현재 방. 없으면 null. (서버와 클라이언트 모두)</summary>
         public static RoomState Instance { get; private set; }
@@ -54,15 +58,7 @@ namespace GuardVsMannequin.Room
         /// 이 클라이언트가 아직 목표 씬(게임 중이면 맵, 아니면 룸)에 도착하지 못했는지 여부. (로딩 화면 표시용)
         /// 게임 시작 직후에는 호스트가 맵을 다 불러올 때까지 게스트에게 로딩 지시가 오지 않으므로, 그 시간도 포함된다.
         /// </summary>
-        public bool IsSceneTransitionPending
-        {
-            get
-            {
-                bool roomLoaded = UnityEngine.SceneManagement.SceneManager.GetSceneByName(roomSceneName).isLoaded;
-                bool gameLoaded = IsAnyGameSceneLoaded();
-                return isInGame.Value ? (!gameLoaded || roomLoaded) : (gameLoaded || !roomLoaded);
-            }
-        }
+        public bool IsSceneTransitionPending => Scenes.IsTransitionPending(isInGame.Value);
 
         /// <summary>
         /// 서버에서 기본 설정을 적용하고, 이미 접속한 클라이언트를 참가자로 등록한다.
@@ -189,9 +185,9 @@ namespace GuardVsMannequin.Room
 
             // 게임 중에는 새 참가를 막는다.
             SessionServices.Session?.SetRoomJoinable(false);
-            lastLoadingReports.Clear();
+            loadingReports.Clear();
             isInGame.Value = true;
-            LoadGlobalScene(GetGameSceneName());
+            LoadGlobalScene(Scenes.ResolveGameScene(settings.Value.mapId));
             return true;
         }
 
@@ -205,10 +201,10 @@ namespace GuardVsMannequin.Room
                 return;
 
             isInGame.Value = false;
-            lastLoadingReports.Clear();
+            loadingReports.Clear();
             ResetReadyStates();
             SessionServices.Session?.SetRoomJoinable(true);
-            LoadGlobalScene(roomSceneName);
+            LoadGlobalScene(Scenes.RoomSceneName);
         }
 
         /// <summary>
@@ -232,7 +228,7 @@ namespace GuardVsMannequin.Room
         {
             if (caller == null || !members.ContainsKey(caller.ClientId))
                 return;
-            lastLoadingReports[caller.ClientId] = Time.unscaledTime;
+            loadingReports.Record(caller.ClientId, Time.unscaledTime);
         }
 
         /// <summary>
@@ -240,8 +236,7 @@ namespace GuardVsMannequin.Room
         /// </summary>
         public bool IsClientLoading(int clientId)
         {
-            return lastLoadingReports.TryGetValue(clientId, out float reportTime)
-                   && Time.unscaledTime - reportTime <= LoadingReportTimeout;
+            return loadingReports.IsLoading(clientId, Time.unscaledTime);
         }
 
         /// <summary>
@@ -256,19 +251,6 @@ namespace GuardVsMannequin.Room
 
             nextLoadingReportTime = Time.unscaledTime + LoadingReportInterval;
             ReportLoadingServerRpc();
-        }
-
-        /// <summary>
-        /// 게임 씬 목록 중 하나라도 불러와져 있는지 확인한다.
-        /// </summary>
-        private bool IsAnyGameSceneLoaded()
-        {
-            foreach (string sceneName in gameSceneNames)
-            {
-                if (UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName).isLoaded)
-                    return true;
-            }
-            return false;
         }
 
         /// <summary>
@@ -324,7 +306,7 @@ namespace GuardVsMannequin.Room
             if (args.ConnectionState != RemoteConnectionState.Stopped)
                 return;
 
-            lastLoadingReports.Remove(conn.ClientId);
+            loadingReports.Remove(conn.ClientId);
             if (members.Remove(conn.ClientId))
                 ApplySettings(settings.Value);
         }
@@ -394,23 +376,6 @@ namespace GuardVsMannequin.Room
                 member.isReady = false;
                 members[clientId] = member;
             }
-        }
-
-        /// <summary>
-        /// 설정된 맵 ID에 해당하는 게임 씬 이름을 반환한다.
-        /// </summary>
-        private string GetGameSceneName()
-        {
-            int index = Mathf.Clamp(settings.Value.mapId, 0, gameSceneNames.Length - 1);
-            string sceneName = gameSceneNames[index];
-
-            // 아직 만들지 않았거나 빌드 설정에 없는 맵이면 첫 번째 맵(테스트 맵)으로 대신한다.
-            if (!Application.CanStreamedLevelBeLoaded(sceneName))
-            {
-                Debug.LogWarning($"[RoomState] 맵 씬 '{sceneName}'이 빌드 설정에 없어 '{gameSceneNames[0]}'을 사용합니다. 'GuardVsMannequin/맵 생성'을 실행하세요.");
-                return gameSceneNames[0];
-            }
-            return sceneName;
         }
 
         /// <summary>
