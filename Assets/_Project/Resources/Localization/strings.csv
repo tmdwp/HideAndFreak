@@ -78,6 +78,12 @@ room.reason.playerCount,{0}~{1}명이 필요합니다. (현재 {2}명),{0}-{1} p
 room.reason.notAllReady,모든 참가자가 준비해야 합니다.,All players must be ready.
 room.reason.inGame,이미 게임이 진행 중입니다.,A game is already in progress.
 
+# 씬 전환 로딩 화면
+loading.toGame,맵을 불러오는 중...,Loading map...
+loading.toRoom,룸으로 돌아가는 중...,Returning to room...
+loading.waitingHost,호스트가 맵을 준비하고 있습니다. ({0}초),The host is preparing the map. ({0}s)
+loading.progress,{0}% · {1}초,{0}% · {1}s
+
 # 게임 설정 항목 (이름)
 setting.Map,맵,Map
 setting.PreparationTime,가드 대기 시간,Guard Wait Time

@@ -15,8 +15,11 @@ namespace GuardVsMannequin.Rules
     {
         [SerializeField] private GameStateMachine stateMachine;
 
-        [Tooltip("일부 플레이어의 씬 로딩이 끝나지 않아도 이 시간이 지나면 시작한다.")]
+        [Tooltip("씬을 불러오지 못한 플레이어가 \"로딩 중\" 알림도 보내지 않으면(멈춤·끊김) 이 시간 뒤에 시작한다.")]
         [SerializeField] private float maxWaitForPlayers = 15f;
+
+        [Tooltip("로딩 중 알림을 계속 보내는 느린 플레이어라도 이 시간이 지나면 기다리지 않고 시작한다.")]
+        [SerializeField] private float maxLoadingWait = 120f;
 
         private float waitStartTime;
         private bool matchStarted;
@@ -51,9 +54,14 @@ namespace GuardVsMannequin.Rules
             if (stateMachine.CurrentState != GameState.Waiting)
                 return;
 
-            bool timedOut = Time.time - waitStartTime >= maxWaitForPlayers;
-            if (!AllPlayersLoadedScene() && !timedOut)
+            bool allLoaded = AllPlayersLoadedScene(out bool anyStillLoading);
+            float elapsed = Time.time - waitStartTime;
+            // 느리게라도 로딩 중인 플레이어는 최대 maxLoadingWait까지 기다리고, 알림이 끊긴 플레이어는 maxWaitForPlayers 후 포기한다.
+            bool timedOut = elapsed >= maxLoadingWait || (elapsed >= maxWaitForPlayers && !anyStillLoading);
+            if (!allLoaded && !timedOut)
                 return;
+            if (!allLoaded)
+                Debug.LogWarning($"[MatchSessionBridge] 일부 플레이어가 맵을 불러오지 못한 채 {elapsed:F0}초가 지나 판을 시작합니다.");
 
             if (stateMachine.TryStartMatch(out string failReason))
                 matchStarted = true;
@@ -67,15 +75,22 @@ namespace GuardVsMannequin.Rules
 
         /// <summary>
         /// 접속한 모든 클라이언트가 이 게임 씬을 불러왔는지 확인한다.
+        /// 아직 못 불러온 클라이언트 중 "로딩 중" 알림을 보내고 있는 클라이언트가 있으면 anyStillLoading = true.
         /// </summary>
-        private bool AllPlayersLoadedScene()
+        private bool AllPlayersLoadedScene(out bool anyStillLoading)
         {
+            anyStillLoading = false;
+            bool allLoaded = true;
             foreach (NetworkConnection conn in ServerManager.Clients.Values)
             {
-                if (!conn.Scenes.Contains(gameObject.scene))
-                    return false;
+                if (conn.Scenes.Contains(gameObject.scene))
+                    continue;
+
+                allLoaded = false;
+                if (GameServices.SceneFlow != null && GameServices.SceneFlow.IsClientLoading(conn.ClientId))
+                    anyStillLoading = true;
             }
-            return ServerManager.Clients.Count > 0;
+            return allLoaded && ServerManager.Clients.Count > 0;
         }
 
         /// <summary>

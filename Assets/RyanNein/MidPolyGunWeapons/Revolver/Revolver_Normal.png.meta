@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 6ac42ab2fc51c2f46adc0a204ff8e965
+AssetOrigin:
+  serializedVersion: 1
+  productId: 311722
+  packageName: Mid-Poly Gun Weapons
+  packageVersion: 1.0.0
+  assetPath: Assets/RyanNein/MidPolyGunWeapons/Revolver/Revolver_Normal.png
+  uploadId: 734405
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -95,6 +102,19 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Standalone
+    maxTextureSize: 1024
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -107,7 +127,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -138,13 +158,6 @@ TextureImporter:
     nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  userData: 
+  userData: GVM_MapTextureLimit
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 311722
-  packageName: Mid-Poly Gun Weapons
-  packageVersion: 1.0.0
-  assetPath: Assets/RyanNein/MidPolyGunWeapons/Revolver/Revolver_Normal.png
-  uploadId: 734405

@@ -18,18 +18,22 @@ MonoBehaviour:
     materials:
     - {fileID: 2100000, guid: 666d0826bcae23540ad89fb826867c32, type: 2}
     scale: {x: 1.2, y: 2, z: 0.25}
+    rotation: {x: 0, y: 0, z: 0}
   - displayName: Wooden_box_v1_LD1square (11)
     mesh: {fileID: 4300012, guid: dcf39c3c160b51b49af399efea061f40, type: 3}
     materials:
     - {fileID: 2100000, guid: 1a087c65608607042accf116f4319d39, type: 2}
     scale: {x: 2, y: 2, z: 2}
+    rotation: {x: 0, y: 0, z: 0}
   - displayName: Barrel_v3_single (1)
     mesh: {fileID: 4300004, guid: 8bf7537d27999d4448c4145cad1f47e7, type: 3}
     materials:
     - {fileID: 2100000, guid: f15201246572bdb49bcb3594bf3000f3, type: 2}
     scale: {x: 2, y: 2, z: 2}
+    rotation: {x: 0, y: 0, z: 0}
   - displayName: Barrel_v1_LD1 (2)
     mesh: {fileID: 4300010, guid: ffd14148582c4f84f867ad56a7b3dafd, type: 3}
     materials:
     - {fileID: 2100000, guid: db7eb35339cc6e249a3b76684d621373, type: 2}
     scale: {x: 2, y: 2, z: 2}
+    rotation: {x: 0, y: 0, z: 0}

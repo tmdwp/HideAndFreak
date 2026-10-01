@@ -34,7 +34,7 @@ namespace GuardVsMannequin.Editor
                 if (definition.displayName != null && definition.displayName.StartsWith("WallPiece_") && definition.materials.Length > 0 && definition.materials[0] != null)
                     wallIds[definition.materials[0]] = id;
                 else
-                    propIds[Key(definition.mesh, definition.materials, definition.scale)] = id;
+                    propIds[Key(definition.mesh, definition.materials, definition.scale, definition.rotation)] = id;
             }
         }
 
@@ -48,7 +48,8 @@ namespace GuardVsMannequin.Editor
                 return false;
 
             Vector3 scale = target.transform.lossyScale;
-            string key = Key(filter.sharedMesh, target.sharedMaterials, scale);
+            Vector3 rotation = TiltOf(target.transform);
+            string key = Key(filter.sharedMesh, target.sharedMaterials, scale, rotation);
             if (!propIds.TryGetValue(key, out int propId))
             {
                 propId = database.Add(new PropDefinition
@@ -56,7 +57,8 @@ namespace GuardVsMannequin.Editor
                     displayName = target.name,
                     mesh = filter.sharedMesh,
                     materials = target.sharedMaterials,
-                    scale = scale
+                    scale = scale,
+                    rotation = rotation
                 });
                 propIds[key] = propId;
             }
@@ -119,12 +121,54 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 같은 모양인지 구분하는 키. (메시 + 머티리얼 + 크기)
+        /// 이미 등록된 사물의 기울기를 맵에 놓인 모습으로 다시 채운다. (기울기 저장 전에 만든 사물 목록 갱신용)
+        /// 같은 사물 번호를 여러 오브젝트가 쓰면 처음 찾은 오브젝트 기준. 갱신한 개수를 반환한다.
         /// </summary>
-        private static string Key(Mesh mesh, Material[] materials, Vector3 scale)
+        public int RefreshRotations(IEnumerable<TransformableProp> props)
+        {
+            var visited = new HashSet<int>();
+            int updated = 0;
+            foreach (TransformableProp prop in props)
+            {
+                if (!visited.Add(prop.PropId) || !database.TryGet(prop.PropId, out PropDefinition definition))
+                    continue;
+                if (definition.displayName != null && definition.displayName.StartsWith("WallPiece_"))
+                    continue;
+
+                Vector3 rotation = TiltOf(prop.transform);
+                if (definition.rotation == rotation)
+                    continue;
+                definition.rotation = rotation;
+                updated++;
+            }
+            return updated;
+        }
+
+        /// <summary>
+        /// 오브젝트의 월드 회전에서 좌우 방향을 뺀 기울기(오일러 각). 거의 0인 값은 0으로 정리한다.
+        /// </summary>
+        private static Vector3 TiltOf(Transform target)
+        {
+            Vector3 euler = PropDefinition.ExtractTilt(target.rotation).eulerAngles;
+            return new Vector3(Snap(euler.x), Snap(euler.y), Snap(euler.z));
+        }
+
+        /// <summary>
+        /// 각도를 -180~180으로 바꾸고 0.1° 단위로 반올림한다. (부동소수 오차로 키가 갈라지지 않게)
+        /// </summary>
+        private static float Snap(float angle)
+        {
+            float normalized = Mathf.DeltaAngle(0f, angle);
+            return Mathf.Round(normalized * 10f) / 10f;
+        }
+
+        /// <summary>
+        /// 같은 모양인지 구분하는 키. (메시 + 머티리얼 + 크기 + 기울기)
+        /// </summary>
+        private static string Key(Mesh mesh, Material[] materials, Vector3 scale, Vector3 rotation)
         {
             string materialKey = string.Join(",", (materials ?? new Material[0]).Select(AssetKey));
-            return $"{AssetKey(mesh)}|{materialKey}|{scale.x:F2},{scale.y:F2},{scale.z:F2}";
+            return $"{AssetKey(mesh)}|{materialKey}|{scale.x:F2},{scale.y:F2},{scale.z:F2}|{rotation.x:F1},{rotation.y:F1},{rotation.z:F1}";
         }
 
         /// <summary>

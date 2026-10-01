@@ -125,6 +125,7 @@ namespace GuardVsMannequin.Editor
         private static void AddClip(BlendTree tree, string relativePath, Vector2 position)
         {
             string path = $"{KevinMaleAnimations}/{relativePath}.fbx";
+            DisableBakeIntoPoseXZ(path);
             AnimationClip clip = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
                 .FirstOrDefault(c => !c.name.StartsWith("__preview__"));
             if (clip == null)
@@ -133,6 +134,35 @@ namespace GuardVsMannequin.Editor
                 return;
             }
             tree.AddChild(clip, position);
+        }
+
+        /// <summary>
+        /// 클립의 "Root Transform Position (XZ) Bake Into Pose"를 끈다.
+        /// 켜져 있으면 루트 모션을 끈 캐릭터가 클립 동안 앞으로 나아갔다가 반복될 때 제자리로 돌아온다.
+        /// 끄면 수평 이동이 루트 모션으로 분리되고, 루트 모션을 쓰지 않으므로 제자리 애니메이션이 된다.
+        /// </summary>
+        private static void DisableBakeIntoPoseXZ(string path)
+        {
+            if (AssetImporter.GetAtPath(path) is not ModelImporter importer)
+                return;
+
+            ModelImporterClipAnimation[] clips = importer.clipAnimations;
+            if (clips.Length == 0)
+                clips = importer.defaultClipAnimations;
+
+            bool changed = false;
+            foreach (ModelImporterClipAnimation clip in clips)
+            {
+                if (!clip.lockRootPositionXZ)
+                    continue;
+                clip.lockRootPositionXZ = false;
+                changed = true;
+            }
+            if (!changed)
+                return;
+
+            importer.clipAnimations = clips;
+            importer.SaveAndReimport();
         }
 
         #endregion

@@ -250,22 +250,36 @@ MonoBehaviour:
   _spectatorInterpolation: 2
   _enableTeleport: 0
   _teleportThreshold: 1
-  <PrefabId>k__BackingField: 65535
+  <PrefabId>k__BackingField: 2
   <SpawnableCollectionId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 3168511380791419124
   SceneId: 0
   SerializedTransformProperties:
     Position: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 0}
-    Scale: {x: 0, y: 0, z: 0}
-    IsValid: 0
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
+    Scale: {x: 1, y: 1, z: 1}
+    IsValid: 1
   <IsNested>k__BackingField: 0
   WasActiveDuringEdit: 0
   WasActiveDuringEdit_Set1: 1
   <ComponentIndex>k__BackingField: 0
   <PredictedSpawn>k__BackingField: {fileID: 0}
   <PredictedOwner>k__BackingField: {fileID: 0}
-  NetworkBehaviours: []
+  NetworkBehaviours:
+  - {fileID: 5095944168235604746}
+  - {fileID: 7337666815783485343}
+  - {fileID: 1707562345109812889}
+  - {fileID: 5575777677741418536}
+  - {fileID: 1253789041520945570}
+  - {fileID: 2325282995815847103}
+  - {fileID: 996527292708218019}
+  - {fileID: 553451606137133066}
+  - {fileID: 2646054283718179590}
+  - {fileID: 9040296370836314556}
+  - {fileID: 4571227541005378936}
+  - {fileID: 4950935256107480423}
+  - {fileID: 4475952393218537844}
+  - {fileID: 2825400833285518174}
   InitializedParentNetworkBehaviour: {fileID: 0}
   InitializedNestedNetworkObjects: []
   RuntimeParentNetworkBehaviour: {fileID: 0}
@@ -276,7 +290,7 @@ MonoBehaviour:
   _initializeOrder: 0
   _preventDespawnOnDisconnect: 0
   _defaultDespawnType: 0
-  _initializedTimestamp: 0
+  _initializedTimestamp: -8584107539638201614
 --- !u!114 &5095944168235604746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -289,9 +303,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2836e36774ca1c4bbbee976e17b649c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FishNet.Runtime::FishNet.Component.Transforming.NetworkTransform
-  _componentIndexCache: 255
+  _componentIndexCache: 0
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   _componentConfiguration: 0
   _synchronizeParent: 0
   _packing:
@@ -335,9 +349,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 131520701ad529845811bf964b41fb88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerIdentity
-  _componentIndexCache: 255
+  _componentIndexCache: 1
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
 --- !u!114 &1707562345109812889
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -350,9 +364,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6de6d4443c6f3d44980bbc64a595f322, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerHealth
-  _componentIndexCache: 255
+  _componentIndexCache: 2
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
 --- !u!114 &2863810353114395617
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -421,9 +435,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c95072ef33e015f418f0b1402ba96bb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerOwnershipSetup
-  _componentIndexCache: 255
+  _componentIndexCache: 3
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   character: {fileID: 5878107583903744693}
   playerCamera: {fileID: 8716358739911415403}
   ownerOnlyBehaviours:
@@ -456,9 +470,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 769a5d60e2758164ba119ef4b0f2ab45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.MovementValidator
-  _componentIndexCache: 255
+  _componentIndexCache: 4
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   speedTolerance: 1.3
   maxBurstSeconds: 3
   extraSlack: 1
@@ -488,9 +502,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37084b40c08560f46ac1be512e027893, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.MannequinTransformer
-  _componentIndexCache: 255
+  _componentIndexCache: 5
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   propDatabase: {fileID: 11400000, guid: e0a629f9b7dddda47abe8d4d66d1b5d1, type: 2}
 --- !u!114 &9486479044456953
 MonoBehaviour:
@@ -520,9 +534,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7904868b344809b45a51bc95a066fec3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.MannequinInteractor
-  _componentIndexCache: 255
+  _componentIndexCache: 6
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
 --- !u!114 &553451606137133066
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -535,9 +549,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27966ffb548e26f4f9581b023b44493e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.PropHighlighter
-  _componentIndexCache: 255
+  _componentIndexCache: 7
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   outlineMaterial: {fileID: 2100000, guid: 4a3ea67eb1707134f933b0303b4d8c78, type: 2}
 --- !u!114 &2646054283718179590
 MonoBehaviour:
@@ -551,9 +565,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c53966364f0cad4c88e7ef48d4d52ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Audio.NoiseEmitter
-  _componentIndexCache: 255
+  _componentIndexCache: 8
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   library: {fileID: 11400000, guid: ee319f26cc7916e48ba986d566c211df, type: 2}
 --- !u!114 &9040296370836314556
 MonoBehaviour:
@@ -567,9 +581,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df0a4f55f3df7bf4181625aff8b714d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.DisguiseNoiseEmitter
-  _componentIndexCache: 255
+  _componentIndexCache: 9
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
 --- !u!114 &3947446186194541744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -636,9 +650,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eac95c93db0195942b10f26ec47e99fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Emotes.EmoteController
-  _componentIndexCache: 255
+  _componentIndexCache: 10
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
 --- !u!114 &4950935256107480423
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -651,9 +665,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1de4d5bc397794342bc7a1667a570810, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.MannequinHuntingMode
-  _componentIndexCache: 255
+  _componentIndexCache: 11
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   bodyRenderers:
   - {fileID: 5027871171780702361}
   - {fileID: 2495850511174593684}
@@ -685,9 +699,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 314b10d74dcfa7c408a7c79efee2567b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.MannequinAttackTool
-  _componentIndexCache: 255
+  _componentIndexCache: 12
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
 --- !u!114 &2825400833285518174
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -700,9 +714,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb8929cf2fcb73f408b2bbb3cd2428d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerViewSync
-  _componentIndexCache: 255
+  _componentIndexCache: 13
   _addedNetworkObject: {fileID: 5274660207253486401}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5274660207253486401}
   pitchPivot: {fileID: 0}
   remoteSmoothing: 15
 --- !u!114 &7920489579145812017

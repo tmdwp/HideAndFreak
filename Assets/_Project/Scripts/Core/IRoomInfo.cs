@@ -18,7 +18,7 @@ namespace GuardVsMannequin.Core
     }
 
     /// <summary>
-    /// 게임이 끝났을 때 룸으로 돌아가는 흐름. (서버 전용)
+    /// 룸 ↔ 게임 씬 전환 흐름. (서버 전용)
     /// </summary>
     public interface ISceneFlow
     {
@@ -26,5 +26,10 @@ namespace GuardVsMannequin.Core
         /// 모든 플레이어를 룸 씬으로 돌려보낸다.
         /// </summary>
         void ReturnToRoom();
+
+        /// <summary>
+        /// 클라이언트가 최근에 "아직 씬을 불러오는 중"이라고 알렸는지 여부. (느리지만 살아 있는 플레이어를 기다리기 위함)
+        /// </summary>
+        bool IsClientLoading(int clientId);
     }
 }

@@ -62,8 +62,9 @@ namespace GuardVsMannequin.Player.Mannequin
             disguiseFilter.sharedMesh = definition.mesh;
             disguiseRenderer.sharedMaterials = definition.materials;
 
-            // 사물의 바닥이 캐릭터 발 위치(피벗)에 오도록 배치한다.
+            // 맵에 놓인 기울기를 그대로 적용하고, 사물의 바닥이 캐릭터 발 위치(피벗)에 오도록 배치한다.
             Bounds bounds = definition.GetScaledBounds();
+            disguiseObject.transform.localRotation = definition.Rotation;
             disguiseObject.transform.localScale = definition.scale;
             disguiseObject.transform.localPosition = new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
             disguiseObject.SetActive(true);

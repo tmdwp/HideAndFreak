@@ -29,6 +29,11 @@ namespace GuardVsMannequin.Player
                  "이벤트를 받는 컴포넌트를 직접 만들었을 때만 켠다.")]
         public bool fireAnimationEvents;
 
+        [Tooltip("제자리 애니메이션으로 고정할지 여부. (휴머노이드가 아닌 모델에만 적용)\n" +
+                 "일반(Generic) 모델의 이동 클립은 뼈 자체가 앞으로 나아갔다가 반복될 때 제자리로 돌아온다. " +
+                 "실제 이동은 캐릭터가 하므로, 뿌리 뼈의 수평 이동을 매 프레임 지워 제자리에서 걷게 한다.")]
+        public bool keepRootBoneInPlace = true;
+
         [Tooltip("총을 드는 외형(가드)의 손 위치 설정. 모델마다 손 크기·뼈 방향이 달라 외형별로 둔다.\n" +
                  "Play 중 이 에셋의 값을 바꾸면 바로 반영되고, Play를 꺼도 값이 유지된다.")]
         public WeaponGrip weaponGrip = new WeaponGrip();

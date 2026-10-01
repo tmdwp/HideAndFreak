@@ -31,9 +31,9 @@ namespace GuardVsMannequin.UI
         }
 
         /// <summary>
-        /// OS 폰트로 동적 폰트를 한 번만 만든다.
+        /// OS 폰트로 동적 폰트를 한 번만 만든다. (코드로 만드는 UI도 사용)
         /// </summary>
-        private static Font GetOsFont()
+        public static Font GetOsFont()
         {
             if (cachedFont == null)
                 cachedFont = Font.CreateDynamicFontFromOSFont(PreferredFonts, 16);

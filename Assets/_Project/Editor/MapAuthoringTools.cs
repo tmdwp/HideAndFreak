@@ -182,6 +182,43 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
+        /// 모든 맵 씬을 차례로 열어, 사물 목록의 변신 기울기를 맵에 놓인 모습으로 다시 채운다.
+        /// (기울기 저장 기능 이전에 만든 맵은 모델이 눕혀진 사물이 누운 채로 변신하므로 한 번 실행)
+        /// </summary>
+        [MenuItem("GuardVsMannequin/맵 편집/변신 사물 기울기 갱신 (전체 맵)")]
+        public static void RefreshPropRotationsInAllMaps()
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+
+            string previousScene = SceneManager.GetActiveScene().path;
+            int total = 0;
+            foreach (MapCatalog.Entry map in MapCatalog.AllMaps)
+            {
+                if (!File.Exists(map.ScenePath))
+                    continue;
+
+                Scene scene = EditorSceneManager.OpenScene(map.ScenePath, OpenSceneMode.Single);
+                Transform mapRoot = FindMapRoot(scene);
+                MapInfo mapInfo = mapRoot != null ? mapRoot.GetComponent<MapInfo>() : null;
+                PropDatabase database = mapInfo != null ? mapInfo.PropDatabase : null;
+                if (database == null)
+                    continue;
+
+                var registrar = new PropRegistrar(database);
+                int updated = registrar.RefreshRotations(mapRoot.GetComponentsInChildren<TransformableProp>(true));
+                registrar.Save();
+                total += updated;
+                Debug.Log($"[MapAuthoringTools] {map.sceneName}: 변신 사물 기울기 {updated}개 갱신");
+            }
+
+            AssetDatabase.SaveAssets();
+            if (!string.IsNullOrEmpty(previousScene) && File.Exists(previousScene))
+                EditorSceneManager.OpenScene(previousScene, OpenSceneMode.Single);
+            EditorUtility.DisplayDialog("변신 사물 기울기 갱신", $"전체 맵에서 {total}개 사물의 기울기를 갱신했습니다.", "확인");
+        }
+
+        /// <summary>
         /// 선택한 오브젝트(자식 포함)의 변신 가능 등록을 해제한다. 해제한 개수를 반환한다.
         /// </summary>
         public static int UnregisterSelected()
