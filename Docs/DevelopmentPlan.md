@@ -427,6 +427,47 @@ public interface ITransformable { int PropId { get; } }
 
 ---
 
+### Phase 7 — 모드 지원 (계획)
+
+**목표:** 플레이어가 만든 캐릭터 외형·맵·변신 사물·맵별 스탯을 게임 수정 없이 추가하고, 같은 모드를 가진 플레이어끼리 함께 플레이한다.
+
+**확정한 방향 (2026-10-02)**
+- 형식: **Unity 모드 SDK** — 제작자는 같은 Unity 버전(6000.4.2f1) + URP에서 SDK 패키지로 작업하고, 도구가 **AssetBundle + `mod.json`**을 내보낸다. 모드에는 **코드를 넣을 수 없다**(AssetBundle은 스크립트를 담지 못함 — 보안상 장점). 모드 안의 컴포넌트는 게임에 이미 있는 스크립트(`MapInfo`, `SpawnPoint` 등)만 쓸 수 있다.
+- 동기화: **같은 모드만 입장** — 접속 요청(`JoinRequestBroadcast`)에 모드 목록(ID·버전·해시)을 함께 보내고 `RoomAuthenticator`가 호스트와 다르면 "필요한 모드" 목록과 함께 거부한다. Steam 방은 로비 데이터에 모드 목록 해시를 적어 입장 전에 거른다. 배포는 수동(폴더 복사), Steam 창작마당은 정식 AppID 이후.
+- 스탯: **맵별 스탯** — 맵 모드가 그 맵의 캐릭터 스탯 기본값과 최소·최대 범위를 정한다. 호스트가 맵을 고르면 룸 설정의 기본값·범위가 그 맵 값으로 바뀐다.
+
+**모드 구조 (`<게임>_Data/../Mods/<모드 ID>/`)**
+
+| 파일 | 내용 |
+|---|---|
+| `mod.json` | `id`(전역 고유, 예: `author.modname`), `name`, `version`, `gameVersion`(호환 최소 버전), `type`(skin/map/props, 여러 개 가능), 번들 파일 이름 |
+| `<id>.bundle` | AssetBundle (모델·애니메이터·머티리얼·셰이더·맵 씬) |
+| `map.json` (맵 모드) | 맵 설정과 범위, 맵별 스탯 기본값·범위 (아래) |
+| `strings.csv` (선택) | 모드 이름·맵 이름 번역. 열 형식은 게임의 `strings.csv`와 같고, key는 `mod.<id>.` 접두사 |
+
+**지원 항목별 설계**
+1. **캐릭터 외형·애니메이션**: 번들 안의 `CharacterSkin` 에셋(모델 + 애니메이터 컨트롤러 + 무기 손잡이 값)을 그대로 쓴다. 애니메이션 파라미터 규칙(`CharacterAnimatorParameters`)이 이미 "있는 것만 쓰는" 방식이라 모드 컨트롤러에 그대로 적용된다. SDK에 휴머노이드 8방향 이동 컨트롤러 템플릿과 외형 검사 도구(발 원점·키·정면·파라미터)를 넣는다. 외형은 지금처럼 맵의 `MapInfo`가 고르며, 다른 모드의 외형을 ID로 참조할 수 있다(`mod.json` 의존성).
+2. **맵 설정**: 맵 씬을 번들에 넣고, SDK의 "맵 제작 도우미"(`MapMakerWindow`, `MapValidator`)를 그대로 쓴다. `map.json`에 플레이 인원(최소·최대), 가드 수·전원 장치 수·목표 횟수·시간의 기본값과 최소·최대를 적는다. 게임의 `game_settings.csv` 범위와 겹치는 구간만 허용한다(전원 장치 수 최대 ≤ 맵의 후보 수는 검사 도구가 확인).
+3. **변신 가능 물체**: 맵 모드는 자기 `PropDatabase`를 번들에 포함한다(지금의 맵 전용 `PropDatabase_<씬>`과 같음). 별도의 사물 팩 모드(`type: props`)는 `PropDatabase`만 담고, 맵 모드가 ID로 참조해 자기 씬에 배치한다. PropId는 맵 안 번호이므로 네트워크 형식은 바뀌지 않는다.
+4. **캐릭터 스탯 (맵별)**: `map.json`의 `stats`에 역할별 체력·이동 속도·피해량·공격 범위·도구 쿨타임의 기본값과 최소·최대를 적는다. 없는 항목은 게임 기본값(`default_game_settings.json`, `game_settings.csv`)을 쓴다. 서버의 `GameSettingsValidator`가 "게임 범위 ∩ 맵 범위"로 보정한다.
+
+**구현 단계**
+- [ ] 7-1. 콘텐츠 등록소: `IContentSource`(내장 / 모드 폴더) → `ContentRegistry`가 맵·외형·사물 DB 목록을 문자열 ID로 관리한다. 내장 맵 4종도 같은 형식(`map.json`)으로 옮겨 모드와 같은 경로로 동작하게 한다(내장 맵이 첫 번째 "모드").
+- [ ] 7-2. 맵 번호 → 맵 ID: `RoomState.gameSceneNames` 고정 배열과 `GameSettingId.Map` 정수 범위(0~4)를 등록소의 정렬된 목록으로 바꾼다. 같은 모드 세트가 보장되므로 네트워크에서는 그 목록의 번호를 쓴다.
+- [ ] 7-3. 맵별 설정·스탯 범위: `map.json` 읽기 → 맵을 바꾸면 룸 설정 기본값·범위 갱신(서버 보정 + 룸 UI 표시 범위).
+- [ ] 7-4. 모드 로더: 시작 시 `Mods` 폴더 검색, `mod.json` 검사(형식·게임 버전·의존성), 번들 로드(맵 씬 번들은 판 시작 때 로드·끝나면 해제), 실패한 모드는 건너뛰고 로비에 안내.
+- [ ] 7-5. 모드 일치 확인: 모드 목록 해시를 `GameVersion`과 함께 접속 요청·Steam 로비 데이터에 넣고, 불일치 시 거부 이유(`ConnectionRejectedBroadcast`)에 필요한 모드 목록을 담는다. → `GameVersion.Protocol` +1
+- [ ] 7-6. 모드 SDK: 게임 스크립트 DLL(`GuardVsMannequin.Runtime`)·FishNet·ECM2 참조와 템플릿·검사 도구·"모드 내보내기"(번들 빌드 + `mod.json` 작성) 메뉴를 담은 `.unitypackage`. 문서 `Docs/ModdingGuide.md`.
+- [ ] 7-7. 로비 "모드" 화면: 설치된 모드 목록, 켜기/끄기, 오류 표시.
+
+**검토가 필요한 위험**
+- 맵 씬의 FishNet 씬 오브젝트(SceneId)는 SDK에서 저장할 때 정해진다. 번들 씬을 FishNet `SceneManager`로 불러올 때 동작을 7-2 전에 시험한다.
+- 셰이더: 모드는 URP Lit 등 게임에 포함된 셰이더만 쓰도록 검사 도구가 제한한다(번들에 셰이더가 중복으로 들어가 빌드 크기·변형 증가 방지). 빌드에서 제외된 셰이더 변형은 모드에서 분홍색으로 보일 수 있어, 필요한 변형 목록을 `BuildOptimizationSettings`와 맞춘다.
+- AssetBundle은 Unity 버전·빌드 대상(Windows)이 같아야 한다. 게임 Unity 버전을 올리면 모드도 다시 빌드해야 하므로 `mod.json`의 Unity 버전으로 걸러낸다.
+- 신뢰할 수 없는 번들 로드는 코드 실행은 없지만 비정상 파일로 인한 크래시 가능성이 있다. 직접 설치한 모드만 로드한다(호스트에게서 자동 다운로드하지 않음).
+
+---
+
 ## 4. 필요 에셋 체크리스트
 
 에셋을 추가할 때마다 `Docs/AssetLicenses.md`에 **이름 / 출처 / 라이선스 / 사용처**를 기록합니다 (크레딧용).
