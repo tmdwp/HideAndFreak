@@ -424,6 +424,7 @@ public interface ITransformable { int PropId { get; } }
 - 새로 추가된 외부 에셋 중 Unity 6에서 컴파일되지 않던 옛 스크립트(Standard Assets `Utility` 3개와 에디터 스크립트 2개, Flooded_Grounds PostProcessing 에디터 2개)는 제거된 API만 대체 API로 바꿨다. (파일마다 "GuardVsMannequin 프로젝트 수정" 주석)
 - 인스펙터 툴팁·개발용 로그는 한국어로 유지한다. (플레이어에게 보이지 않음)
 - HUD(`GameHud`)는 같은 표시 로직을 uGUI Text/패널로 옮겼다. UI는 모두 에디터 툴(`SharedUiBuilder`, `MenuSceneBuilder`)로 씬에 생성되어 인스펙터에서 편집할 수 있다.
+- **UI 코드 분리** (2026-10-02): 화면 코드를 "화면 관리 + 영역별 컴포넌트"로 나눴다(`Scripts/UI/Lobby`, `Room`, `Hud`). 영역 컴포넌트는 모두 캔버스 오브젝트에 붙는다(화면 패널에 붙이면 꺼진 동안 실행되지 않아 초대 암호 요청 같은 이벤트를 놓치므로). 로비 메뉴는 `ILobbyNavigator`(= `LobbyView`)로만 화면을 바꾸고, 룸의 일시 안내는 `IRoomNotice`(= `RoomFooterView`, 2초 표시)로 띄운다. HUD 영역은 `IHudSection`을 구현하고 `GameHud`가 만든 `HudContext`(게임 상태·로컬 플레이어)를 받는다. 맵 씬이 덮어쓰는 게임 상태 연결 5개는 `GameHud`에 남겼다. 기존 프리팹의 연결은 YAML에서 새 컴포넌트로 옮겨 다시 연결할 필요가 없다.
 
 ---
 

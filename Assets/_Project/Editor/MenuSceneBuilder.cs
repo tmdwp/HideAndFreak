@@ -248,24 +248,28 @@ namespace GuardVsMannequin.Editor
             TestEnvironmentSetupTool.SetField(view, "steamJoinPanel", steamJoin.gameObject);
             TestEnvironmentSetupTool.SetField(view, "directJoinPanel", directJoin.gameObject);
 
-            TestEnvironmentSetupTool.SetField(view, "createMenuButton", createMenuButton);
-            TestEnvironmentSetupTool.SetField(view, "joinMenuButton", joinMenuButton);
-            TestEnvironmentSetupTool.SetField(view, "settingsButton", settingsButton);
-            TestEnvironmentSetupTool.SetField(view, "creditsButton", creditsButton);
-            TestEnvironmentSetupTool.SetField(view, "quitButton", quitButton);
+            // 화면별 버튼 코드 (모두 캔버스에 붙여, 화면이 꺼져 있어도 이벤트를 받을 수 있게 한다)
+            LobbyMainMenu mainMenuCode = canvas.gameObject.AddComponent<LobbyMainMenu>();
+            TestEnvironmentSetupTool.SetField(mainMenuCode, "createMenuButton", createMenuButton);
+            TestEnvironmentSetupTool.SetField(mainMenuCode, "joinMenuButton", joinMenuButton);
+            TestEnvironmentSetupTool.SetField(mainMenuCode, "settingsButton", settingsButton);
+            TestEnvironmentSetupTool.SetField(mainMenuCode, "creditsButton", creditsButton);
+            TestEnvironmentSetupTool.SetField(mainMenuCode, "quitButton", quitButton);
 
-            TestEnvironmentSetupTool.SetField(view, "steamCreateMenuButton", steamCreateMenuButton);
-            TestEnvironmentSetupTool.SetField(view, "hostDirectButton", hostDirectButton);
-            TestEnvironmentSetupTool.SetField(view, "hostPasswordInput", hostPassword);
-            TestEnvironmentSetupTool.SetField(view, "hostSteamButton", hostSteamButton);
+            LobbyCreateMenu createMenuCode = canvas.gameObject.AddComponent<LobbyCreateMenu>();
+            TestEnvironmentSetupTool.SetField(createMenuCode, "steamCreateMenuButton", steamCreateMenuButton);
+            TestEnvironmentSetupTool.SetField(createMenuCode, "hostDirectButton", hostDirectButton);
+            TestEnvironmentSetupTool.SetField(createMenuCode, "hostPasswordInput", hostPassword);
+            TestEnvironmentSetupTool.SetField(createMenuCode, "hostSteamButton", hostSteamButton);
 
-            TestEnvironmentSetupTool.SetField(view, "steamJoinMenuButton", steamJoinMenuButton);
-            TestEnvironmentSetupTool.SetField(view, "directJoinMenuButton", directJoinMenuButton);
-            TestEnvironmentSetupTool.SetField(view, "roomCodeInput", roomCode);
-            TestEnvironmentSetupTool.SetField(view, "joinPasswordInput", joinPassword);
-            TestEnvironmentSetupTool.SetField(view, "joinSteamButton", joinSteamButton);
-            TestEnvironmentSetupTool.SetField(view, "addressInput", address);
-            TestEnvironmentSetupTool.SetField(view, "joinDirectButton", joinDirectButton);
+            LobbyJoinMenu joinMenuCode = canvas.gameObject.AddComponent<LobbyJoinMenu>();
+            TestEnvironmentSetupTool.SetField(joinMenuCode, "steamJoinMenuButton", steamJoinMenuButton);
+            TestEnvironmentSetupTool.SetField(joinMenuCode, "directJoinMenuButton", directJoinMenuButton);
+            TestEnvironmentSetupTool.SetField(joinMenuCode, "roomCodeInput", roomCode);
+            TestEnvironmentSetupTool.SetField(joinMenuCode, "joinPasswordInput", joinPassword);
+            TestEnvironmentSetupTool.SetField(joinMenuCode, "joinSteamButton", joinSteamButton);
+            TestEnvironmentSetupTool.SetField(joinMenuCode, "addressInput", address);
+            TestEnvironmentSetupTool.SetField(joinMenuCode, "joinDirectButton", joinDirectButton);
 
             TestEnvironmentSetupTool.SetArray(view, "backButtons", new UnityEngine.Object[] { createBack, steamCreateBack, joinBack, steamJoinBack, directJoinBack });
             TestEnvironmentSetupTool.SetField(view, "steamStatusText", steamStatus);
@@ -384,21 +388,30 @@ namespace GuardVsMannequin.Editor
             EditorUiFactory.SetFlexibleWidth(status);
             Button leaveButton = EditorUiFactory.CreateButton(bottom, "LeaveButton", "room.leave", EditorUiFactory.ButtonColor);
             EditorUiFactory.SetWidth(leaveButton, 220f);
-            // 시작/준비/준비 해제로 바뀌는 버튼이라 RoomView가 문구를 채운다. (key를 넘기지 않음)
+            // 시작/준비/준비 해제로 바뀌는 버튼이라 RoomFooterView가 문구를 채운다. (key를 넘기지 않음)
             Button primaryButton = EditorUiFactory.CreateButton(bottom, "PrimaryButton", string.Empty, EditorUiFactory.AccentColor, out Text primaryLabel);
             EditorUiFactory.SetWidth(primaryButton, 320f);
 
-            RoomView view = canvas.gameObject.AddComponent<RoomView>();
-            TestEnvironmentSetupTool.SetField(view, "memberListText", memberList);
-            TestEnvironmentSetupTool.SetField(view, "roomCodeText", roomCode);
-            TestEnvironmentSetupTool.SetField(view, "copyCodeButton", copyButton);
-            TestEnvironmentSetupTool.SetField(view, "inviteButton", inviteButton);
-            TestEnvironmentSetupTool.SetField(view, "settingsHintText", settingsHint);
-            TestEnvironmentSetupTool.SetArray(view, "settingRows", rows);
-            TestEnvironmentSetupTool.SetField(view, "primaryButton", primaryButton);
-            TestEnvironmentSetupTool.SetField(view, "primaryButtonLabel", primaryLabel);
-            TestEnvironmentSetupTool.SetField(view, "leaveButton", leaveButton);
-            TestEnvironmentSetupTool.SetField(view, "statusText", status);
+            // 화면 관리 + 영역별 코드 (모두 캔버스에 붙인다)
+            canvas.gameObject.AddComponent<RoomView>();
+
+            RoomMemberListView members = canvas.gameObject.AddComponent<RoomMemberListView>();
+            TestEnvironmentSetupTool.SetField(members, "memberListText", memberList);
+
+            RoomCodeView code = canvas.gameObject.AddComponent<RoomCodeView>();
+            TestEnvironmentSetupTool.SetField(code, "roomCodeText", roomCode);
+            TestEnvironmentSetupTool.SetField(code, "copyCodeButton", copyButton);
+            TestEnvironmentSetupTool.SetField(code, "inviteButton", inviteButton);
+
+            RoomSettingsView settings = canvas.gameObject.AddComponent<RoomSettingsView>();
+            TestEnvironmentSetupTool.SetField(settings, "settingsHintText", settingsHint);
+            TestEnvironmentSetupTool.SetArray(settings, "settingRows", rows);
+
+            RoomFooterView footer = canvas.gameObject.AddComponent<RoomFooterView>();
+            TestEnvironmentSetupTool.SetField(footer, "primaryButton", primaryButton);
+            TestEnvironmentSetupTool.SetField(footer, "primaryButtonLabel", primaryLabel);
+            TestEnvironmentSetupTool.SetField(footer, "leaveButton", leaveButton);
+            TestEnvironmentSetupTool.SetField(footer, "statusText", status);
 
             // ESC 메뉴: 룸에서는 커서를 잠그지 않는다.
             SharedUiBuilder.CreatePauseMenu(canvas.transform, lockCursorOnClose: false);

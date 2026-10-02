@@ -1820,6 +1820,9 @@ GameObject:
   - component: {fileID: 5278528013024744159}
   - component: {fileID: 3863710832895843246}
   - component: {fileID: 6656138107259167785}
+  - component: {fileID: 1933893013396818009}
+  - component: {fileID: 1289194900742423204}
+  - component: {fileID: 9064188048135778813}
   m_Layer: 0
   m_Name: LobbyCanvas
   m_TagString: Untagged
@@ -1952,22 +1955,6 @@ MonoBehaviour:
   joinMenu: {fileID: 6443716312881218075}
   steamJoinPanel: {fileID: 8844961984515430315}
   directJoinPanel: {fileID: 4059937148169282219}
-  createMenuButton: {fileID: 262337039411207889}
-  joinMenuButton: {fileID: 4197575532406692030}
-  settingsButton: {fileID: 7633525370504441294}
-  creditsButton: {fileID: 7307461421107126526}
-  quitButton: {fileID: 3885293258842589065}
-  steamCreateMenuButton: {fileID: 5274455080692480684}
-  hostDirectButton: {fileID: 1227873564401173956}
-  hostPasswordInput: {fileID: 8519697797712379880}
-  hostSteamButton: {fileID: 6592557472729512485}
-  steamJoinMenuButton: {fileID: 4004347199470509267}
-  directJoinMenuButton: {fileID: 615291974620821964}
-  roomCodeInput: {fileID: 8707186340734042233}
-  joinPasswordInput: {fileID: 7631159692657851772}
-  joinSteamButton: {fileID: 9052056108288273352}
-  addressInput: {fileID: 7386928998335827274}
-  joinDirectButton: {fileID: 3815442739987171198}
   backButtons:
   - {fileID: 7697999146840151135}
   - {fileID: 7561556570457483255}
@@ -1978,6 +1965,58 @@ MonoBehaviour:
   noticeText: {fileID: 579218637939718632}
   settingsPanel: {fileID: 3978460457958613501}
   creditsPanel: {fileID: 427630148120049098}
+--- !u!114 &1933893013396818009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2104769910319085858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df7b3221874140aa88400e6ceb11b5c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.LobbyMainMenu
+  createMenuButton: {fileID: 262337039411207889}
+  joinMenuButton: {fileID: 4197575532406692030}
+  settingsButton: {fileID: 7633525370504441294}
+  creditsButton: {fileID: 7307461421107126526}
+  quitButton: {fileID: 3885293258842589065}
+--- !u!114 &1289194900742423204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2104769910319085858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3486f930ac0414e9d56a1feb125e98e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.LobbyCreateMenu
+  steamCreateMenuButton: {fileID: 5274455080692480684}
+  hostDirectButton: {fileID: 1227873564401173956}
+  hostPasswordInput: {fileID: 8519697797712379880}
+  hostSteamButton: {fileID: 6592557472729512485}
+--- !u!114 &9064188048135778813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2104769910319085858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2f41f407984620b629d0eec1949fda, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.LobbyJoinMenu
+  steamJoinMenuButton: {fileID: 4004347199470509267}
+  directJoinMenuButton: {fileID: 615291974620821964}
+  roomCodeInput: {fileID: 8707186340734042233}
+  joinPasswordInput: {fileID: 7631159692657851772}
+  joinSteamButton: {fileID: 9052056108288273352}
+  addressInput: {fileID: 7386928998335827274}
+  joinDirectButton: {fileID: 3815442739987171198}
 --- !u!1 &2290811542419872261
 GameObject:
   m_ObjectHideFlags: 0

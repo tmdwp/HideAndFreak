@@ -10573,6 +10573,10 @@ GameObject:
   - component: {fileID: 2314881056690430701}
   - component: {fileID: 3093832745811674196}
   - component: {fileID: 3491198063960023501}
+  - component: {fileID: 9211497800476312400}
+  - component: {fileID: 6486331199842054398}
+  - component: {fileID: 3472197637635919182}
+  - component: {fileID: 4212467497000637055}
   - component: {fileID: 893100872548579967}
   m_Layer: 0
   m_Name: RoomCanvas
@@ -10694,10 +10698,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4809f1bff38eb9f4ca80f30aed686769, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.RoomView
+--- !u!114 &9211497800476312400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4983447205501479671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76376837fac247519f1abc66436dfa12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.RoomMemberListView
   memberListText: {fileID: 1767045169894942948}
+--- !u!114 &6486331199842054398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4983447205501479671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d87d6b53c0f4d4291da15b4e63ba3e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.RoomCodeView
   roomCodeText: {fileID: 3438448347050103640}
   copyCodeButton: {fileID: 5921745279572952410}
   inviteButton: {fileID: 1973230002642986891}
+--- !u!114 &3472197637635919182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4983447205501479671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a03832ae301426aa7ff71633ce1471e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.RoomSettingsView
   settingsHintText: {fileID: 8344919474854443862}
   settingRows:
   - {fileID: 1930875089990612371}
@@ -10718,6 +10758,18 @@ MonoBehaviour:
   - {fileID: 7431938359577721673}
   - {fileID: 4020501085043201549}
   - {fileID: 7943281887276974612}
+--- !u!114 &4212467497000637055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4983447205501479671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42f3e53ee4b34bd08cd6ed6b86f5b090, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.RoomFooterView
   primaryButton: {fileID: 8764460892812191491}
   primaryButtonLabel: {fileID: 7558830985803541939}
   leaveButton: {fileID: 941484092894401919}

@@ -2022,6 +2022,9 @@ GameObject:
   - component: {fileID: 243946258363252043}
   - component: {fileID: 5090365109107446990}
   - component: {fileID: 6867560887198099514}
+  - component: {fileID: 4487168434879815670}
+  - component: {fileID: 8310228886300201291}
+  - component: {fileID: 8588595029836709956}
   - component: {fileID: 5794204347676019392}
   m_Layer: 0
   m_Name: HudCanvas
@@ -2150,13 +2153,49 @@ MonoBehaviour:
   objectiveTracker: {fileID: 0}
   matchResult: {fileID: 0}
   spectator: {fileID: 0}
-  topPanel: {fileID: 1689923017371984939}
-  topText: {fileID: 908197566604632551}
   crosshair: {fileID: 6887838442163337678}
   waitingText: {fileID: 3662363030744076486}
+--- !u!114 &4487168434879815670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6697363706464615105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9fe7edba3334498ab6867a3188a18e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.HudTopPanel
+  topPanel: {fileID: 1689923017371984939}
+  topText: {fileID: 908197566604632551}
+--- !u!114 &8310228886300201291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6697363706464615105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc24254082854f69a6fbfcda2636cc9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.HudBottomPanel
   bottomPanel: {fileID: 1566189470962850647}
   objectiveText: {fileID: 5537715771040233646}
   statusText: {fileID: 5710332040909824930}
+--- !u!114 &8588595029836709956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6697363706464615105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8daa8f93fb8442b1bd92e25b8acf6f87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.UI.HudResultPanel
   resultPanel: {fileID: 1539756762872908452}
   resultHeadlineText: {fileID: 719084214110521645}
   resultParticipantsText: {fileID: 7004648308469762636}

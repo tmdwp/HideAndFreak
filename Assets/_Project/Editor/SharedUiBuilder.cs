@@ -254,18 +254,25 @@ namespace GuardVsMannequin.Editor
             EditorUiFactory.SetHeight(returnButton, 56f);
 
             GameHud hud = canvas.gameObject.AddComponent<GameHud>();
-            TestEnvironmentSetupTool.SetField(hud, "topPanel", top.gameObject);
-            TestEnvironmentSetupTool.SetField(hud, "topText", topText);
             TestEnvironmentSetupTool.SetField(hud, "crosshair", crosshair.gameObject);
             TestEnvironmentSetupTool.SetField(hud, "waitingText", waiting);
-            TestEnvironmentSetupTool.SetField(hud, "bottomPanel", bottom.gameObject);
-            TestEnvironmentSetupTool.SetField(hud, "objectiveText", objective);
-            TestEnvironmentSetupTool.SetField(hud, "statusText", status);
-            TestEnvironmentSetupTool.SetField(hud, "resultPanel", result.gameObject);
-            TestEnvironmentSetupTool.SetField(hud, "resultHeadlineText", headline);
-            TestEnvironmentSetupTool.SetField(hud, "resultParticipantsText", participants);
-            TestEnvironmentSetupTool.SetField(hud, "resultCountdownText", countdown);
-            TestEnvironmentSetupTool.SetField(hud, "returnToRoomButton", returnButton);
+
+            // 영역별 코드 (GameHud가 같은 캔버스 아래의 IHudSection을 찾아 갱신한다)
+            HudTopPanel topSection = canvas.gameObject.AddComponent<HudTopPanel>();
+            TestEnvironmentSetupTool.SetField(topSection, "topPanel", top.gameObject);
+            TestEnvironmentSetupTool.SetField(topSection, "topText", topText);
+
+            HudBottomPanel bottomSection = canvas.gameObject.AddComponent<HudBottomPanel>();
+            TestEnvironmentSetupTool.SetField(bottomSection, "bottomPanel", bottom.gameObject);
+            TestEnvironmentSetupTool.SetField(bottomSection, "objectiveText", objective);
+            TestEnvironmentSetupTool.SetField(bottomSection, "statusText", status);
+
+            HudResultPanel resultSection = canvas.gameObject.AddComponent<HudResultPanel>();
+            TestEnvironmentSetupTool.SetField(resultSection, "resultPanel", result.gameObject);
+            TestEnvironmentSetupTool.SetField(resultSection, "resultHeadlineText", headline);
+            TestEnvironmentSetupTool.SetField(resultSection, "resultParticipantsText", participants);
+            TestEnvironmentSetupTool.SetField(resultSection, "resultCountdownText", countdown);
+            TestEnvironmentSetupTool.SetField(resultSection, "returnToRoomButton", returnButton);
             return hud;
         }
 

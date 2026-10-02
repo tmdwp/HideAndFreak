@@ -14,7 +14,17 @@ UI는 프리팹으로 관리합니다. **"테스트 환경 생성"·"맵 생성"
 
 ### 고치는 방법
 - 프리팹을 더블클릭해 열고 이미지(Image의 Source Image), 색, 폰트, 크기, 위치를 바꾸면 됩니다.
-- **버튼·텍스트 오브젝트를 지우거나 다른 종류로 바꾸지 마세요.** 화면 코드(`LobbyView`, `RoomView`, `SettingsPanelView`, `GameHud` 등)가 인스펙터로 연결해 쓰고 있어, 지우면 그 기능이 동작하지 않습니다. 모양만 바꾸고 오브젝트는 남겨 두는 것이 안전합니다.
+- **버튼·텍스트 오브젝트를 지우거나 다른 종류로 바꾸지 마세요.** 화면 코드가 인스펙터로 연결해 쓰고 있어, 지우면 그 기능이 동작하지 않습니다. 모양만 바꾸고 오브젝트는 남겨 두는 것이 안전합니다.
+- 화면 코드는 캔버스 오브젝트에 영역별로 나뉘어 붙어 있습니다. 버튼 연결을 바꿀 때는 해당 영역의 컴포넌트를 찾으면 됩니다.
+
+  | 캔버스 | 화면 관리 | 영역별 코드 |
+  |---|---|---|
+  | `LobbyCanvas` | `LobbyView` (화면 전환, 뒤로·ESC, 상태 문구) | `LobbyMainMenu`(메인 버튼), `LobbyCreateMenu`(방 만들기·스팀 방 만들기), `LobbyJoinMenu`(참가·스팀 방 입장·IP 참가) |
+  | `RoomCanvas` | `RoomView` (커서) | `RoomMemberListView`(참가자), `RoomCodeView`(방 코드·초대), `RoomSettingsView`(게임 설정), `RoomFooterView`(시작/준비·나가기·상태) |
+  | `HudCanvas` | `GameHud` (게임 상태 연결, 조준점·대기 문구) | `HudTopPanel`(상단), `HudBottomPanel`(하단·관전), `HudResultPanel`(결과) |
+  | `SettingsPanel` | `SettingsPanelView` (탭, 닫기) | 페이지별 `DisplaySettingsSection`, `LanguageSettingsSection`, `SoundSettingsSection`, `ControlSettingsSection` |
+
+- HUD에 새 영역을 추가하려면 `IHudSection`을 구현한 컴포넌트를 HUD 캔버스(또는 그 아래)에 붙이면 `GameHud`가 자동으로 갱신합니다.
 - 문장은 `Resources/Localization/strings.csv`에서 바꿉니다. 텍스트에 붙은 `LocalizedText`의 key가 문장 이름입니다.
 - **폰트**: 기본 폰트(LegacyRuntime)인 텍스트만 실행 시 OS 한글 폰트로 바뀝니다(`OsFontApplier`). 직접 폰트를 지정한 텍스트는 그대로 둡니다. 캔버스의 `OsFontApplier`에 폰트 에셋을 넣으면 기본 폰트 텍스트를 모두 그 폰트로 바꿉니다.
 - 설정 탭의 선택/기본 색은 `SettingsPanelView`의 Selected/Normal Tab Color에서 바꿉니다. (탭 버튼에 이미지를 넣었다면 흰색으로 두면 이미지 색 그대로 보입니다)
