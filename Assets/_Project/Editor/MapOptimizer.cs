@@ -7,6 +7,7 @@ using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 namespace GuardVsMannequin.Editor
@@ -144,6 +145,7 @@ namespace GuardVsMannequin.Editor
 
         /// <summary>
         /// 영역(Area) 조명을 지운다. URP는 실시간 영역 조명을 지원하지 않아 빛을 내지 못하고 경고만 남기기 때문이다.
+        /// URP 보조 컴포넌트(UniversalAdditionalLightData)가 Light에 의존하므로 먼저 지워야 Light를 지울 수 있다.
         /// </summary>
         private static int RemoveAreaLights(Transform mapRoot)
         {
@@ -152,11 +154,14 @@ namespace GuardVsMannequin.Editor
             {
                 if (target.type != LightType.Rectangle && target.type != LightType.Disc)
                     continue;
-                MapLight mapLight = target.GetComponent<MapLight>();
-                if (mapLight != null)
+                if (target.TryGetComponent(out MapLight mapLight))
                     Object.DestroyImmediate(mapLight);
+                if (target.TryGetComponent(out UniversalAdditionalLightData additionalData))
+                    Object.DestroyImmediate(additionalData);
                 Object.DestroyImmediate(target);
-                removed++;
+                // 지우지 못했으면(다른 의존 컴포넌트) 세지 않는다.
+                if (target == null)
+                    removed++;
             }
             return removed;
         }
