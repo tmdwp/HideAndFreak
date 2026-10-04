@@ -19,15 +19,20 @@ UI는 프리팹으로 관리합니다. **"테스트 환경 생성"·"맵 생성"
 
   | 캔버스 | 화면 관리 | 영역별 코드 |
   |---|---|---|
-  | `LobbyCanvas` | `LobbyView` (화면 전환, 뒤로·ESC, 상태 문구) | `LobbyMainMenu`(메인 버튼), `LobbyCreateMenu`(방 만들기·스팀 방 만들기), `LobbyJoinMenu`(참가·스팀 방 입장·IP 참가) |
-  | `RoomCanvas` | `RoomView` (커서) | `RoomMemberListView`(참가자), `RoomCodeView`(방 코드·초대), `RoomSettingsView`(게임 설정), `RoomFooterView`(시작/준비·나가기·상태) |
-  | `HudCanvas` | `GameHud` (게임 상태 연결, 조준점·대기 문구) | `HudTopPanel`(상단), `HudBottomPanel`(하단·관전), `HudResultPanel`(결과) |
+  | `LobbyCanvas` | `LobbyView` (화면 전환, 뒤로·ESC, 상태 문구), `CursorUnlockOnStart` | `LobbyMainMenu`(메인 버튼), `LobbyCreateMenu`(방 만들기·스팀 방 만들기), `LobbyJoinMenu`(참가·스팀 방 입장·IP 참가) |
+  | `RoomCanvas` | `CursorUnlockOnStart` | `RoomMemberListView`(참가자), `RoomCodeView`(방 코드·초대), `RoomSettingsView`(게임 설정), `RoomFooterView`(시작/준비·나가기·상태) |
+  | `HudCanvas` | `GameHud` (게임 상태 연결, 조준점·대기 문구) | `HudTopPanel`(상단 중앙: 단계·시간·마네킹 수), `HudControlsPanel`(중앙 좌측: 조작 키), `HudObjectivePanel`(중앙 우측: 목표), `HudStaminaBar`(하단 중앙: 스태미나), `HudBottomPanel`(하단: 체력·도구·관전), `HudResultPanel`(결과) |
   | `SettingsPanel` | `SettingsPanelView` (탭, 닫기) | 페이지별 `DisplaySettingsSection`, `LanguageSettingsSection`, `SoundSettingsSection`, `ControlSettingsSection` |
 
+- **로비 화면 추가**: `LobbyScreen`에 값을 끝에 추가하고, `LobbyView`의 화면 목록(Screens)에 (화면, 패널, 뒤로 가면 돌아갈 화면)을 등록합니다. 첫 항목이 시작 화면입니다. 코드는 바꾸지 않아도 됩니다.
 - HUD에 새 영역을 추가하려면 `IHudSection`을 구현한 컴포넌트를 HUD 캔버스(또는 그 아래)에 붙이면 `GameHud`가 자동으로 갱신합니다.
 - 문장은 `Resources/Localization/strings.csv`에서 바꿉니다. 텍스트에 붙은 `LocalizedText`의 key가 문장 이름입니다.
 - **폰트**: 기본 폰트(LegacyRuntime)인 텍스트만 실행 시 OS 한글 폰트로 바뀝니다(`OsFontApplier`). 직접 폰트를 지정한 텍스트는 그대로 둡니다. 캔버스의 `OsFontApplier`에 폰트 에셋을 넣으면 기본 폰트 텍스트를 모두 그 폰트로 바꿉니다.
 - 설정 탭의 선택/기본 색은 `SettingsPanelView`의 Selected/Normal Tab Color에서 바꿉니다. (탭 버튼에 이미지를 넣었다면 흰색으로 두면 이미지 색 그대로 보입니다)
+
+### 새 UI 영역 받기
+- 코드에 HUD 영역이나 키 설정 항목이 새로 생기면 메뉴 **GuardVsMannequin > UI > 새 UI 영역 추가**를 실행합니다. 지금 프리팹은 그대로 두고 없는 영역(HUD 조작 안내·목표·스태미나 막대, 설정 화면의 새 키 줄)만 더합니다. 여러 번 실행해도 됩니다.
+- 조작 안내의 키 이름은 키 설정을 따릅니다. 마우스 버튼 등 표시 이름은 `strings.csv`의 `input.<장치>.<컨트롤>`(예: `input.mouse.leftButton`)에서 바꿉니다.
 
 ### 주의
 - 게임 설정 항목(`game_settings.csv`)을 추가하면 룸 화면 줄 수가 달라지므로 `RoomCanvas`를 다시 만들어야 합니다.

@@ -21,7 +21,7 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private void Start()
         {
-            notice = GetComponentInParent<IRoomNotice>();
+            notice = UiLookup.FindInParent<IRoomNotice>(this);
             copyCodeButton.onClick.AddListener(CopyRoomCode);
             inviteButton.onClick.AddListener(() => SessionServices.Session?.OpenInviteDialog());
         }

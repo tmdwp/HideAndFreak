@@ -87802,8 +87802,11 @@ MonoBehaviour:
   _networkObjectCache: {fileID: 0}
   stateMachine: {fileID: 1872192844}
   spawnPoints: {fileID: 1872192850}
-  guardPrefab: {fileID: 5982477161353681102, guid: 9f61c8225c839ba4a8a4914aeed1391c, type: 3}
-  mannequinPrefab: {fileID: 5274660207253486401, guid: c0020df5f1fe77b46a6fe483cb6d49c2, type: 3}
+  rolePrefabs:
+  - role: 1
+    prefab: {fileID: 5982477161353681102, guid: 9f61c8225c839ba4a8a4914aeed1391c, type: 3}
+  - role: 2
+    prefab: {fileID: 5274660207253486401, guid: c0020df5f1fe77b46a6fe483cb6d49c2, type: 3}
   matchResult: {fileID: 1872192840}
 --- !u!114 &1872192850
 MonoBehaviour:

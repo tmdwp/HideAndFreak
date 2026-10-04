@@ -21,17 +21,12 @@ namespace GuardVsMannequin.UI
         private HudContext context;
 
         /// <summary>
-        /// 룸으로 이동 버튼을 연결한다.
-        /// 서버(호스트)만 상태를 바꿀 수 있다. 대기 상태로 바뀌면 MatchSessionBridge가 모두를 룸으로 보낸다.
+        /// 룸으로 이동 버튼을 연결한다. (호스트만 가능, <see cref="IMatchControl"/>)
         /// </summary>
         public void Bind(HudContext hudContext)
         {
             context = hudContext;
-            returnToRoomButton.onClick.AddListener(() =>
-            {
-                if (context.StateMachine.IsServerReady())
-                    context.StateMachine.ChangeState(GameState.Waiting);
-            });
+            returnToRoomButton.onClick.AddListener(() => context.MatchControl.ReturnToRoom());
         }
 
         /// <inheritdoc />
@@ -58,8 +53,8 @@ namespace GuardVsMannequin.UI
             }
             resultParticipantsText.text = builder.ToString();
 
-            resultCountdownText.text = Loc.Format("result.countdown", Mathf.CeilToInt(context.StateMachine.RemainingTime));
-            returnToRoomButton.gameObject.SetActive(context.StateMachine.IsServerReady());
+            resultCountdownText.text = Loc.Format("result.countdown", Mathf.CeilToInt(context.State.RemainingTime));
+            returnToRoomButton.gameObject.SetActive(context.MatchControl.CanControlMatch);
         }
 
         /// <summary>
@@ -85,9 +80,8 @@ namespace GuardVsMannequin.UI
             };
             string reason = Loc.Get(reasonKey);
 
-            PlayerRole localRole = context.LastLocalRole;
-            bool isWinner = (matchResult.Winner == MatchWinner.Guard && localRole == PlayerRole.Guard)
-                            || (matchResult.Winner == MatchWinner.Mannequin && localRole == PlayerRole.Mannequin);
+            PlayerRole localRole = context.LocalPlayer.LastRole;
+            bool isWinner = RoleDefinitions.Get(localRole).IsWinner(matchResult.Winner);
             string personal = localRole == PlayerRole.None ? string.Empty : "\n" + Loc.Get(isWinner ? "result.victory" : "result.defeat");
 
             return $"{winner}\n{reason}{personal}";

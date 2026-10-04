@@ -61,7 +61,8 @@ namespace GuardVsMannequin.Player.Mannequin
             transformer.ForceUntransform();
 
             GameSettings settings = GameServices.State.Settings;
-            int huntMaxHealth = Mathf.Max(1, Mathf.RoundToInt(settings.mannequinMaxHealth * settings.huntHealthMultiplier));
+            int baseMaxHealth = settings.GetStats(PlayerRole.Mannequin).MaxHealth;
+            int huntMaxHealth = Mathf.Max(1, Mathf.RoundToInt(baseMaxHealth * settings.huntHealthMultiplier));
             health.SetMaxHealth(huntMaxHealth, refill: true);
         }
 

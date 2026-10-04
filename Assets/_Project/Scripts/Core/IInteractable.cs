@@ -18,6 +18,20 @@ namespace GuardVsMannequin.Core
         /// 상호작용을 끝낸다.
         /// </summary>
         void EndInteract(IInteractor interactor);
+
+        /// <summary>
+        /// 이 주체가 아직 상호작용 참여자인지 확인한다. (대상이 거리·조건 등으로 참여자를 뺄 수 있으므로)
+        /// </summary>
+        bool IsInteracting(IInteractor interactor);
+    }
+
+    /// <summary>
+    /// 지금 상호작용 중인지 알려 주는 상태. (모든 클라이언트에 동기화된 값, 애니메이션 표시용)
+    /// </summary>
+    public interface IInteractionState
+    {
+        /// <summary>상호작용 중인지 여부.</summary>
+        bool IsInteracting { get; }
     }
 
     /// <summary>

@@ -72,6 +72,15 @@ namespace GuardVsMannequin.Objectives
         }
 
         /// <summary>
+        /// 이 주체가 아직 참여자로 남아 있는지 확인한다.
+        /// </summary>
+        [Server]
+        public bool IsInteracting(IInteractor interactor)
+        {
+            return participants.TryGetValue(interactor.ClientId, out IInteractor current) && ReferenceEquals(current, interactor);
+        }
+
+        /// <summary>
         /// 서버에서 참여자를 검증하고 진행도를 갱신한다.
         /// </summary>
         private void Update()
@@ -90,7 +99,7 @@ namespace GuardVsMannequin.Objectives
                 return;
             }
 
-            float destroyTime = GameServices.State?.Settings.generatorDestroyTime ?? 10f;
+            float destroyTime = GameServices.CurrentSettingsOrDefault.generatorDestroyTime;
             float speed = CalculateTotalSpeed(count);
             float next = progress.Value + speed / destroyTime * Time.deltaTime;
 

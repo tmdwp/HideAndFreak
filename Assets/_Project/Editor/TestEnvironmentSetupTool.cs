@@ -425,7 +425,7 @@ namespace GuardVsMannequin.Editor
         /// </summary>
         private static NetworkObject CreateGuardPrefab(InputActionAsset inputActions, Dictionary<string, Material> materials, NoiseLibrary noiseLibrary)
         {
-            GameObject root = CreateAvatarRoot("Guard", inputActions, out GuardCharacter character, out PlayerInputReader inputReader, out PlayerMovementDriver driver);
+            GameObject root = CreateAvatarRoot("Guard", inputActions, out GuardCharacter character, out Behaviour[] ownerOnly);
 
             Renderer body = CreateVisual(root.transform, PrimitiveType.Capsule, "Body", new Vector3(0f, 0.9f, 0f), new Vector3(0.8f, 0.9f, 0.8f), materials["Guard"]);
             Renderer visor = CreateVisual(root.transform, PrimitiveType.Cube, "Visor", new Vector3(0f, 1.55f, 0.3f), new Vector3(0.5f, 0.15f, 0.2f), materials["Visor"]);
@@ -436,7 +436,7 @@ namespace GuardVsMannequin.Editor
             Camera playerCamera = CreatePlayerCamera(cameraPivot, Vector3.zero);
 
             SetField(character, "cameraPivot", cameraPivot);
-            ConfigureOwnership(root, character, playerCamera, new Behaviour[] { inputReader, driver }, new[] { body, visor }, hideSkinForOwner: true);
+            ConfigureOwnership(root, character, playerCamera, ownerOnly, new[] { body, visor }, hideSkinForOwner: true);
             AddMoveSpeedController(root, PlayerRole.Guard);
 
             // 외형: Ethan + 더미 애니메이션 (외형이 없으면 기본 도형)
@@ -490,7 +490,7 @@ namespace GuardVsMannequin.Editor
         private static NetworkObject CreateMannequinPrefab(InputActionAsset inputActions, Dictionary<string, Material> materials,
             PropDatabase propDatabase, NoiseLibrary noiseLibrary)
         {
-            GameObject root = CreateAvatarRoot("Mannequin", inputActions, out MannequinCharacter character, out PlayerInputReader inputReader, out PlayerMovementDriver driver);
+            GameObject root = CreateAvatarRoot("Mannequin", inputActions, out MannequinCharacter character, out Behaviour[] ownerOnly);
 
             // 가짜 마네킹과 완전히 같은 외형이어야 한다. (CreateMannequinVisual 공용, 외형은 맵이 바꿀 수 있음)
             Transform visual = CreateMannequinVisual(root.transform, materials, out Renderer body, out Renderer face);
@@ -501,7 +501,7 @@ namespace GuardVsMannequin.Editor
             Camera playerCamera = CreatePlayerCamera(root.transform, new Vector3(0f, 2.5f, -3.5f));
 
             SetField(character, "followTarget", followTarget);
-            ConfigureOwnership(root, character, playerCamera, new Behaviour[] { inputReader, driver }, new Renderer[0]);
+            ConfigureOwnership(root, character, playerCamera, ownerOnly, new Renderer[0]);
             AddMoveSpeedController(root, PlayerRole.Mannequin);
 
             // 변신: 조준 → 변신 상태 → 외형 적용, 상호작용
@@ -514,6 +514,7 @@ namespace GuardVsMannequin.Editor
             SetArray(disguiseView, "bodyRenderers", new Object[] { body, face });
 
             root.AddComponent<MannequinInteractor>();
+            root.AddComponent<InteractAnimationView>();
 
             // 조준한 변신 가능 사물에 외곽선 표시 (본인 화면만)
             PropHighlighter highlighter = root.AddComponent<PropHighlighter>();
@@ -584,7 +585,7 @@ namespace GuardVsMannequin.Editor
 
             Light point = lightObject.AddComponent<Light>();
             point.type = LightType.Point;
-            point.range = 8f;
+            point.range = 12f;
             point.intensity = 1.5f;
             point.color = new Color(0.65f, 0.75f, 0.95f);
             point.shadows = LightShadows.None;
@@ -733,8 +734,9 @@ namespace GuardVsMannequin.Editor
         /// PlayerMovementDriver는 [RequireComponent(typeof(Character))]이므로, 실제 캐릭터를 먼저 추가해야
         /// Unity가 기본 Character를 자동으로 덧붙이지 않는다.
         /// </summary>
+        /// <param name="ownerOnly">로컬 소유자에게만 켤 컴포넌트. (입력, 이동 드라이버, 달리기 — 모두 꺼진 채로 만든다)</param>
         private static GameObject CreateAvatarRoot<TCharacter>(string name, InputActionAsset inputActions, out TCharacter character,
-            out PlayerInputReader inputReader, out PlayerMovementDriver driver) where TCharacter : Character
+            out Behaviour[] ownerOnly) where TCharacter : Character
         {
             var root = new GameObject(name);
 
@@ -749,12 +751,17 @@ namespace GuardVsMannequin.Editor
             root.AddComponent<PlayerIdentity>();
             root.AddComponent<PlayerHealth>();
 
-            inputReader = root.AddComponent<PlayerInputReader>();
+            PlayerInputReader inputReader = root.AddComponent<PlayerInputReader>();
             SetField(inputReader, "inputActions", inputActions);
-            inputReader.enabled = false;
 
-            driver = root.AddComponent<PlayerMovementDriver>();
-            driver.enabled = false;
+            PlayerMovementDriver driver = root.AddComponent<PlayerMovementDriver>();
+
+            // 달리기(Shift): 스태미나를 쓰며 빨리 달린다. 속도 배율은 MoveSpeedController가 적용한다.
+            SprintAbility sprint = root.AddComponent<SprintAbility>();
+
+            ownerOnly = new Behaviour[] { inputReader, driver, sprint };
+            foreach (Behaviour behaviour in ownerOnly)
+                behaviour.enabled = false;
 
             if (root.GetComponents<Character>().Length != 1)
                 Debug.LogError($"[TestSetup] {name} 프리팹에 Character 컴포넌트가 여러 개 있습니다.");
@@ -762,12 +769,12 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 이 게임에서 쓰지 않는 점프/앉기를 끈다.
+        /// 점프(Space)는 켜고, 이 게임에서 쓰지 않는 앉기를 끈다.
         /// </summary>
         private static void ConfigureCharacter(Character character)
         {
             var serialized = new SerializedObject(character);
-            serialized.FindProperty("_canEverJump").boolValue = false;
+            serialized.FindProperty("_canEverJump").boolValue = true;
             serialized.FindProperty("_canEverCrouch").boolValue = false;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -1250,8 +1257,7 @@ namespace GuardVsMannequin.Editor
 
             SetField(playerSpawner, "stateMachine", stateMachine);
             SetField(playerSpawner, "spawnPoints", spawnPoints);
-            SetField(playerSpawner, "guardPrefab", prefabs.guard);
-            SetField(playerSpawner, "mannequinPrefab", prefabs.mannequin);
+            SetRolePrefabs(playerSpawner, (PlayerRole.Guard, prefabs.guard), (PlayerRole.Mannequin, prefabs.mannequin));
             SetField(playerSpawner, "matchResult", matchResult);
 
             SetField(generatorSpawner, "stateMachine", stateMachine);
@@ -1260,6 +1266,7 @@ namespace GuardVsMannequin.Editor
 
             SetField(fakeSpawner, "stateMachine", stateMachine);
             SetField(fakeSpawner, "fakeMannequinPrefab", prefabs.fakeMannequin);
+            SetField(fakeSpawner, "spawnPoints", spawnPoints);
             SetField(fakeSpawner, "navMeshSurface", navMeshSurface);
 
             SetField(matchResult, "stateMachine", stateMachine);
@@ -1420,6 +1427,23 @@ namespace GuardVsMannequin.Editor
             property.arraySize = values.Length;
             for (int i = 0; i < values.Length; i++)
                 property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// PlayerSpawner의 역할별 아바타 프리팹 목록(rolePrefabs)을 채운다.
+        /// </summary>
+        internal static void SetRolePrefabs(PlayerSpawner spawner, params (PlayerRole role, NetworkObject prefab)[] entries)
+        {
+            var serialized = new SerializedObject(spawner);
+            SerializedProperty list = serialized.FindProperty("rolePrefabs");
+            list.arraySize = entries.Length;
+            for (int i = 0; i < entries.Length; i++)
+            {
+                SerializedProperty element = list.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("role").intValue = (int)entries[i].role;
+                element.FindPropertyRelative("prefab").objectReferenceValue = entries[i].prefab;
+            }
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

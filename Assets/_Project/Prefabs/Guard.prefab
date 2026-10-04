@@ -188,6 +188,7 @@ GameObject:
   - component: {fileID: 5390217533131719041}
   - component: {fileID: 1658422639008677458}
   - component: {fileID: 7077973463211331629}
+  - component: {fileID: 2438291166181811712}
   m_Layer: 0
   m_Name: Guard
   m_TagString: Untagged
@@ -333,7 +334,7 @@ MonoBehaviour:
   _brakingDecelerationFalling: 0
   _fallingLateralFriction: 0.3
   _airControl: 0.3
-  _canEverJump: 0
+  _canEverJump: 1
   _canJumpWhileCrouching: 1
   _jumpMaxCount: 1
   _jumpImpulse: 5
@@ -522,6 +523,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerMovementDriver
   lookSensitivity: {x: 0.1, y: 0.1}
+--- !u!114 &2438291166181811712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3154698559590718275}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d83cac38a9a448b9a89231cd26fc6e0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.SprintAbility
 --- !u!114 &4545166632837510194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -542,6 +555,7 @@ MonoBehaviour:
   ownerOnlyBehaviours:
   - {fileID: 6530848944518144842}
   - {fileID: 2361025803762916436}
+  - {fileID: 2438291166181811712}
   hiddenForOwner:
   - {fileID: 5266408112472218372}
   - {fileID: 5991925537653547114}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using FishNet.Object;
 using FishNet.Object.Synchronizing;
 using GuardVsMannequin.Core.States;
+using GuardVsMannequin.Localization;
 using UnityEngine;
 
 namespace GuardVsMannequin.Core
@@ -10,8 +11,9 @@ namespace GuardVsMannequin.Core
     /// <summary>
     /// 한 판의 진행 상태를 서버 권한으로 관리하고 클라이언트에 동기화한다.
     /// 상태별 규칙은 <see cref="IGameStateHandler"/>에 위임한다.
+    /// 다른 코드에는 읽기(<see cref="IGameStateProvider"/>)와 판 조작(<see cref="IMatchControl"/>)으로 나눠 노출한다.
     /// </summary>
-    public class GameStateMachine : NetworkBehaviour, IGameStateContext, IGameStateProvider
+    public class GameStateMachine : NetworkBehaviour, IGameStateContext, IGameStateProvider, IMatchControl
     {
         [Tooltip("IMatchRules를 구현한 컴포넌트. 비어 있으면 시간만으로 단계를 넘긴다.")]
         [SerializeField] private MonoBehaviour matchRulesComponent;
@@ -107,14 +109,14 @@ namespace GuardVsMannequin.Core
         {
             if (currentState.Value != GameState.Waiting)
             {
-                failReason = "이미 게임이 진행 중입니다.";
+                failReason = Loc.Get("room.reason.inGame");
                 return false;
             }
 
             int playerCount = ServerManager.Clients.Count;
             if (!GameSettingsValidator.CanStart(playerCount))
             {
-                failReason = $"참가 인원이 {GameConstants.MinPlayers}~{GameConstants.MaxPlayers}명이어야 합니다. (현재 {playerCount}명)";
+                failReason = Loc.Format("room.reason.playerCount", GameConstants.MinPlayers, GameConstants.MaxPlayers, playerCount);
                 return false;
             }
 
@@ -142,6 +144,17 @@ namespace GuardVsMannequin.Core
             handlers[next].Enter(this);
 
             ServerStateChanged?.Invoke(prev, next);
+        }
+
+        /// <inheritdoc />
+        public bool CanControlMatch => this.IsServerReady();
+
+        /// <inheritdoc />
+        public void ReturnToRoom()
+        {
+            // 대기 상태로 바뀌면 MatchSessionBridge가 모두를 룸으로 보낸다.
+            if (CanControlMatch)
+                ChangeState(GameState.Waiting);
         }
 
         /// <summary>

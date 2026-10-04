@@ -38,6 +38,19 @@ namespace GuardVsMannequin.Map
         public PropDatabase PropDatabase => propDatabase;
 
         /// <summary>
+        /// 역할이 이 맵에서 쓸 외형. 지정하지 않았거나 외형이 없는 역할이면 null. (호출한 쪽이 기본 외형을 쓴다)
+        /// </summary>
+        public CharacterSkin GetSkin(PlayerRole role)
+        {
+            return role switch
+            {
+                PlayerRole.Guard => guardSkin,
+                PlayerRole.Mannequin => mannequinSkin,
+                _ => null
+            };
+        }
+
+        /// <summary>
         /// 현재 맵으로 등록하고 천장 높이를 검증한다.
         /// (아바타보다 먼저 로드되는 씬 오브젝트이므로, 아바타가 생성될 때는 이미 등록되어 있다)
         /// </summary>

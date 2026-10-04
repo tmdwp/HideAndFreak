@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.CharacterSkin
   displayName: Dummy
   modelPrefab: {fileID: 3721765056273789593, guid: ba53515737dc8df43920c99226f7463b, type: 3}
-  animatorController: {fileID: 9100000, guid: 1b31e1a9529134e47a927f9426852d1e, type: 2}
+  animatorController: {fileID: 9100000, guid: c687299a8047ddd428e2d372cfee0e4b, type: 2}
   yawOffset: 0
   useAimIK: 0
   fireAnimationEvents: 0
+  keepRootBoneInPlace: 1
   weaponGrip:
     followHandRotation: 0
     handPositionOffset: {x: 0, y: 0.02, z: 0.06}

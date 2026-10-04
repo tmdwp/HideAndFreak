@@ -102,7 +102,7 @@ setting.GunDamage,가드 총 피해량,Guard Gun Damage
 setting.MannequinAttackDamage,마네킹 공격 피해량,Mannequin Attack Damage
 setting.MannequinAttackRange,마네킹 공격 범위,Mannequin Attack Range
 setting.GuardMoveSpeed,가드 이동 속도,Guard Move Speed
-setting.MannequinMoveSpeed,마네킹 이동 속도 (사냥 시간 1.5배),Mannequin Move Speed (x1.5 in Hunt)
+setting.MannequinMoveSpeed,마네킹 이동 속도 (사냥 시간 0.8배),Mannequin Move Speed (x0.8 in Hunt)
 
 # 단위 ({0} = 값)
 unit.seconds,{0}초,{0}s
@@ -160,6 +160,13 @@ key.emote5,감정 표현 5,Emote 5
 key.emote6,감정 표현 6,Emote 6
 key.spectatePrevious,이전 관전 대상,Previous Spectate Target
 key.spectateNext,다음 관전 대상,Next Spectate Target
+key.sprint,달리기,Sprint
+key.jump,점프,Jump
+
+# HUD 키 이름 (Input System 기본 이름 대신 표시, 형식: input.장치.컨트롤)
+input.mouse.leftButton,마우스 좌클릭,Left Click
+input.mouse.rightButton,마우스 우클릭,Right Click
+input.mouse.middleButton,마우스 휠 클릭,Middle Click
 
 # 크레딧
 credits.title,크레딧,Credits
@@ -175,12 +182,21 @@ pause.leave,방 나가기,Leave Room
 # 게임 HUD
 hud.waiting,다른 플레이어를 기다리는 중...,Waiting for other players...
 hud.phase.preparation,가드 대기 시간,Guard Wait
+hud.phase.playing,가드 타임,Guard Time
+hud.phase.hunting,헌트 타임,Hunt Time
 hud.phase.ended,종료,Finished
-hud.remainingMannequins,남은 마네킹 {0},Mannequins left {0}
-hud.objective.progress,목표 {0} / {1},Objectives {0} / {1}
-hud.objective.none,목표 없음,No objectives
-hud.objective.none.preparation,"목표 없음 · 대기 시간 후 {0}초간 가드 보호, 이후 사냥 시간","No objectives · {0}s guard protection after the wait, then the hunt"
-hud.objective.none.playing,목표 없음 · 가드 보호 시간 {0}초 후 사냥 시간,No objectives · Hunt begins in {0}s
+hud.remainingMannequins,남은 마네킹 {0} / {1},Mannequins left {0} / {1}
+hud.objective.title,목표,Objective
+hud.objective.generatorsLeft,남은 전원 장치 {0},Power units left {0}
+hud.objective.guardsLeft,남은 가드 {0},Guards left {0}
+hud.objective.mannequinsLeft,남은 마네킹 {0},Mannequins left {0}
+hud.objective.none.preparation,"대기 시간 후 {0}초간 가드 보호, 이후 헌트 타임","{0}s guard protection after the wait, then Hunt Time"
+hud.objective.none.playing,{0}초 후 헌트 타임,Hunt Time in {0}s
+hud.controls.title,조작,Controls
+hud.controls.move,이동,Move
+hud.controls.sprint,달리기,Sprint
+hud.controls.jump,점프,Jump
+hud.stamina,스태미나,Stamina
 hud.health,체력 {0} / {1},Health {0} / {1}
 hud.tool.ready,준비,Ready
 hud.tool.cooldown,{0}초,{0}s
@@ -189,10 +205,18 @@ hud.spectating,관전 중,Spectating
 hud.spectatingDead,사망했습니다 · 관전 중,You died · Spectating
 hud.spectate.none,관전할 생존자가 없습니다.,No survivors to spectate.
 hud.spectate.target,{0} ({1})   ← / → : 관전 대상 전환,{0} ({1})   ← / → : Switch target
-hud.guide.guard.playing,"[가드] 숨어 있는 마네킹을 찾아 제거하세요.  (좌클릭: 사격, 우클릭: 탐지기)","[Guard] Find and eliminate hidden mannequins.  (LMB: Fire, RMB: Detector)"
-hud.guide.guard.hunting,"[가드] 살아남거나 마네킹을 모두 제거하세요.  (좌클릭: 사격, 우클릭: 탐지기, E: 손전등)","[Guard] Survive or eliminate every mannequin.  (LMB: Fire, RMB: Detector, E: Flashlight)"
-hud.guide.mannequin.playing,"[마네킹] 전원 장치를 찾아 파괴하세요.\n(좌클릭 유지: 파괴, 우클릭: 변신/해제, Q/E: 변신 중 회전, 1~6: 감정 표현)","[Mannequin] Find and destroy the power units.\n(Hold LMB: Destroy, RMB: Disguise, Q/E: Rotate while disguised, 1-6: Emotes)"
-hud.guide.mannequin.hunting,"[마네킹] 가드를 모두 제거하세요.\n(좌클릭: 공격, 우클릭: 변신/해제, Q/E: 변신 중 회전, 1~6: 감정 표현)","[Mannequin] Eliminate every guard.\n(LMB: Attack, RMB: Disguise, Q/E: Rotate while disguised, 1-6: Emotes)"
+hud.guide.guard.objective.playing,포획,Capture
+hud.guide.guard.objective.hunting,생존,Survive
+hud.guide.guard.primary.playing,사격,Fire
+hud.guide.guard.primary.hunting,사격,Fire
+hud.guide.guard.secondary.playing,탐지기,Detector
+hud.guide.guard.secondary.hunting,탐지기,Detector
+hud.guide.mannequin.objective.playing,전원 장치 파괴,Destroy Power Units
+hud.guide.mannequin.objective.hunting,사냥,Hunt
+hud.guide.mannequin.primary.playing,파괴 (누르고 있기),Destroy (Hold)
+hud.guide.mannequin.primary.hunting,공격,Attack
+hud.guide.mannequin.secondary.playing,변신 / 해제,Disguise / Undo
+hud.guide.mannequin.secondary.hunting,변신 / 해제,Disguise / Undo
 
 # 역할과 도구
 role.guard,가드,Guard

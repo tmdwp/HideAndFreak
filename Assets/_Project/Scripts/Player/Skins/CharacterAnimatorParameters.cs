@@ -13,6 +13,7 @@ namespace GuardVsMannequin.Player
     /// | Hit | Trigger | 피격(체력 감소) |
     /// | Emote1 ~ Emote6 | Trigger | 감정 표현 (번호별 트리거) |
     /// | Emote + EmoteId | Trigger + Int | 감정 표현 (트리거 하나 + 번호, 번호별 트리거가 없을 때) |
+    /// | Interact | Bool | 전원 장치 등과 상호작용하는 동안 켜짐 |
     ///
     /// 감정 표현 트리거가 하나도 없으면 절차적 움직임(ProceduralEmoteView)으로 대신한다.
     /// </summary>
@@ -26,6 +27,7 @@ namespace GuardVsMannequin.Player
         public const string Hit = "Hit";
         public const string Emote = "Emote";
         public const string EmoteId = "EmoteId";
+        public const string Interact = "Interact";
 
         /// <summary>
         /// 번호별 감정 표현 트리거 이름. (예: Emote3)

@@ -13,30 +13,26 @@ namespace GuardVsMannequin.Player.Guard
     [RequireComponent(typeof(CameraAimProvider))]
     public class GunTool : NetworkBehaviour, ITool
     {
-        /// <summary>네트워크 지연으로 서버 쿨타임이 약간 늦게 끝나는 것을 허용하는 오차(초).</summary>
-        private const float CooldownTolerance = 0.15f;
-
-        /// <summary>클라이언트가 보낸 사격 원점이 아바타에서 벗어날 수 있는 최대 거리.</summary>
-        private const float MaxOriginOffset = 3f;
+        /// <summary>비정상 원점을 대체할 눈 높이(m).</summary>
+        private const float EyeHeight = 1.6f;
 
         [SerializeField] private ShotTracerView tracerView;
 
+        private readonly ToolCooldown cooldown = new();
         private IAimProvider aimProvider;
         private IPlayerInput playerInput;
         private NoiseEmitter noiseEmitter;
         private CharacterSkinView skinView;
-        private float localNextFireTime;
-        private float serverNextFireTime;
 
         public string DisplayName => Loc.Get("tool.gun");
-        public float CooldownRemaining => Mathf.Max(0f, localNextFireTime - Time.time);
+        public float CooldownRemaining => cooldown.LocalRemaining;
         public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting);
 
         /// <summary>호스트 설정의 총 쿨타임.</summary>
-        private static float Cooldown => GameServices.State?.Settings.gunCooldown ?? 0f;
+        private static float Cooldown => GameServices.CurrentSettingsOrDefault.gunCooldown;
 
-        /// <summary>한 발의 피해량. (호스트 설정, 최소 1)</summary>
-        private static int Damage => Mathf.Max(1, GameServices.State?.Settings.gunDamage ?? GameConstants.Damage);
+        /// <summary>한 발의 피해량. (가드 능력치, 최소 1)</summary>
+        private static int Damage => Mathf.Max(1, GameServices.CurrentSettingsOrDefault.GetStats(PlayerRole.Guard).AttackDamage);
 
         /// <summary>
         /// 조준, 입력, 소음 구현을 캐시한다.
@@ -78,7 +74,7 @@ namespace GuardVsMannequin.Player.Guard
                 return;
 
             Ray aim = aimProvider.GetAimRay();
-            localNextFireTime = Time.time + Cooldown;
+            cooldown.StartLocal(Cooldown);
             FireServerRpc(aim.origin, aim.direction);
         }
 
@@ -90,13 +86,10 @@ namespace GuardVsMannequin.Player.Guard
         {
             if (!DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting))
                 return;
-            if (Time.time < serverNextFireTime - CooldownTolerance)
+            if (!cooldown.TryStartServer(Cooldown))
                 return;
-            serverNextFireTime = Time.time + Cooldown;
 
-            // 비정상적인 원점은 아바타 눈 높이로 대체한다.
-            if ((origin - transform.position).sqrMagnitude > MaxOriginOffset * MaxOriginOffset)
-                origin = transform.position + Vector3.up * 1.6f;
+            origin = AimRaycaster.SanitizeOrigin(origin, transform, EyeHeight);
 
             Ray ray = new Ray(origin, direction.normalized);
             Vector3 endPoint = ray.GetPoint(GameConstants.GunRange);

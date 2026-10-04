@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using FishNet.Connection;
 using FishNet.Object;
@@ -10,13 +11,24 @@ namespace GuardVsMannequin.Player
     /// <summary>
     /// 준비 단계에 진입하면 역할을 배정하고 역할별 아바타를 스폰한다.
     /// 대기 상태로 돌아가면 스폰한 아바타를 모두 제거한다.
+    /// 역할별 프리팹은 인스펙터 목록으로, 역할별 체력은 <see cref="RoleDefinitions"/>로 정한다. (역할을 추가해도 이 코드는 바꾸지 않는다)
     /// </summary>
     public class PlayerSpawner : NetworkBehaviour
     {
+        /// <summary>역할 하나의 아바타 프리팹.</summary>
+        [Serializable]
+        private class RolePrefab
+        {
+            public PlayerRole role;
+            public NetworkObject prefab;
+        }
+
         [SerializeField] private GameStateMachine stateMachine;
         [SerializeField] private SpawnPointRegistry spawnPoints;
-        [SerializeField] private NetworkObject guardPrefab;
-        [SerializeField] private NetworkObject mannequinPrefab;
+
+        [Tooltip("역할별 아바타 프리팹.")]
+        [SerializeField] private RolePrefab[] rolePrefabs = Array.Empty<RolePrefab>();
+
         [SerializeField] private MatchResult matchResult;
 
         private readonly RoleAssigner roleAssigner = new();
@@ -75,7 +87,12 @@ namespace GuardVsMannequin.Player
         /// </summary>
         private void SpawnAvatar(NetworkConnection conn, PlayerRole role)
         {
-            NetworkObject prefab = role == PlayerRole.Guard ? guardPrefab : mannequinPrefab;
+            NetworkObject prefab = FindPrefab(role);
+            if (prefab == null)
+            {
+                Debug.LogError($"[PlayerSpawner] {role} 역할의 아바타 프리팹이 목록에 없습니다. 인스펙터의 Role Prefabs를 확인하세요.", this);
+                return;
+            }
 
             Vector3 position = Vector3.zero;
             Quaternion rotation = Quaternion.identity;
@@ -93,9 +110,8 @@ namespace GuardVsMannequin.Player
             string displayName = GameServices.Room?.GetDisplayName(conn.ClientId) ?? $"Player {conn.ClientId}";
             avatar.GetComponent<PlayerIdentity>().ServerInitialize(role, displayName);
 
-            GameSettings settings = stateMachine.Settings;
             PlayerHealth health = avatar.GetComponent<PlayerHealth>();
-            health.ServerInitialize(role == PlayerRole.Guard ? settings.guardMaxHealth : settings.mannequinMaxHealth);
+            health.ServerInitialize(stateMachine.Settings.GetStats(role).MaxHealth);
             health.ServerDied += OnAvatarDied;
 
             ServerManager.Spawn(avatar, conn);
@@ -129,6 +145,15 @@ namespace GuardVsMannequin.Player
                     ServerManager.Despawn(avatar);
             }
             spawnedAvatars.Clear();
+        }
+
+        /// <summary>
+        /// 역할의 아바타 프리팹을 찾는다. 없으면 null.
+        /// </summary>
+        private NetworkObject FindPrefab(PlayerRole role)
+        {
+            RolePrefab entry = Array.Find(rolePrefabs, candidate => candidate.role == role);
+            return entry != null ? entry.prefab : null;
         }
     }
 }

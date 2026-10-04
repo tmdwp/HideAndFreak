@@ -10,7 +10,7 @@ namespace GuardVsMannequin.Core
         public const int MaxPlayers = 10;
 
         /// <summary>사냥 시간 마네킹 이동 속도 = 기본 이동 속도(호스트 설정) × 이 배율.</summary>
-        public const float MannequinHuntSpeedMultiplier = 1.5f;
+        public const float MannequinHuntSpeedMultiplier = 0.8f;
 
         public const int Damage = 1;
 
@@ -50,6 +50,21 @@ namespace GuardVsMannequin.Core
         /// <summary>게임 시작 시 생성할 가짜 마네킹 수 범위.</summary>
         public const int FakeMannequinMinCount = 6;
         public const int FakeMannequinMaxCount = 12;
+
+        /// <summary>달리기 중 이동 속도 배율. (현재 단계의 역할 속도 × 이 배율)</summary>
+        public const float SprintSpeedMultiplier = 1.6f;
+
+        /// <summary>스태미나가 가득 찬 상태에서 쉬지 않고 달릴 수 있는 시간(초).</summary>
+        public const float StaminaSprintSeconds = 5f;
+
+        /// <summary>스태미나가 바닥에서 가득 찰 때까지 걸리는 시간(초).</summary>
+        public const float StaminaRecoverSeconds = 8f;
+
+        /// <summary>달리기를 멈춘 뒤 스태미나 회복이 시작되기까지의 시간(초).</summary>
+        public const float StaminaRecoverDelay = 1f;
+
+        /// <summary>스태미나를 다 쓴 뒤 다시 달릴 수 있게 되는 회복 비율(0~1).</summary>
+        public const float StaminaRestartRatio = 0.25f;
 
         /// <summary>결과 화면을 보여준 뒤 대기 상태로 돌아가기까지의 시간(Phase 5에서 룸 씬 이동으로 대체).</summary>
         public const float ResultDisplayDuration = 10.0f;

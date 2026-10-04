@@ -21,6 +21,12 @@ namespace GuardVsMannequin.Player
         /// <summary>좌클릭 유지 여부. (가드: 공격, 마네킹: 상호작용)</summary>
         bool IsPrimaryHeld { get; }
 
+        /// <summary>달리기 키(Shift) 유지 여부.</summary>
+        bool IsSprintHeld { get; }
+
+        /// <summary>점프 키(Space) 유지 여부. 누르는 순간 점프하고, 누르고 있어도 착지 후 다시 뛰지 않는다.</summary>
+        bool IsJumpHeld { get; }
+
         /// <summary>좌클릭을 눌렀을 때.</summary>
         event Action PrimaryPressed;
 

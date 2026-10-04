@@ -13,29 +13,28 @@ namespace GuardVsMannequin.Player.Mannequin
     /// <summary>
     /// 마네킹의 변신 상태를 관리한다.
     /// 우클릭으로 조준한 사물로 변신하거나 변신을 해제하며, 상태는 PropId 하나로 동기화된다.
-    /// 외형 적용은 <see cref="PropDisguiseView"/>가 담당한다(SRP).
+    /// 맡은 일은 입력 → 서버 검증 → 동기화뿐이고, 나머지는 나눠 맡긴다:
+    /// 조준한 사물 찾기 <see cref="PropTargetFinder"/>, 사물 목록 결정 <see cref="IPropDatabaseSource"/>,
+    /// 쿨타임 <see cref="ToolCooldown"/>, 외형 적용 <see cref="PropDisguiseView"/>.
     /// </summary>
     [RequireComponent(typeof(CameraAimProvider))]
     public class MannequinTransformer : NetworkBehaviour, ITool, IEmoteBlocker
     {
-        private const float CooldownTolerance = 0.15f;
-
+        [Tooltip("맵이 사물 목록을 지정하지 않았을 때 쓸 기본 목록.")]
         [SerializeField] private PropDatabase propDatabase;
 
         private readonly SyncVar<int> currentPropId = new(PropDatabase.NoProp);
+        private readonly ToolCooldown cooldown = new();
 
-        private IAimProvider aimProvider;
         private IPlayerInput playerInput;
-        private float localCooldownEnd;
-        private float serverCooldownEnd;
+        private IPropDatabaseSource databaseSource;
+        private PropTargetFinder targetFinder;
 
         /// <summary>변신 상태가 바뀌었을 때. 인자는 새 PropId(해제 시 NoProp). 각 피어에서 한 번씩 호출된다.</summary>
         public event Action<int> DisguiseChanged;
 
-        /// <summary>외형 조회에 사용할 데이터베이스. 맵이 목록을 지정하면 그것을, 아니면 프리팹의 기본 목록을 쓴다.</summary>
-        public PropDatabase Database => MapInfo.Current != null && MapInfo.Current.PropDatabase != null
-            ? MapInfo.Current.PropDatabase
-            : propDatabase;
+        /// <summary>외형 조회에 사용할 사물 목록. 맵이 목록을 지정하면 그것을, 아니면 프리팹의 기본 목록을 쓴다.</summary>
+        public PropDatabase Database => databaseSource.Database;
 
         /// <summary>현재 변신한 PropId. 변신하지 않았으면 NoProp.</summary>
         public int CurrentPropId => currentPropId.Value;
@@ -47,16 +46,17 @@ namespace GuardVsMannequin.Player.Mannequin
         public bool IsEmoteBlocked => IsDisguised;
 
         public string DisplayName => Loc.Get("tool.disguise");
-        public float CooldownRemaining => Mathf.Max(0f, localCooldownEnd - Time.time);
+        public float CooldownRemaining => cooldown.LocalRemaining;
         public bool IsReady => CooldownRemaining <= 0f && CanTransformIn(GameServices.CurrentStateOrWaiting);
 
         /// <summary>
-        /// 입력/조준 구현을 캐시하고 동기화 콜백을 연결한다.
+        /// 입력·사물 찾기 구현을 만들고 동기화 콜백을 연결한다.
         /// </summary>
         private void Awake()
         {
-            aimProvider = GetComponent<IAimProvider>();
             playerInput = GetComponent<IPlayerInput>();
+            databaseSource = new MapPropDatabaseSource(propDatabase);
+            targetFinder = new PropTargetFinder(transform, GetComponent<IAimProvider>(), databaseSource, GameConstants.TransformRange);
             currentPropId.OnChange += OnPropIdChanged;
         }
 
@@ -95,7 +95,7 @@ namespace GuardVsMannequin.Player.Mannequin
         {
             if (IsDisguised)
             {
-                localCooldownEnd = Time.time + GetUntransformCooldown(GameServices.CurrentStateOrWaiting);
+                cooldown.StartLocal(GetUntransformCooldown(GameServices.CurrentStateOrWaiting));
                 UntransformServerRpc();
                 return;
             }
@@ -103,21 +103,8 @@ namespace GuardVsMannequin.Player.Mannequin
             if (!IsReady)
                 return;
 
-            if (TryFindTargetProp(out int propId))
-                TransformServerRpc(propId);
-        }
-
-        /// <summary>
-        /// 화면 중앙 광선으로 변신 가능한 사물을 찾는다. 몸에서 너무 먼 사물은 제외한다.
-        /// </summary>
-        private bool TryFindTargetProp(out int propId)
-        {
-            propId = PropDatabase.NoProp;
-            if (!TryGetAimedProp(out TransformableProp prop))
-                return false;
-
-            propId = prop.PropId;
-            return true;
+            if (TryGetAimedProp(out TransformableProp prop))
+                TransformServerRpc(prop.PropId);
         }
 
         /// <summary>
@@ -126,23 +113,7 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         public bool TryGetAimedProp(out TransformableProp prop)
         {
-            prop = null;
-            Ray aim = aimProvider.GetAimRay();
-
-            // 3인칭 카메라가 몸 뒤에 있으므로 카메라-몸 거리만큼 사거리를 늘린다.
-            float cameraDistance = Vector3.Distance(aim.origin, transform.position);
-            if (!AimRaycaster.TryRaycast(aim, GameConstants.TransformRange + cameraDistance, transform, out RaycastHit hit))
-                return false;
-            if (Vector3.Distance(hit.point, transform.position) > GameConstants.TransformRange)
-                return false;
-
-            prop = hit.collider.GetComponentInParent<TransformableProp>();
-            if (prop == null || !Database.IsValid(prop.PropId))
-            {
-                prop = null;
-                return false;
-            }
-            return true;
+            return targetFinder.TryFind(out prop);
         }
 
         /// <summary>
@@ -151,11 +122,12 @@ namespace GuardVsMannequin.Player.Mannequin
         [ServerRpc]
         private void TransformServerRpc(int propId)
         {
-            if (IsDisguised || !Database.IsValid(propId))
+            PropDatabase database = Database;
+            if (IsDisguised || database == null || !database.IsValid(propId))
                 return;
             if (!CanTransformIn(GameServices.CurrentStateOrWaiting))
                 return;
-            if (Time.time < serverCooldownEnd - CooldownTolerance)
+            if (!cooldown.IsServerReady)
                 return;
 
             currentPropId.Value = propId;
@@ -171,7 +143,7 @@ namespace GuardVsMannequin.Player.Mannequin
                 return;
 
             currentPropId.Value = PropDatabase.NoProp;
-            serverCooldownEnd = Time.time + GetUntransformCooldown(GameServices.CurrentStateOrWaiting);
+            cooldown.StartServer(GetUntransformCooldown(GameServices.CurrentStateOrWaiting));
         }
 
         /// <summary>

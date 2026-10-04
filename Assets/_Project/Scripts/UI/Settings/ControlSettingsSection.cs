@@ -25,8 +25,14 @@ namespace GuardVsMannequin.UI
             editingActions = Instantiate(inputActions);
             OptionsStore.ApplyBindings(editingActions);
 
-            for (int i = 0; i < rebindRows.Length && i < KeyBindingCatalog.All.Count; i++)
-                rebindRows[i].Bind(editingActions, KeyBindingCatalog.All[i].labelKey, OnBindingEdited);
+            // 줄 순서와 목록 순서가 달라도(프리팹에 줄을 나중에 추가한 경우) 액션 이름으로 짝짓는다.
+            foreach (RebindRowView row in rebindRows)
+            {
+                if (KeyBindingCatalog.TryFind(row.ActionName, row.PartName, out KeyBindingCatalog.Entry entry))
+                    row.Bind(editingActions, entry.labelKey, OnBindingEdited);
+                else
+                    Debug.LogWarning($"[ControlSettingsSection] 키 목록에 없는 줄입니다: {row.ActionName} {row.PartName}", row);
+            }
 
             sensitivitySlider.minValue = GameOptions.MinSensitivity;
             sensitivitySlider.maxValue = GameOptions.MaxSensitivity;

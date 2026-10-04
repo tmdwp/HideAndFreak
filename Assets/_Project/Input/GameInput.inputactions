@@ -115,6 +115,24 @@
                                          "initialStateCheck":  true
                                      },
                                      {
+                                         "name":  "Sprint",
+                                         "type":  "Button",
+                                         "id":  "b2f1c7a4-5e3d-4c8b-9a61-3f2e8d7c1a05",
+                                         "expectedControlType":  "Button",
+                                         "processors":  "",
+                                         "interactions":  "",
+                                         "initialStateCheck":  true
+                                     },
+                                     {
+                                         "name":  "Jump",
+                                         "type":  "Button",
+                                         "id":  "e7a93d21-4b6f-4f0e-8c2d-91b5a6e4f318",
+                                         "expectedControlType":  "Button",
+                                         "processors":  "",
+                                         "interactions":  "",
+                                         "initialStateCheck":  false
+                                     },
+                                     {
                                          "name":  "SpectatePrevious",
                                          "type":  "Button",
                                          "id":  "5e018a31-9818-4a90-8cc8-222881c1bb7e",
@@ -340,6 +358,28 @@
                                           "action":  "Rotate",
                                           "isComposite":  false,
                                           "isPartOfComposite":  true
+                                      },
+                                      {
+                                          "name":  "",
+                                          "id":  "5c0d8e2f-7a19-4b3e-a4d6-2e8f1c9b7a40",
+                                          "path":  "<Keyboard>/leftShift",
+                                          "interactions":  "",
+                                          "processors":  "",
+                                          "groups":  "Keyboard&Mouse",
+                                          "action":  "Sprint",
+                                          "isComposite":  false,
+                                          "isPartOfComposite":  false
+                                      },
+                                      {
+                                          "name":  "",
+                                          "id":  "9f4b2a6c-1d8e-4e7a-b3c5-6a0d9e2f8b17",
+                                          "path":  "<Keyboard>/space",
+                                          "interactions":  "",
+                                          "processors":  "",
+                                          "groups":  "Keyboard&Mouse",
+                                          "action":  "Jump",
+                                          "isComposite":  false,
+                                          "isPartOfComposite":  false
                                       },
                                       {
                                           "name":  "",

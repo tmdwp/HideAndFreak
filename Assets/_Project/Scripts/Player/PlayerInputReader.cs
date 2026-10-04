@@ -25,6 +25,8 @@ namespace GuardVsMannequin.Player
         private InputAction secondaryAction;
         private InputAction flashlightAction;
         private InputAction rotateAction;
+        private InputAction sprintAction;
+        private InputAction jumpAction;
         private InputAction spectatePreviousAction;
         private InputAction spectateNextAction;
         private readonly InputAction[] emoteActions = new InputAction[EmoteCount];
@@ -33,6 +35,8 @@ namespace GuardVsMannequin.Player
         public Vector2 Look => GameCursor.IsLocked ? lookAction?.ReadValue<Vector2>() ?? Vector2.zero : Vector2.zero;
         public float Rotate => GameCursor.IsLocked ? rotateAction?.ReadValue<float>() ?? 0f : 0f;
         public bool IsPrimaryHeld => GameCursor.IsLocked && primaryAction != null && primaryAction.IsPressed();
+        public bool IsSprintHeld => GameCursor.IsLocked && sprintAction != null && sprintAction.IsPressed();
+        public bool IsJumpHeld => GameCursor.IsLocked && jumpAction != null && jumpAction.IsPressed();
 
         public event Action PrimaryPressed;
         public event Action PrimaryReleased;
@@ -56,6 +60,8 @@ namespace GuardVsMannequin.Player
             secondaryAction = map.FindAction("Secondary", true);
             flashlightAction = map.FindAction("Flashlight", true);
             rotateAction = map.FindAction("Rotate", true);
+            sprintAction = map.FindAction("Sprint", true);
+            jumpAction = map.FindAction("Jump", true);
             spectatePreviousAction = map.FindAction("SpectatePrevious", true);
             spectateNextAction = map.FindAction("SpectateNext", true);
             for (int i = 0; i < EmoteCount; i++)

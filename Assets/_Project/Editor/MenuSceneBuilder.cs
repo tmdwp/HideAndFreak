@@ -240,13 +240,16 @@ namespace GuardVsMannequin.Editor
             Text notice = EditorUiFactory.CreateText(canvas.transform, "Notice", string.Empty, 24, TextAnchor.MiddleCenter, EditorUiFactory.NoticeColor);
             EditorUiFactory.Place(notice, new Vector2(0.5f, 0f), new Vector2(0f, 80f), new Vector2(1600f, 50f));
 
+            canvas.gameObject.AddComponent<CursorUnlockOnStart>();
             LobbyView view = canvas.gameObject.AddComponent<LobbyView>();
-            TestEnvironmentSetupTool.SetField(view, "mainMenu", main.gameObject);
-            TestEnvironmentSetupTool.SetField(view, "createMenu", createMenu.gameObject);
-            TestEnvironmentSetupTool.SetField(view, "steamCreatePanel", steamCreate.gameObject);
-            TestEnvironmentSetupTool.SetField(view, "joinMenu", joinMenu.gameObject);
-            TestEnvironmentSetupTool.SetField(view, "steamJoinPanel", steamJoin.gameObject);
-            TestEnvironmentSetupTool.SetField(view, "directJoinPanel", directJoin.gameObject);
+            // 화면 목록: (화면, 패널, 뒤로 가면 돌아갈 화면). 첫 항목이 시작 화면.
+            SetLobbyScreens(view,
+                (LobbyScreen.Main, main.gameObject, LobbyScreen.Main),
+                (LobbyScreen.Create, createMenu.gameObject, LobbyScreen.Main),
+                (LobbyScreen.SteamCreate, steamCreate.gameObject, LobbyScreen.Create),
+                (LobbyScreen.Join, joinMenu.gameObject, LobbyScreen.Main),
+                (LobbyScreen.SteamJoin, steamJoin.gameObject, LobbyScreen.Join),
+                (LobbyScreen.DirectJoin, directJoin.gameObject, LobbyScreen.Join));
 
             // 화면별 버튼 코드 (모두 캔버스에 붙여, 화면이 꺼져 있어도 이벤트를 받을 수 있게 한다)
             LobbyMainMenu mainMenuCode = canvas.gameObject.AddComponent<LobbyMainMenu>();
@@ -279,6 +282,24 @@ namespace GuardVsMannequin.Editor
             TestEnvironmentSetupTool.SetField(view, "settingsPanel", SharedUiBuilder.CreateSettingsPanel(canvas.transform));
             TestEnvironmentSetupTool.SetField(view, "creditsPanel", SharedUiBuilder.CreateCreditsPanel(canvas.transform));
             return canvas.gameObject;
+        }
+
+        /// <summary>
+        /// 로비 화면 목록(LobbyView.screens)을 채운다. 항목 = (화면, 패널, 뒤로 가면 돌아갈 화면)
+        /// </summary>
+        private static void SetLobbyScreens(LobbyView view, params (LobbyScreen screen, GameObject panel, LobbyScreen parent)[] entries)
+        {
+            var serialized = new SerializedObject(view);
+            SerializedProperty screens = serialized.FindProperty("screens");
+            screens.arraySize = entries.Length;
+            for (int i = 0; i < entries.Length; i++)
+            {
+                SerializedProperty element = screens.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("screen").enumValueIndex = (int)entries[i].screen;
+                element.FindPropertyRelative("panel").objectReferenceValue = entries[i].panel;
+                element.FindPropertyRelative("parent").enumValueIndex = (int)entries[i].parent;
+            }
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>
@@ -393,7 +414,7 @@ namespace GuardVsMannequin.Editor
             EditorUiFactory.SetWidth(primaryButton, 320f);
 
             // 화면 관리 + 영역별 코드 (모두 캔버스에 붙인다)
-            canvas.gameObject.AddComponent<RoomView>();
+            canvas.gameObject.AddComponent<CursorUnlockOnStart>();
 
             RoomMemberListView members = canvas.gameObject.AddComponent<RoomMemberListView>();
             TestEnvironmentSetupTool.SetField(members, "memberListText", memberList);

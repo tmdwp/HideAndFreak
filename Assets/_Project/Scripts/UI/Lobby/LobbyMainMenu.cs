@@ -15,15 +15,16 @@ namespace GuardVsMannequin.UI
         [SerializeField] private Button quitButton;
 
         /// <summary>
-        /// 버튼 동작을 연결한다. 화면 이동은 같은 캔버스의 <see cref="ILobbyNavigator"/>에 맡긴다.
+        /// 버튼 동작을 연결한다. 화면 이동과 패널 열기는 같은 캔버스의 <see cref="ILobbyNavigator"/>, <see cref="ILobbyOverlays"/>에 맡긴다.
         /// </summary>
         private void Start()
         {
-            ILobbyNavigator navigator = GetComponentInParent<ILobbyNavigator>();
-            createMenuButton.onClick.AddListener(() => navigator.Show(LobbyScreen.Create));
-            joinMenuButton.onClick.AddListener(() => navigator.Show(LobbyScreen.Join));
-            settingsButton.onClick.AddListener(navigator.OpenSettings);
-            creditsButton.onClick.AddListener(navigator.OpenCredits);
+            ILobbyNavigator navigator = UiLookup.FindInParent<ILobbyNavigator>(this);
+            ILobbyOverlays overlays = UiLookup.FindInParent<ILobbyOverlays>(this);
+            createMenuButton.onClick.AddListener(() => navigator?.Show(LobbyScreen.Create));
+            joinMenuButton.onClick.AddListener(() => navigator?.Show(LobbyScreen.Join));
+            settingsButton.onClick.AddListener(() => overlays?.OpenSettings());
+            creditsButton.onClick.AddListener(() => overlays?.OpenCredits());
             quitButton.onClick.AddListener(Quit);
         }
 

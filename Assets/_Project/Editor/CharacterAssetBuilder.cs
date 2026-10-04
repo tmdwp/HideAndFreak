@@ -17,7 +17,7 @@ namespace GuardVsMannequin.Editor
     /// </summary>
     public static class CharacterAssetBuilder
     {
-        private const string SkinFolder = "Assets/_Project/Art/Skins";
+        internal const string SkinFolder = "Assets/_Project/Art/Skins";
         private const string WeaponFolder = "Assets/_Project/Art/Weapons";
 
         public const string DummySkinPath = SkinFolder + "/Skin_Dummy.asset";
@@ -58,9 +58,12 @@ namespace GuardVsMannequin.Editor
             Directory.CreateDirectory(WeaponFolder);
             AssetDatabase.Refresh();
 
-            AnimatorController humanoid = CreateHumanoidLocomotionController();
+            AnimatorController humanoid = CreateHumanoidLocomotionController(HumanoidControllerPath);
 
-            CreateSkin("Dummy", DummySource, humanoid, HumanHeight, useAimIK: false, DummySkinPath);
+            // 마네킹(더미)은 이동 + 감정 표현·상호작용 컨트롤러를 쓴다. (가드와 따로)
+            AnimatorController mannequin = MannequinAnimatorBuilder.CreateController();
+
+            CreateSkin("Dummy", DummySource, mannequin, HumanHeight, useAimIK: false, DummySkinPath);
             CreateSkin("Slime", SlimeSource, AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(SlimeController), 1.3f, false, SlimeSkinPath);
             CreateSkin("Ghost", GhostSource, AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(GhostController), 1.6f, false, GhostSkinPath);
             CreateSkin("Guard", EthanSource, humanoid, HumanHeight, useAimIK: true, GuardSkinPath);
@@ -75,12 +78,13 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 휴머노이드 공용 이동 컨트롤러를 만든다.
         /// 로컬 이동 속도(MoveX, MoveZ)로 대기/걷기/달리기 8방향을 섞는 2D 블렌드 트리 하나로 구성한다.
-        /// 가드의 손 조준 IK를 위해 IK Pass를 켠다.
+        /// 가드의 손 조준 IK를 위해 IK Pass를 켠다. 같은 경로에 있으면 지우고 새로 만든다.
         /// </summary>
-        private static AnimatorController CreateHumanoidLocomotionController()
+        /// <param name="path">저장할 컨트롤러 경로.</param>
+        internal static AnimatorController CreateHumanoidLocomotionController(string path)
         {
-            AssetDatabase.DeleteAsset(HumanoidControllerPath);
-            AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(HumanoidControllerPath);
+            AssetDatabase.DeleteAsset(path);
+            AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(path);
             controller.AddParameter("MoveX", AnimatorControllerParameterType.Float);
             controller.AddParameter("MoveZ", AnimatorControllerParameterType.Float);
             controller.AddParameter("Speed", AnimatorControllerParameterType.Float);

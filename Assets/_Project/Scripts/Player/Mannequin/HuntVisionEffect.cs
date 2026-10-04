@@ -14,10 +14,10 @@ namespace GuardVsMannequin.Player.Mannequin
         [SerializeField] private Light visionLight;
 
         [Tooltip("안개가 시작되는 거리.")]
-        [SerializeField] private float fogStartDistance = 2f;
+        [SerializeField] private float fogStartDistance = 3f;
 
         [Tooltip("이 거리부터 완전히 보이지 않는다.")]
-        [SerializeField] private float fogEndDistance = 9f;
+        [SerializeField] private float fogEndDistance = 13.5f;
 
         [SerializeField] private Color fogColor = Color.black;
 

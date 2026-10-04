@@ -41,6 +41,8 @@ GameObject:
   - component: {fileID: 4475952393218537844}
   - component: {fileID: 2825400833285518174}
   - component: {fileID: 7920489579145812017}
+  - component: {fileID: 4718263095518402736}
+  - component: {fileID: 2273572615940856064}
   m_Layer: 0
   m_Name: Mannequin
   m_TagString: Untagged
@@ -183,7 +185,7 @@ MonoBehaviour:
   _brakingDecelerationFalling: 0
   _fallingLateralFriction: 0.3
   _airControl: 0.3
-  _canEverJump: 0
+  _canEverJump: 1
   _canJumpWhileCrouching: 1
   _jumpMaxCount: 1
   _jumpImpulse: 5
@@ -393,6 +395,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerMovementDriver
   lookSensitivity: {x: 0.1, y: 0.1}
+--- !u!114 &2273572615940856064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d83cac38a9a448b9a89231cd26fc6e0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.SprintAbility
 --- !u!114 &8982155293469663719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -443,6 +457,7 @@ MonoBehaviour:
   ownerOnlyBehaviours:
   - {fileID: 2863810353114395617}
   - {fileID: 8597384182301706604}
+  - {fileID: 2273572615940856064}
   hiddenForOwner: []
   hideSkinForOwner: 0
 --- !u!114 &178145158723463962
@@ -684,8 +699,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.HuntVisionEffect
   visionLight: {fileID: 1661711540852089762}
-  fogStartDistance: 2
-  fogEndDistance: 9
+  fogStartDistance: 3
+  fogEndDistance: 13.5
   fogColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &4475952393218537844
 MonoBehaviour:
@@ -1162,7 +1177,7 @@ Light:
   m_Type: 2
   m_Color: {r: 0.65, g: 0.75, b: 0.95, a: 1}
   m_Intensity: 1.5
-  m_Range: 8
+  m_Range: 12
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -1215,3 +1230,15 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &4718263095518402736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c7e91a4d2b84f5e9a6d0b1f8e2c4a73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.InteractAnimationView

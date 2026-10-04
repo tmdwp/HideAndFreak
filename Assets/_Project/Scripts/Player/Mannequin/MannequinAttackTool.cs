@@ -13,31 +13,30 @@ namespace GuardVsMannequin.Player.Mannequin
     [RequireComponent(typeof(CameraAimProvider), typeof(NoiseEmitter), typeof(MannequinTransformer))]
     public class MannequinAttackTool : NetworkBehaviour, ITool
     {
-        private const float CooldownTolerance = 0.15f;
-        private const float MaxOriginOffset = 3f;
+        /// <summary>비정상 원점을 대체할 눈 높이(m).</summary>
+        private const float EyeHeight = 1.5f;
 
         private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
+        private readonly ToolCooldown cooldown = new();
 
         private IAimProvider aimProvider;
         private IPlayerInput playerInput;
         private NoiseEmitter noiseEmitter;
         private MannequinTransformer transformer;
         private CharacterSkinView skinView;
-        private float localNextAttackTime;
-        private float serverNextAttackTime;
 
         public string DisplayName => Loc.Get("tool.attack");
-        public float CooldownRemaining => Mathf.Max(0f, localNextAttackTime - Time.time);
+        public float CooldownRemaining => cooldown.LocalRemaining;
         public bool IsReady => CooldownRemaining <= 0f && CanAttackNow;
 
         /// <summary>사냥 시간이고 변신하지 않은 상태인지 여부.</summary>
         private bool CanAttackNow => GameServices.CurrentStateOrWaiting == GameState.Hunting && !transformer.IsDisguised;
 
         /// <summary>호스트 설정의 공격 범위.</summary>
-        private static float AttackRange => GameServices.State?.Settings.mannequinAttackRange ?? 2f;
+        private static float AttackRange => GameServices.CurrentSettingsOrDefault.mannequinAttackRange;
 
-        /// <summary>공격 한 번의 피해량. (호스트 설정, 최소 1)</summary>
-        private static int Damage => Mathf.Max(1, GameServices.State?.Settings.mannequinAttackDamage ?? GameConstants.Damage);
+        /// <summary>공격 한 번의 피해량. (마네킹 능력치, 최소 1)</summary>
+        private static int Damage => Mathf.Max(1, GameServices.CurrentSettingsOrDefault.GetStats(PlayerRole.Mannequin).AttackDamage);
 
         /// <summary>
         /// 구성 요소를 캐시한다.
@@ -80,7 +79,7 @@ namespace GuardVsMannequin.Player.Mannequin
                 return;
 
             Ray aim = aimProvider.GetAimRay();
-            localNextAttackTime = Time.time + GameConstants.MannequinAttackCooldown;
+            cooldown.StartLocal(GameConstants.MannequinAttackCooldown);
             AttackServerRpc(aim.origin, aim.direction);
         }
 
@@ -92,12 +91,10 @@ namespace GuardVsMannequin.Player.Mannequin
         {
             if (!CanAttackNow)
                 return;
-            if (Time.time < serverNextAttackTime - CooldownTolerance)
+            if (!cooldown.TryStartServer(GameConstants.MannequinAttackCooldown))
                 return;
-            serverNextAttackTime = Time.time + GameConstants.MannequinAttackCooldown;
 
-            if ((origin - transform.position).sqrMagnitude > MaxOriginOffset * MaxOriginOffset)
-                origin = transform.position + Vector3.up * 1.5f;
+            origin = AimRaycaster.SanitizeOrigin(origin, transform, EyeHeight);
 
             IDamageable target = FindTarget(new Ray(origin, direction.normalized));
             target?.TakeDamage(Damage, NetworkObject);

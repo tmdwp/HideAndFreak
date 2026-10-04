@@ -30,9 +30,9 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private void Start()
         {
-            navigator = GetComponentInParent<ILobbyNavigator>();
-            steamJoinMenuButton.onClick.AddListener(() => navigator.Show(LobbyScreen.SteamJoin));
-            directJoinMenuButton.onClick.AddListener(() => navigator.Show(LobbyScreen.DirectJoin));
+            navigator = UiLookup.FindInParent<ILobbyNavigator>(this);
+            steamJoinMenuButton.onClick.AddListener(() => navigator?.Show(LobbyScreen.SteamJoin));
+            directJoinMenuButton.onClick.AddListener(() => navigator?.Show(LobbyScreen.DirectJoin));
             joinSteamButton.onClick.AddListener(() => SessionServices.Session?.JoinSteamRoom(roomCodeInput.text, joinPasswordInput.text));
             joinDirectButton.onClick.AddListener(() => SessionServices.Session?.JoinDirectRoom(addressInput.text));
 
@@ -60,10 +60,9 @@ namespace GuardVsMannequin.UI
             if (session == null)
                 return;
 
-            bool idle = !session.IsBusy;
-            steamJoinMenuButton.interactable = session.IsSteamAvailable;
-            joinSteamButton.interactable = idle && session.IsSteamAvailable;
-            joinDirectButton.interactable = idle;
+            steamJoinMenuButton.interactable = session.CanOpenSteamMenu();
+            joinSteamButton.interactable = session.CanConnectSteam();
+            joinDirectButton.interactable = session.CanConnectDirect();
         }
 
         /// <summary>
@@ -71,7 +70,7 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private void OnPasswordRequired(string roomCode)
         {
-            navigator.Show(LobbyScreen.SteamJoin);
+            navigator?.Show(LobbyScreen.SteamJoin);
             roomCodeInput.text = roomCode;
             joinPasswordInput.text = string.Empty;
             joinPasswordInput.Select();

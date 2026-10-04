@@ -27,6 +27,15 @@
   - **L**: 파생 클래스가 기반 계약을 깨지 않도록 (예: 모든 `ITool`은 쿨타임 규칙을 동일하게 따름)
   - **I**: 작은 인터페이스로 분리 (`IDamageable`, `INoiseSource`, `ITransformable`)
   - **D**: 게임플레이 로직은 구체 클래스가 아닌 인터페이스/ScriptableObject 설정에 의존
+  - **적용 기준** (2026-10-02 점검 후 추가)
+    - 역할(가드/마네킹)에 따른 `if`/`switch`를 여기저기 쓰지 않는다. 역할별 값(프리팹, 스탯, 표시 이름, 안내 문구)은 `RoleDefinition`/`RoleStats` 한곳에서 꺼낸다.
+    - 여러 클래스에 같은 코드가 생기면(쿨타임 판정, 조준 원점 검증, 버튼 활성 조건 등) 공용 타입으로 뺀다. 기본값 숫자도 한곳(`GameConstants`/`DefaultGameSettings`)에만 둔다.
+    - UI는 "화면 관리 + 영역별 컴포넌트"로 나누고, 영역끼리는 인터페이스(`ILobbyNavigator`, `IRoomNotice`, `IHudSection` 등)로만 통신한다.
+    - 판정 함수는 값만 반환하고 상태를 바꾸지 않는다. (예: 승패 판정은 결과를 반환하고 기록은 호출한 쪽이 한다)
+    - 화면 목록·부모 화면처럼 늘어날 수 있는 구성은 코드 분기 대신 인스펙터 데이터로 받는다.
+    - `GetComponentInParent` 등으로 찾은 의존성은 null을 확인하고, 없으면 원인을 로그로 남긴다(`UiLookup`).
+    - 예외: 씬을 넘나드는 서비스의 정적 접근(`SessionServices`, `GameServices`, `RoomState.Instance`)은 인터페이스를 거치는 조건으로 허용한다.
+  - 작업을 마치면 바꾼 코드를 위 원칙으로 점검하고, 어긴 곳이 있으면 보고에 함께 적는다.
 - **서버 권한 원칙**: 판정·상태 변경은 서버(`[Server]`, `[ServerRpc]`)에서만. 클라이언트는 입력 전송과 연출만 담당
 - 하드코딩된 수치 금지 → 모든 호스트 설정값은 `GameSettings`에서 읽음
 
@@ -99,7 +108,7 @@ Waiting ─▶ Preparation ─▶ Playing ─▶ Hunting ─▶ Ended
 | `huntHealthMultiplier` | float | 10 | 사냥 시간 마네킹 체력 배율 |
 | `mannequinAttackRange` | float | 2 | |
 | `guardMoveSpeed` | float | 2 | 가드 이동 속도(m/s) |
-| `mannequinMoveSpeed` | float | 1.5 | 마네킹 기본 이동 속도(m/s). 사냥 시간에는 × 1.5 (`GameConstants.MannequinHuntSpeedMultiplier`) |
+| `mannequinMoveSpeed` | float | 1.5 | 마네킹 기본 이동 속도(m/s). 사냥 시간에는 × 0.8 (`GameConstants.MannequinHuntSpeedMultiplier`) |
 
 - 기본값은 `Resources/Data/default_game_settings.json`에, 룸에서 조정하는 단위·범위·표시 순서는 `Resources/Data/game_settings.csv`에 둡니다. 런타임 값은 `SyncVar`로 동기화하는 구조체로 관리합니다.
 - 값 검증(범위 제한)은 `GameSettingsValidator`가 담당합니다 (SRP).
@@ -409,7 +418,11 @@ public interface ITransformable { int PropId { get; } }
 - **UI 프리팹과 맵 제작 도구**: 사용법은 `Docs/UiAndMapGuide.md`. UI는 `Prefabs/UI`의 프리팹(설정·크레딧 패널은 중첩 프리팹)으로 관리되어 씬 생성 도구를 다시 실행해도 직접 수정한 내용이 유지된다(`UiPrefabLibrary`). 맵은 "맵 제작 도우미" 창(`MapMakerWindow`)에서 새 맵 뼈대 생성 → 등록(`PropRegistrar` 공용) → 지점 배치 → 경계 → 검사(`MapValidator`) → 최적화 → 맵 목록 갱신(`MapRegistrySync`: 빌드 설정·RoomState·strings.csv·game_settings.csv) 순서로 만든다. 직접 만든 맵은 `Scenes/Custom`에 두면 자동 생성 맵 뒤 번호로 붙는다.
 - **맵 크기**: 걸을 수 있는 바닥이 800㎡보다 좁은 맵은 생성 시 환경 전체를 키운다(최대 2.5배, 조명 범위도 함께). `MapCatalog`의 `scale`에 값을 넣으면 그 배율로 고정된다(0 = 자동).
 - **전원 장치 배치**: 생성 시 후보 12개를 서로 최대한 멀리 배치하고, 매 판 `GeneratorSpawner`가 후보 중 서로 먼 것을 고른다(가장 먼 상위 3개 중 무작위). 편집은 `GuardVsMannequin > 맵 편집` 메뉴(씬 뷰 중앙에 전원 장치 후보·마네킹 스폰·가드 출발 지점 추가, 전원 장치 후보 넓게 다시 배치)나 씬에서 직접 옮기기·복제로 한다. 후보는 씬 뷰에 빨간 상자와 이름표로 보인다.
-- **캐릭터 애니메이션 규칙** (`CharacterAnimatorParameters`): 외형 컨트롤러에 `Speed`/`MoveX`/`MoveZ`(Float), `Attack`/`Shoot`/`Hit`(Trigger), `Emote1`~`Emote6`(Trigger) 또는 `Emote`(Trigger)+`EmoteId`(Int)를 만들면 게임이 자동으로 사용한다. 없는 파라미터는 건너뛰며, 감정 표현 애니메이션이 없으면 절차적 움직임으로 대신한다(`AnimatorEmoteView` → `ProceduralEmoteView`).
+- **캐릭터 애니메이션 규칙** (`CharacterAnimatorParameters`): 외형 컨트롤러에 `Speed`/`MoveX`/`MoveZ`(Float), `Attack`/`Shoot`/`Hit`(Trigger), `Emote1`~`Emote6`(Trigger) 또는 `Emote`(Trigger)+`EmoteId`(Int), `Interact`(Bool, 전원 장치 등과 상호작용하는 동안 켜짐)를 만들면 게임이 자동으로 사용한다. 없는 파라미터는 건너뛰며, 감정 표현 애니메이션이 없으면 절차적 움직임으로 대신한다(`AnimatorEmoteView` → `ProceduralEmoteView`).
+- **마네킹 감정 표현·상호작용 애니메이션** (2026-10-03): 메뉴 `GuardVsMannequin > 마네킹 감정 표현 애니메이터 생성`(`MannequinAnimatorBuilder`, '캐릭터·무기 에셋 생성'에도 포함)이 `Assets/_Project/Animation`의 Mixamo FBX를 휴머노이드로 임포트하고 마네킹 전용 컨트롤러 `Art/Skins/AC_MannequinHumanoid`를 만들어 더미 외형에 지정한다. 가드는 계속 `AC_HumanoidLocomotion`을 쓴다.
+  - 번호: 1 Salute, 2 Thoughtful Head Shake, 3 Talking On Phone, 4 Situps, 5 Backflip(전신, Base Layer의 `Emotes` 하위 상태 머신 — 클립이 끝나거나 0.3m/s 넘게 움직이면 이동 애니메이션으로 복귀) / 6 Working On Device(상체 전용, `UpperBody` 레이어 + 상체 마스크 `AM_UpperBody`).
+  - 전원 장치 상호작용: 서버가 `MannequinInteractor`의 동기화 값(`IsInteracting`, 대상이 참여자를 빼면 꺼짐)을 정하고, 모든 클라이언트의 `InteractAnimationView`가 `Interact`(Bool)로 옮겨 Working On Device를 상체로 반복 재생한다.
+  - 클립은 제자리 재생(회전·높이는 포즈에 굽고 수평 이동은 분리)으로 맞춘다. 다른 클립을 쓰려면 `MannequinAnimatorBuilder.Emotes` 목록의 파일 이름을 바꾸고 메뉴를 다시 실행한다. (컨트롤러를 직접 수정하면 메뉴 실행 시 덮어써진다)
 - **리볼버 위치**: 모두 매 프레임 적용되므로 Play 중에 맞춘다.
   - 1인칭 총(카메라 기준, 외형과 무관): Guard 프리팹의 `GuardWeaponView`. Play 중 맞춘 뒤 Copy Component → 프리팹에 Paste Component Values.
   - 3인칭 총·조준 IK 손 위치(외형마다 다름): 외형 에셋 `Skin_*.asset`의 **Weapon Grip**. 에셋이라 Play 중 바꾼 값이 그대로 저장되고, '캐릭터·무기 에셋 생성'을 다시 실행해도 유지된다. 외형이 없는 가드는 `GuardWeaponView`의 예비 값(fallbackGrip)을 쓴다.
@@ -425,10 +438,102 @@ public interface ITransformable { int PropId { get; } }
 - 인스펙터 툴팁·개발용 로그는 한국어로 유지한다. (플레이어에게 보이지 않음)
 - HUD(`GameHud`)는 같은 표시 로직을 uGUI Text/패널로 옮겼다. UI는 모두 에디터 툴(`SharedUiBuilder`, `MenuSceneBuilder`)로 씬에 생성되어 인스펙터에서 편집할 수 있다.
 - **UI 코드 분리** (2026-10-02): 화면 코드를 "화면 관리 + 영역별 컴포넌트"로 나눴다(`Scripts/UI/Lobby`, `Room`, `Hud`). 영역 컴포넌트는 모두 캔버스 오브젝트에 붙는다(화면 패널에 붙이면 꺼진 동안 실행되지 않아 초대 암호 요청 같은 이벤트를 놓치므로). 로비 메뉴는 `ILobbyNavigator`(= `LobbyView`)로만 화면을 바꾸고, 룸의 일시 안내는 `IRoomNotice`(= `RoomFooterView`, 2초 표시)로 띄운다. HUD 영역은 `IHudSection`을 구현하고 `GameHud`가 만든 `HudContext`(게임 상태·로컬 플레이어)를 받는다. 맵 씬이 덮어쓰는 게임 상태 연결 5개는 `GameHud`에 남겼다. 기존 프리팹의 연결은 YAML에서 새 컴포넌트로 옮겨 다시 연결할 필요가 없다.
+- **SOLID 점검 후 정리** (2026-10-02)
+  - 로비 화면 목록은 `LobbyView`의 인스펙터 목록(화면, 패널, 부모 화면)으로 정한다. `ILobbyNavigator`(이동)와 `ILobbyOverlays`(설정·크레딧)를 나눴다. 메뉴 버튼 조건은 `SessionButtonRules`, 부모 쪽 의존성 찾기는 `UiLookup`(없으면 오류 로그), 메뉴 화면 커서 풀기는 `CursorUnlockOnStart`.
+  - HUD는 게임 상태를 읽기 전용 `IGameStateProvider`로, 룸 복귀를 `IMatchControl`(`GameStateMachine` 구현)로만 쓴다. 로컬 플레이어 추적은 `LocalPlayerTracker`.
+  - `UiPrefabLibrary`(프리팹 가져오기·만들기) / `UiPrefabDefaults`(기준본 저장·복원) / `UiPrefabMenus`(메뉴)로 나눴다.
+  - **역할 정의**: 역할별 값(이름·안내 문구 key, 승리 진영, 사냥 시간 속도 배율, 설정에서 체력·속도·피해량 고르기)은 `RoleDefinitions`/`RoleStats` 한곳에 있다. `PlayerSpawner`의 아바타 프리팹은 역할별 목록(`rolePrefabs`), 맵 외형은 `MapInfo.GetSkin(role)`. Phase 7의 맵별 스탯은 `RoleStats`를 고르는 곳에 맵 값을 덧씌우면 된다.
+  - 설정 기본값은 `GameServices.CurrentSettingsOrDefault`(없으면 `DefaultGameSettings.Cached`) 한곳에서 읽는다. 코드 곳곳의 `?? 2f`, `?? 10f` 같은 기본값을 없앴다.
+  - 도구 공통: 쿨타임 `ToolCooldown`(로컬/서버, 허용 오차 0.15초), 조준 원점 검증 `AimRaycaster.SanitizeOrigin`.
+  - `MannequinTransformer`는 입력·서버 검증·동기화만 하고, 조준한 사물 찾기는 `PropTargetFinder`, 사물 목록 결정은 `IPropDatabaseSource`(`MapPropDatabaseSource`)가 맡는다.
+  - `CharacterSkinView`는 외형 적용만 하고, 이동 애니메이션 값은 `LocomotionAnimatorDriver`, 파라미터 확인은 `AnimatorParameterSet`이 맡는다.
+  - 승패 판정은 순수 함수 `MatchJudge`(값만 받아 `MatchVerdict` 반환)이고, `MatchRules`가 결과를 기록한다.
+  - `FakeMannequinSpawner`는 씬 전체 검색 대신 `SpawnPointRegistry`를 쓴다. 게임 시작 실패 문구는 `strings.csv` key로 바꿨다.
 
 ---
 
-### Phase 7 — 모드 지원 (계획)
+### Phase 7 — 게임플레이 개편 + 모드 지원 (계획)
+
+Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드 지원**(7-1~7-7)을 이어서 한다. A에서 `GameSettings` 항목(가드 대기 시간 삭제, 탐지기 → 수류탄)이 바뀌므로, B의 `map.json` 설정·스탯 항목은 A가 끝난 형식을 기준으로 정한다.
+
+#### A. 게임플레이 개편 (2026-10-03 기획)
+
+**목표:** 가드 대기 시간을 없애 판 시작을 빠르게 하고, 가드 도구를 "탐지(소리)"에서 "수류탄(외곽선 표시 + 감속)"으로 바꾼다. 변신 사물 조준 외곽선이 보이지 않는 문제를 고치면서 외곽선 표시를 공용 기능으로 만든다.
+
+**A-1. 가드 대기 시간 제거 + 가드 무작위 스폰**
+- 현재: `Preparation` 상태(가드 대기 시간 15~180초, 기본 20초) 동안 가드가 대기실(`WaitingRoomArea`, `WaitingRoomDoor`)에 갇히고, 탐색 단계가 시작되면 `GuardReleaseTeleporter`가 `GuardReleasePoint`로 옮긴다.
+- 변경: 가드도 처음부터 맵 안의 **무작위 위치**에 스폰한다. 대기실·문·대기실 이동 검증·순간이동을 없앤다.
+- 상태 흐름은 유지한다: `GameState.Preparation`을 지우면 네트워크 형식(enum 값)과 여러 구독자(`PlayerSpawner`, `FakeMannequinSpawner`, `GeneratorSpawner`, `MatchResult`, `MannequinTransformer`, HUD)를 함께 고쳐야 한다. 그래서 **`Preparation`은 "판 시작 준비" 단계로 남기고, 시간을 호스트 설정이 아닌 고정값 `GameConstants.MatchStartDelay`(권장 3초, 시작 카운트다운 표시)로 바꾼다.** 스폰·역할 배정·가짜 마네킹·전원 장치 배치는 지금처럼 이 단계에 진입할 때 한다. 이 3초 동안은 모두 이동할 수 없다(로딩이 늦은 플레이어와 시작을 맞춤).
+- 가드 스폰 위치 규칙 (`GuardSpawnSelector`, 서버):
+  1. 후보 = 맵의 가드 스폰 후보 지점(지금의 `GuardReleasePoint` 5개를 `SpawnPoint(Guard)`로 바꿔 맵 안에 둠) + 미리 구운 NavMesh 위 무작위 지점(`NavMesh.SamplePosition`).
+  2. 모든 마네킹 스폰 지점에서 **최소 거리**(권장 15m, `GameConstants.GuardSpawnMinDistance`) 이상 떨어진 후보만 쓴다. 맵이 작아 조건을 만족하는 후보가 없으면 가장 먼 후보를 쓴다.
+  3. 가드가 여러 명이면 서로 일정 거리(권장 8m) 이상 떨어지게 고른다.
+  4. 시점은 맵 중심 쪽을 향하게 한다.
+- **검토: 마네킹이 숨을 시간이 없어짐.** 지금은 대기 시간 20초 동안 마네킹이 자리를 잡는다. 대기 시간이 없으면 시작하자마자 가드가 돌아다닌다. 보완책으로 **"가드 출발 보호" — 시작 후 `GameConstants.GuardToolLockTime`(권장 10초) 동안 가드는 이동만 할 수 있고 총·수류탄은 쓸 수 없다**(`DamageRules.CanUseGuardTools`에 경과 시간 조건 추가, HUD에 남은 시간 표시). 이동이 가능하므로 가드는 그동안 맵을 둘러볼 수 있다. 밸런스 테스트 후 값을 조정한다.
+- 목표 0회 판의 사냥 시간 진입 시점(`ZeroObjectiveHuntDelay` 20초)은 지금도 탐색 단계 시작부터 센다. 대기 시간이 없어지면 실제 판 시작 후 약 23초에 사냥 시간이 된다. 가드 출발 보호 10초를 빼면 가드가 공격할 수 있는 시간이 13초뿐이다. **→ 30~40초로 늘리고 룸 설정 항목으로 바꾸는 것을 검토**한다.
+- 지우거나 바꿀 것
+
+  | 대상 | 처리 |
+  |---|---|
+  | `GameSettings.preparationTime`, `GameSettingId.PreparationTime`, `game_settings.csv`·`default_game_settings.json`·`strings.csv`의 해당 줄, `GameSettingsValidator.Min/MaxPreparationTime` | 삭제 |
+  | `PreparationStateHandler` | 설정 대신 `MatchStartDelay` 사용 |
+  | `WaitingRoomArea`, `WaitingRoomDoor`, `GuardReleaseTeleporter`, `GuardReleasePoint` | 삭제(`GuardReleasePoint` → 가드 `SpawnPoint`로 교체) |
+  | `MovementValidator`의 대기실 검사 | 삭제. 시작 준비 3초 동안 이동 금지는 클라이언트 입력 차단 + 서버 검증으로 처리 |
+  | `MapSceneBuilder`(대기실 생성, `GuardReleaseCount`, `WaitingRoomSpawnCount`), `MapEditTools`, `MapMakerWindow`, `MapValidator`, `TestEnvironmentSetupTool` | 대기실 생성·검사 대신 가드 스폰 후보 배치·검사 |
+  | 기존 맵 씬 5개 | 메뉴 "맵 편집/가드 대기실 제거 (전체 맵)"로 대기실·문·출발 지점을 지우고 가드 스폰 지점으로 바꾸는 이전 도구를 만든다 |
+  | `MannequinTransformer`의 대기 시간 중 해제 쿨타임 0초 | 시작 준비 단계에는 변신 불가로 변경 |
+  | HUD `hud.phase.preparation` | "시작 준비 3, 2, 1" 카운트다운 |
+
+**A-2. 탐지기 제거 → 수류탄 추가**
+- 현재 탐지기(`DetectorTool`, 우클릭): 반경 10m 안의 실제 마네킹이 소리(`MannequinDetected`)를 낸다. 쿨타임은 `detectorCooldown`.
+- 변경: 같은 우클릭 칸에 **수류탄(`GrenadeTool`)**을 넣는다. 던지면 포물선으로 날아가 **닿는 순간 터지고**(가드 조작을 단순하게 하기 위해 시한 신관은 쓰지 않음), **반경 2m** 안의 **실제 마네킹**(변신 여부 무관)에게 아래 효과를 준다. 가짜 마네킹과 가드는 영향을 받지 않는다. 피해는 없다.
+  - **외곽선 표시**: 맞은 마네킹(변신 중이면 변신한 사물)에 밝은 외곽선을 `GrenadeRevealDuration`(권장 4초) 동안 그린다. **가드에게만** 보이고 **벽 너머로도 보인다**. 맞은 마네킹 본인에게는 화면 가장자리 효과와 안내 문구로 알린다.
+  - **감속**: 이동 속도를 `GrenadeSlowMultiplier`(권장 0.5배)로 `GrenadeSlowDuration`(권장 3초) 동안 낮춘다. 사냥 시간 1.5배와 곱해서 적용한다.
+- 판정 (서버 권한):
+  1. 클라이언트는 `ServerRpc(조준 원점, 방향)`만 보낸다. 원점은 `AimRaycaster.SanitizeOrigin`으로 검증한다. 쿨타임은 `ToolCooldown`을 쓴다.
+  2. 서버가 고정 초기 속도·중력으로 궤적을 **작은 간격으로 SphereCast**해 충돌 지점을 정한다(최대 비행 시간 3초, 넘으면 그 위치에서 폭발). 궤적이 결정적이라 수류탄을 NetworkObject로 만들지 않아도 된다.
+  3. 서버가 `ObserversRpc(시작점, 초기 속도, 폭발 지점, 비행 시간)`를 보내면 모든 클라이언트가 같은 궤적으로 수류탄 모델을 날리고 폭발 효과를 재생한다. 효과는 서버가 비행 시간 뒤에 적용한다.
+  4. 폭발 지점 기준 `OverlapSphere(2m)`로 `PlayerIdentity(Mannequin)`을 찾는다(탐지기의 `FindMannequinsInRange`를 재사용). **벽 너머 판정은 막는다**: 폭발 지점에서 대상까지 환경(변신 사물·플레이어 제외)에 막히면 제외한다.
+- 상태 동기화: 마네킹에 `StatusEffects` 컴포넌트를 만들고 서버가 `SyncVar`로 "외곽선 표시 끝 시각", "감속 끝 시각"(서버 Tick 기준)을 기록한다. 다시 맞으면 끝 시각을 갱신한다(중첩 없음).
+  - 감속: 마네킹 이동은 소유자 권한이므로 소유자의 `MoveSpeedController`가 배율을 적용한다. 부정 이용(감속 무시)을 막기 위해 서버의 `MovementValidator`도 감속 중에는 최대 속도를 낮춘 값으로 검사한다(감속이 끝나는 순간의 지연을 고려해 0.3초 여유).
+  - 외곽선: 가드 클라이언트의 `RevealOutlineView`가 `StatusEffects`를 보고 공용 외곽선 기능(A-3)으로 그린다.
+- 사용 가능한 단계: 총과 같이 탐색 단계·사냥 시간(`DamageRules.CanUseGuardTools`). 사냥 시간에는 가드가 불리하므로(사냥 시간 1:1 교전 시 가드 패배), 감속이 도주·반격 수단이 된다.
+- 설정 변경: `detectorCooldown` → `grenadeCooldown`(룸 설정, 기본 15초, 범위 5~60초). 반경 2m·효과 시간·감속 배율은 `GameConstants`의 고정값으로 시작하고, 밸런스가 정해지면 필요한 것만 룸 설정으로 올린다. (Phase 7-B의 맵별 스탯 항목에도 `grenadeCooldown`을 넣는다.)
+  - 주의: `JsonUtility`는 없는 키를 0으로 남긴다. 빌드 폴더의 수정된 `default_game_settings.json`에 `grenadeCooldown`이 없으면 쿨타임 0이 된다. `DefaultGameSettings`가 **값이 0 이하인 항목은 코드 기본값으로 채우도록** 한다.
+- 지우거나 바꿀 것: `DetectorTool`, `DetectorPulseView`, `GameConstants.DetectorRadius`, `NoiseType.DetectorPing`·`MannequinDetected`(번호 1·2는 다시 쓰지 않음 — `GrenadeExplosion`은 새 번호), `tool.detector` 문구, Guard 프리팹의 도구 목록·HUD 쿨타임 아이콘, 4.4/4.5 체크리스트의 "탐지기" 항목 → "수류탄 모델, 폭발 이펙트, 던지는 소리, 폭발음".
+- 3인칭에서 수류탄을 던지는 애니메이션은 애니메이션 규칙(`CharacterAnimatorParameters`)에 `Throw`(Trigger)를 추가해 있으면 쓰고, 없으면 건너뛴다.
+
+**A-3. 변신 사물 조준 외곽선이 보이지 않는 문제 + 공용 외곽선 기능**
+- 증상: 마네킹이 변신 가능한 사물을 조준해도 외곽선(`PropHighlighter`)이 보이지 않는다.
+- 확인한 것: `Mannequin.prefab`에 `PropHighlighter`와 `M_PropOutline`이 연결되어 있다. 변신 사물은 정적 배칭에서 빠져 있다(`PropRegistrar`, `MapOptimizer`). 대상 찾기는 변신과 같은 `PropTargetFinder`를 쓴다(변신이 되면 대상 찾기는 정상).
+- 원인 후보 (가능성 높은 순서. 7-A1 시작 시 Frame Debugger로 확인)
+  1. **Depth Priming**: `PC_Renderer`는 Forward+ + Depth Priming **Auto**이고 `PC_RPAsset`은 Depth Texture를 요구한다. 깊이 사전 패스가 켜지면 불투명 물체는 사전 패스가 기록한 깊이와 **같을 때만**(ZTest Equal) 그려진다. `PropOutline` 셰이더에는 `DepthOnly` 패스가 없어 사전 패스에 기록되지 않으므로 외곽선이 전혀 그려지지 않는다. 확인 방법: `PC_Renderer`의 Depth Priming Mode를 Disabled로 바꿔 보이는지 본다.
+  2. **두께와 각진 메시**: 외곽선은 메시를 법선 방향으로 1.5픽셀 부풀린 뒷면이다. 상자처럼 면마다 법선이 나뉜 메시는 모서리가 끊기고, 1.5픽셀은 3인칭 거리에서 거의 보이지 않는다.
+  3. **메시가 자식에 있는 사물**: `PropHighlighter`는 `TransformableProp`과 같은 오브젝트의 `MeshFilter`만 쓴다. (현재 등록 도구는 렌더러 오브젝트에 붙이므로 해당 없을 가능성이 높음)
+- 해결: 셰이더를 고치는 대신 **URP Renderer Feature 기반 공용 외곽선**으로 교체한다. 수류탄의 외곽선 표시(스킨 메시 몸체 + 변신 사물, 벽 너머)도 같은 기능을 쓴다.
+  - `OutlineRendererFeature`(PC_Renderer에 추가): `RenderingLayerMask`의 "Outline" 레이어가 켜진 렌더러를 ① 스텐실에 기록하고 ② 화면 공간에서 스텐실 가장자리를 넓혀 외곽선을 그린다. 메시 법선과 무관하게 일정한 두께로 그려지고, `SkinnedMeshRenderer`에도 그대로 적용된다. Depth Priming의 영향도 받지 않는다(불투명 패스 이후 별도 패스).
+  - 외곽선 종류 2가지: **조준 강조**(노란색, 가려지면 안 보임) / **수류탄 표시**(빨간색, 벽 너머 보임 — 스텐실 기록 시 ZTest Always). 종류별로 Rendering Layer를 나눈다.
+  - `IOutlineService`(`Show(Renderer[] 대상, OutlineKind)` / `Hide`): 렌더러의 `renderingLayerMask` 비트만 켜고 끈다. 사본 오브젝트를 만들지 않는다. `PropHighlighter`는 조준 대상만 정하고 표시는 이 서비스에 맡긴다. `RevealOutlineView`는 마네킹 몸체(`CharacterSkinView.BodyRenderers`)나 변신 외형(`PropDisguiseView`)의 렌더러를 넘긴다.
+  - GPU Resident Drawer(PC_RPAsset에서 켜져 있음)와 `renderingLayerMask` 변경이 함께 동작하는지 확인한다.
+  - 지금의 `PropOutline` 셰이더·`M_PropOutline`은 교체 후 삭제한다. 색·두께는 Renderer Feature 설정에서 조정한다.
+
+**A-4. 판 소요 시간 영향 (참고)**
+- 가드 대기 시간 20초 → 시작 준비 3초로 줄어 판마다 약 17초 줄어든다. 목표 0회 판은 사냥 시간 진입 시점을 늘리면(A-1 검토) 그만큼 다시 늘어난다.
+- 탐지기(10m 소리)보다 수류탄(2m, 위치 표시)은 범위가 좁고 확실하다. 마네킹을 찾는 시간에 주는 영향은 테스트로 확인한다.
+
+**구현 단계**
+- [ ] 7-A1. 공용 외곽선(`OutlineRendererFeature`, `IOutlineService`)으로 `PropHighlighter` 교체 → 변신 사물 조준 외곽선이 보이는지 확인. (원인 확인을 위해 먼저 Depth Priming 끄기로 시험)
+- [ ] 7-A2. 가드 대기 시간 제거: `preparationTime` 삭제, `Preparation` = 고정 3초 시작 준비, 대기실 관련 코드·맵 오브젝트 정리, 기존 맵 이전 메뉴.
+- [ ] 7-A3. 가드 무작위 스폰(`GuardSpawnSelector`) + 가드 출발 보호(도구 잠금).
+- [ ] 7-A4. 수류탄: `GrenadeTool`(서버 궤적 판정, 관찰자 연출), `StatusEffects`(외곽선 표시·감속 동기화), `MoveSpeedController`·`MovementValidator` 감속 반영, `RevealOutlineView`, 설정 `grenadeCooldown`, 탐지기 삭제.
+- [ ] 7-A5. 문구·HUD·에셋(수류탄 모델·이펙트·사운드) 정리, `AssetLicenses.md` 기록, 밸런스 테스트(출발 보호 시간, 수류탄 쿨타임, 목표 0회 사냥 진입 시점). → `GameSettings` 구조와 RPC가 바뀌므로 **`GameVersion.Protocol` +1**, Player Settings Version은 마이너 버전 올림.
+
+**검토가 필요한 위험**
+- `GameSettings` 필드 삭제·이름 변경으로 이전 버전 설정 파일(빌드 폴더의 `default_game_settings.json`)과 호환되지 않는다. 남은 `preparationTime`·`detectorCooldown` 키는 무시되고 없는 키는 코드 기본값을 쓰도록 한다.
+- 가드가 마네킹과 같은 시간에 스폰되므로, 가짜 마네킹 생성 위치(마네킹 스폰 지점 주변)와 가드 스폰 위치가 가까우면 시작하자마자 진짜·가짜가 구분될 수 있다. 가드 스폰 최소 거리는 가짜 마네킹 흩뿌리기 반경(4m)을 포함해 계산한다.
+- 벽 너머 외곽선은 정보량이 크다. 표시 시간(4초)과 쿨타임(15초)을 테스트로 맞춘다.
+
+#### B. 모드 지원
 
 **목표:** 플레이어가 만든 캐릭터 외형·맵·변신 사물·맵별 스탯을 게임 수정 없이 추가하고, 같은 모드를 가진 플레이어끼리 함께 플레이한다.
 

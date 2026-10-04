@@ -14,24 +14,21 @@ namespace GuardVsMannequin.Player.Guard
     [RequireComponent(typeof(NoiseEmitter))]
     public class DetectorTool : NetworkBehaviour, ITool
     {
-        private const float CooldownTolerance = 0.15f;
-
         [SerializeField] private DetectorPulseView pulseView;
 
         private readonly Collider[] overlapBuffer = new Collider[64];
         private readonly HashSet<PlayerIdentity> detected = new();
+        private readonly ToolCooldown cooldown = new();
 
         private IPlayerInput playerInput;
         private NoiseEmitter noiseEmitter;
-        private float localNextUseTime;
-        private float serverNextUseTime;
 
         public string DisplayName => Loc.Get("tool.detector");
-        public float CooldownRemaining => Mathf.Max(0f, localNextUseTime - Time.time);
+        public float CooldownRemaining => cooldown.LocalRemaining;
         public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting);
 
         /// <summary>호스트 설정의 탐지기 쿨타임.</summary>
-        private static float Cooldown => GameServices.State?.Settings.detectorCooldown ?? 0f;
+        private static float Cooldown => GameServices.CurrentSettingsOrDefault.detectorCooldown;
 
         /// <summary>
         /// 입력과 소음 구현을 캐시한다.
@@ -70,7 +67,7 @@ namespace GuardVsMannequin.Player.Guard
             if (!IsReady)
                 return;
 
-            localNextUseTime = Time.time + Cooldown;
+            cooldown.StartLocal(Cooldown);
             DetectServerRpc();
         }
 
@@ -82,9 +79,8 @@ namespace GuardVsMannequin.Player.Guard
         {
             if (!DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting))
                 return;
-            if (Time.time < serverNextUseTime - CooldownTolerance)
+            if (!cooldown.TryStartServer(Cooldown))
                 return;
-            serverNextUseTime = Time.time + Cooldown;
 
             noiseEmitter.Emit(NoiseType.DetectorPing);
             PulseObserversRpc();

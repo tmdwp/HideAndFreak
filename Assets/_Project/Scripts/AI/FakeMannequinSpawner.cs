@@ -19,6 +19,9 @@ namespace GuardVsMannequin.AI
         [SerializeField] private GameStateMachine stateMachine;
         [SerializeField] private NetworkObject fakeMannequinPrefab;
 
+        [Tooltip("마네킹 스폰 지점 목록. 비우면 같은 오브젝트에서 찾는다.")]
+        [SerializeField] private SpawnPointRegistry spawnPoints;
+
         [Tooltip("가짜 마네킹이 돌아다닐 NavMesh. 준비 단계 첫 진입 시 서버에서 굽는다.")]
         [SerializeField] private NavMeshSurface navMeshSurface;
 
@@ -38,10 +41,16 @@ namespace GuardVsMannequin.AI
         {
             base.OnStartServer();
             spawnAnchors.Clear();
-            foreach (SpawnPoint point in FindObjectsByType<SpawnPoint>())
+            if (spawnPoints == null)
+                spawnPoints = GetComponent<SpawnPointRegistry>();
+            if (spawnPoints != null)
             {
-                if (point.Role == PlayerRole.Mannequin)
+                foreach (SpawnPoint point in spawnPoints.GetPoints(PlayerRole.Mannequin))
                     spawnAnchors.Add(point.transform.position);
+            }
+            else
+            {
+                Debug.LogWarning("[FakeMannequinSpawner] SpawnPointRegistry가 없어 가짜 마네킹 기준점이 없습니다.", this);
             }
             stateMachine.ServerStateChanged += OnServerStateChanged;
         }

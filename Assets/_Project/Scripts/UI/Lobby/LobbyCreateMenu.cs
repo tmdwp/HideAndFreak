@@ -22,8 +22,8 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private void Start()
         {
-            ILobbyNavigator navigator = GetComponentInParent<ILobbyNavigator>();
-            steamCreateMenuButton.onClick.AddListener(() => navigator.Show(LobbyScreen.SteamCreate));
+            ILobbyNavigator navigator = UiLookup.FindInParent<ILobbyNavigator>(this);
+            steamCreateMenuButton.onClick.AddListener(() => navigator?.Show(LobbyScreen.SteamCreate));
             hostDirectButton.onClick.AddListener(() => SessionServices.Session?.HostDirectRoom());
             hostSteamButton.onClick.AddListener(() => SessionServices.Session?.HostSteamRoom(hostPasswordInput.text));
 
@@ -39,10 +39,9 @@ namespace GuardVsMannequin.UI
             if (session == null)
                 return;
 
-            bool idle = !session.IsBusy;
-            steamCreateMenuButton.interactable = session.IsSteamAvailable;
-            hostSteamButton.interactable = idle && session.IsSteamAvailable;
-            hostDirectButton.interactable = idle;
+            steamCreateMenuButton.interactable = session.CanOpenSteamMenu();
+            hostSteamButton.interactable = session.CanConnectSteam();
+            hostDirectButton.interactable = session.CanConnectDirect();
         }
     }
 }

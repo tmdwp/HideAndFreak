@@ -51,7 +51,8 @@ namespace GuardVsMannequin.AI
         {
             base.OnStartServer();
             agent.enabled = true;
-            float settingSpeed = GameServices.State?.Settings.mannequinMoveSpeed ?? 0f;
+            // 실제 마네킹의 기본 속도(사냥 시간 배율 제외)와 같게 한다.
+            float settingSpeed = GameServices.CurrentSettingsOrDefault.GetStats(PlayerRole.Mannequin).MoveSpeed;
             if (settingSpeed > 0f)
                 agent.speed = settingSpeed;
             agent.Warp(transform.position);

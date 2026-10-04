@@ -1,7 +1,8 @@
 namespace GuardVsMannequin.UI
 {
     /// <summary>
-    /// 로비 화면(패널) 종류.
+    /// 로비 화면(패널) 종류. 화면을 추가하면 여기에 값을 더하고, <see cref="LobbyView"/>의 화면 목록에 패널과 부모 화면을 등록한다.
+    /// (프리팹에 번호로 저장되므로 새 값은 끝에만 추가한다)
     /// </summary>
     public enum LobbyScreen
     {
@@ -21,9 +22,15 @@ namespace GuardVsMannequin.UI
         /// <summary>화면 하나만 보이게 한다.</summary>
         void Show(LobbyScreen screen);
 
-        /// <summary>이전 화면으로 돌아간다.</summary>
+        /// <summary>이전(부모) 화면으로 돌아간다.</summary>
         void Back();
+    }
 
+    /// <summary>
+    /// 로비 화면 위에 겹쳐 여는 패널(설정, 크레딧).
+    /// </summary>
+    public interface ILobbyOverlays
+    {
         /// <summary>설정 화면을 연다.</summary>
         void OpenSettings();
 

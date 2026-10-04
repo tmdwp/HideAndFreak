@@ -10,8 +10,11 @@ namespace GuardVsMannequin.UI
     /// <summary>
     /// 게임 HUD 관리 (uGUI). 게임 상태와 로컬 플레이어 정보(<see cref="HudContext"/>)를 영역들에 나눠 주고,
     /// 조준점·대기 문구와 커서를 처리한다. 각 영역은 <see cref="IHudSection"/> 컴포넌트가 맡는다:
-    /// - <see cref="HudTopPanel"/>: 남은 시간, 남은 마네킹 수, 달성/목표 횟수
-    /// - <see cref="HudBottomPanel"/>: 역할별 목표, 내 체력, 도구 쿨타임, 관전 정보
+    /// - <see cref="HudTopPanel"/>(상단 중앙): 단계 | 남은 시간, 남은 마네킹 / 전체 마네킹
+    /// - <see cref="HudControlsPanel"/>(중앙 좌측): 조작 키 안내
+    /// - <see cref="HudObjectivePanel"/>(중앙 우측): 역할별 목표와 남은 수
+    /// - <see cref="HudStaminaBar"/>(하단 중앙): 스태미나 막대
+    /// - <see cref="HudBottomPanel"/>(하단): 내 체력, 도구 쿨타임, 관전 정보
     /// - <see cref="HudResultPanel"/>: 결과 화면
     /// 다른 플레이어의 체력과 킬 로그는 기획에 따라 표시하지 않는다.
     /// </summary>
@@ -28,6 +31,7 @@ namespace GuardVsMannequin.UI
         [SerializeField] private GameObject crosshair;
         [SerializeField] private Text waitingText;
 
+        private readonly LocalPlayerTracker localPlayer = new();
         private HudContext context;
         private IHudSection[] sections;
         private GameState previousState = GameState.Waiting;
@@ -37,8 +41,8 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private void Awake()
         {
-            context = new HudContext(stateMachine, playerRegistry, objectiveTracker, matchResult, spectator);
-            context.Attach();
+            localPlayer.Attach();
+            context = new HudContext(stateMachine, stateMachine, playerRegistry, objectiveTracker, matchResult, spectator, localPlayer);
 
             sections = GetComponentsInChildren<IHudSection>(true);
             foreach (IHudSection section in sections)
@@ -52,7 +56,7 @@ namespace GuardVsMannequin.UI
         /// </summary>
         private void OnDestroy()
         {
-            context?.Detach();
+            localPlayer.Detach();
         }
 
         /// <summary>
@@ -72,10 +76,10 @@ namespace GuardVsMannequin.UI
 
             bool isWaiting = state == GameState.Waiting;
             if (isWaiting)
-                context.ResetRole();
+                localPlayer.ResetRole();
 
             waitingText.gameObject.SetActive(isWaiting);
-            crosshair.SetActive(!isWaiting && context.LocalPlayer != null && state != GameState.Ended);
+            crosshair.SetActive(!isWaiting && localPlayer.Player != null && state != GameState.Ended);
             foreach (IHudSection section in sections)
                 section.Refresh(state);
         }

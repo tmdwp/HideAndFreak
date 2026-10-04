@@ -18,6 +18,7 @@ namespace GuardVsMannequin.Player
         private ILookControllable lookControllable;
         private IPlayerInput playerInput;
         private IMovementPlaneProvider movementPlaneProvider;
+        private bool wasJumpHeld;
 
         /// <summary>
         /// 같은 오브젝트의 캐릭터와 입력 구현을 찾는다.
@@ -40,16 +41,38 @@ namespace GuardVsMannequin.Player
         private void OnDisable()
         {
             if (character != null)
+            {
                 character.SetMovementDirection(Vector3.zero);
+                character.StopJumping();
+            }
+            wasJumpHeld = false;
         }
 
         /// <summary>
-        /// 매 프레임 이동 방향과 시점 입력을 캐릭터에 전달한다.
+        /// 매 프레임 이동 방향, 점프, 시점 입력을 캐릭터에 전달한다.
         /// </summary>
         private void Update()
         {
             ApplyMovement();
+            ApplyJump();
             ApplyLook();
+        }
+
+        /// <summary>
+        /// 점프 키를 누르는 순간 점프를 요청하고, 떼면 끝낸다. (ECM2가 바닥에 있을 때만 뛰게 처리)
+        /// 벽타기(Flying) 중에는 ECM2가 점프를 허용하지 않는다.
+        /// </summary>
+        private void ApplyJump()
+        {
+            bool isJumpHeld = playerInput.IsJumpHeld;
+            if (isJumpHeld == wasJumpHeld)
+                return;
+
+            wasJumpHeld = isJumpHeld;
+            if (isJumpHeld)
+                character.Jump();
+            else
+                character.StopJumping();
         }
 
         /// <summary>

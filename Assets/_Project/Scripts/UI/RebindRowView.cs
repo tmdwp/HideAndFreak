@@ -26,6 +26,12 @@ namespace GuardVsMannequin.UI
         [SerializeField] private Button rebindButton;
         [SerializeField] private Button resetButton;
 
+        /// <summary>이 줄이 바꾸는 액션 이름.</summary>
+        public string ActionName => actionName;
+
+        /// <summary>복합 입력의 부분 이름. 단일 바인딩이면 빈 문자열.</summary>
+        public string PartName => partName;
+
         private InputAction action;
         private string labelKey;
         private int bindingIndex = -1;

@@ -6,13 +6,15 @@ using GuardVsMannequin.Core;
 namespace GuardVsMannequin.Player
 {
     /// <summary>
-    /// 스폰된(= 살아 있는) 플레이어 아바타를 추적하고, 역할별 생존 인원을 동기화한다.
+    /// 스폰된(= 살아 있는) 플레이어 아바타를 추적하고, 역할별 생존 인원과 이번 판 마네킹 참가 인원을 동기화한다.
     /// 사망 시 아바타가 제거되므로 "스폰 중"과 "생존"은 같은 의미다.
+    /// 판 중간 입장은 막혀 있으므로, 살아 있는 아바타가 하나도 없을 때 스폰되는 첫 아바타를 새 판의 시작으로 본다.
     /// </summary>
     public class PlayerRegistry : NetworkBehaviour
     {
         private readonly SyncVar<int> aliveGuardCount = new();
         private readonly SyncVar<int> aliveMannequinCount = new();
+        private readonly SyncVar<int> matchMannequinCount = new();
 
         private readonly HashSet<PlayerIdentity> alivePlayers = new();
 
@@ -21,6 +23,9 @@ namespace GuardVsMannequin.Player
 
         /// <summary>생존 중인 마네킹 수.</summary>
         public int AliveMannequinCount => aliveMannequinCount.Value;
+
+        /// <summary>이번 판에 참가한 마네킹 수. (사망·접속 종료 포함)</summary>
+        public int MatchMannequinCount => matchMannequinCount.Value;
 
         /// <summary>생존 중인 아바타 목록. (서버 전용)</summary>
         public IReadOnlyCollection<PlayerIdentity> AlivePlayers => alivePlayers;
@@ -46,11 +51,21 @@ namespace GuardVsMannequin.Player
             alivePlayers.Clear();
         }
 
-        /// <summary>스폰된 아바타를 등록한다.</summary>
+        /// <summary>
+        /// 스폰된 아바타를 등록하고 이번 판 참가 인원에 더한다.
+        /// </summary>
         private void OnAvatarSpawned(PlayerIdentity identity)
         {
-            if (alivePlayers.Add(identity))
-                Recount();
+            // 이전 판 아바타가 모두 제거된 뒤의 첫 스폰 = 새 판
+            if (alivePlayers.Count == 0)
+                matchMannequinCount.Value = 0;
+
+            if (!alivePlayers.Add(identity))
+                return;
+
+            if (identity.Role == PlayerRole.Mannequin)
+                matchMannequinCount.Value++;
+            Recount();
         }
 
         /// <summary>제거된 아바타를 해제한다.</summary>

@@ -60,6 +60,14 @@ namespace GuardVsMannequin.Map
         }
 
         /// <summary>
+        /// 역할의 스폰 지점 전체. (배정 순서와 무관하게 읽기만 함, 없으면 빈 목록)
+        /// </summary>
+        public IReadOnlyList<SpawnPoint> GetPoints(PlayerRole role)
+        {
+            return pointsByRole.TryGetValue(role, out List<SpawnPoint> list) ? list : System.Array.Empty<SpawnPoint>();
+        }
+
+        /// <summary>
         /// 목록의 순서를 무작위로 섞는다.
         /// </summary>
         private static void Shuffle(List<SpawnPoint> list)

@@ -6,17 +6,15 @@ using UnityEngine;
 namespace GuardVsMannequin.Player
 {
     /// <summary>
-    /// 캐릭터 외형(<see cref="CharacterSkin"/>)을 표시하고 이동에 맞춰 애니메이션을 재생한다.
-    /// - 외형: 맵(<see cref="MapInfo"/>)이 역할별 외형을 지정하면 그것을, 아니면 기본 외형을 쓴다.
+    /// 캐릭터 외형(<see cref="CharacterSkin"/>)을 붙이고 애니메이터를 준비한다.
+    /// - 외형: 맵(<see cref="MapInfo.GetSkin"/>)이 역할별 외형을 지정하면 그것을, 아니면 기본 외형을 쓴다.
     ///   외형이 없으면 기본 도형(fallbackRenderers)을 그대로 보여준다.
-    /// - 애니메이션: 위치 변화로 속도를 계산하므로 원격 아바타·가짜 마네킹에서도 동작한다.
+    /// - 애니메이션: 이동 값은 <see cref="LocomotionAnimatorDriver"/>가 넣고, 파라미터 확인은 <see cref="AnimatorParameterSet"/>이 한다.
     ///   애니메이터에 있는 파라미터만 설정한다. (이름 규칙: <see cref="CharacterAnimatorParameters"/>)
     /// 몸체 렌더러는 <see cref="BodyRenderers"/>로 제공한다. (변신 숨김, 1인칭 그림자 처리에 사용)
     /// </summary>
     public class CharacterSkinView : MonoBehaviour
     {
-        private const float VelocitySmoothing = 12f;
-
         [Tooltip("맵에서 외형을 고를 때 사용할 역할.")]
         [SerializeField] private PlayerRole role = PlayerRole.Mannequin;
 
@@ -30,13 +28,11 @@ namespace GuardVsMannequin.Player
         [SerializeField] private Renderer[] fallbackRenderers;
 
         private readonly List<Renderer> skinRenderers = new();
-        private readonly HashSet<string> animatorParameters = new();
         private Renderer[] bodyRenderers;
-        private Animator animator;
+        private AnimatorParameterSet parameters;
+        private LocomotionAnimatorDriver locomotion;
         private HandAimIK aimIK;
         private CharacterSkin activeSkin;
-        private Vector3 lastPosition;
-        private Vector3 smoothedVelocity;
         private bool isApplied;
 
         /// <summary>현재 몸체 렌더러. (외형이 있으면 외형 렌더러, 없으면 기본 도형)</summary>
@@ -65,7 +61,7 @@ namespace GuardVsMannequin.Player
             get
             {
                 EnsureApplied();
-                return animator;
+                return parameters?.Animator;
             }
         }
 
@@ -75,7 +71,6 @@ namespace GuardVsMannequin.Player
         private void Awake()
         {
             EnsureApplied();
-            lastPosition = transform.position;
         }
 
         /// <summary>
@@ -83,21 +78,7 @@ namespace GuardVsMannequin.Player
         /// </summary>
         private void Update()
         {
-            if (animator == null || Time.deltaTime <= 0f)
-                return;
-
-            Vector3 position = transform.position;
-            Vector3 velocity = (position - lastPosition) / Time.deltaTime;
-            lastPosition = position;
-            velocity.y = 0f;
-
-            // 네트워크로 받은 위치는 프레임마다 고르지 않으므로 부드럽게 만든다.
-            smoothedVelocity = Vector3.Lerp(smoothedVelocity, velocity, 1f - Mathf.Exp(-VelocitySmoothing * Time.deltaTime));
-            Vector3 local = transform.InverseTransformDirection(smoothedVelocity);
-
-            SetFloatIfExists(CharacterAnimatorParameters.Speed, smoothedVelocity.magnitude);
-            SetFloatIfExists(CharacterAnimatorParameters.MoveX, local.x);
-            SetFloatIfExists(CharacterAnimatorParameters.MoveZ, local.z);
+            locomotion?.Tick(Time.deltaTime);
         }
 
         /// <summary>
@@ -106,7 +87,7 @@ namespace GuardVsMannequin.Player
         public bool HasParameter(string parameterName)
         {
             EnsureApplied();
-            return animator != null && animatorParameters.Contains(parameterName);
+            return parameters != null && parameters.Has(parameterName);
         }
 
         /// <summary>
@@ -114,10 +95,8 @@ namespace GuardVsMannequin.Player
         /// </summary>
         public bool TryPlayTrigger(string triggerName)
         {
-            if (!HasParameter(triggerName))
-                return false;
-            animator.SetTrigger(triggerName);
-            return true;
+            EnsureApplied();
+            return parameters != null && parameters.TrySetTrigger(triggerName);
         }
 
         /// <summary>
@@ -125,10 +104,17 @@ namespace GuardVsMannequin.Player
         /// </summary>
         public bool TrySetInteger(string parameterName, int value)
         {
-            if (!HasParameter(parameterName))
-                return false;
-            animator.SetInteger(parameterName, value);
-            return true;
+            EnsureApplied();
+            return parameters != null && parameters.TrySetInteger(parameterName, value);
+        }
+
+        /// <summary>
+        /// 논리 파라미터가 있으면 설정하고 true.
+        /// </summary>
+        public bool TrySetBool(string parameterName, bool value)
+        {
+            EnsureApplied();
+            return parameters != null && parameters.TrySetBool(parameterName, value);
         }
 
         /// <summary>
@@ -198,20 +184,16 @@ namespace GuardVsMannequin.Player
         /// </summary>
         private CharacterSkin ChooseSkin()
         {
-            MapInfo map = MapInfo.Current;
-            CharacterSkin mapSkin = map == null ? null
-                : role == PlayerRole.Guard ? map.GuardSkin
-                : role == PlayerRole.Mannequin ? map.MannequinSkin
-                : null;
+            CharacterSkin mapSkin = MapInfo.Current != null ? MapInfo.Current.GetSkin(role) : null;
             return mapSkin != null ? mapSkin : defaultSkin;
         }
 
         /// <summary>
-        /// 애니메이터 컨트롤러를 지정하고, 루트 모션을 끄고, 필요하면 조준 IK를 붙인다.
+        /// 애니메이터 컨트롤러를 지정하고, 루트 모션을 끄고, 필요하면 조준 IK를 붙인 뒤 이동 애니메이션 구동을 준비한다.
         /// </summary>
         private void SetupAnimator(GameObject model, CharacterSkin skin)
         {
-            animator = model.GetComponentInChildren<Animator>();
+            Animator animator = model.GetComponentInChildren<Animator>();
             if (animator == null)
                 return;
 
@@ -222,9 +204,8 @@ namespace GuardVsMannequin.Player
             // 에셋 팩 클립의 이벤트는 팩 스크립트(외형 생성 시 제거됨)를 부르므로 기본으로 끈다. ("has no receiver" 오류 방지)
             animator.fireEvents = skin.fireAnimationEvents;
 
-            animatorParameters.Clear();
-            foreach (AnimatorControllerParameter parameter in animator.parameters)
-                animatorParameters.Add(parameter.name);
+            parameters = new AnimatorParameterSet(animator);
+            locomotion = new LocomotionAnimatorDriver(parameters, transform);
 
             if (skin.useAimIK && animator.isHuman)
                 aimIK = animator.gameObject.AddComponent<HandAimIK>();
@@ -232,15 +213,6 @@ namespace GuardVsMannequin.Player
             // 일반 모델(슬라임 등)의 이동 클립은 뼈가 앞으로 나갔다 돌아오므로 제자리로 고정한다. (휴머노이드는 루트 모션을 끄면 이미 제자리)
             if (skin.keepRootBoneInPlace && !animator.isHuman)
                 animator.gameObject.AddComponent<RootBoneInPlaceLock>();
-        }
-
-        /// <summary>
-        /// 애니메이터에 파라미터가 있을 때만 값을 설정한다. (외형마다 컨트롤러가 다르므로)
-        /// </summary>
-        private void SetFloatIfExists(string parameterName, float value)
-        {
-            if (animatorParameters.Contains(parameterName))
-                animator.SetFloat(parameterName, value);
         }
     }
 }

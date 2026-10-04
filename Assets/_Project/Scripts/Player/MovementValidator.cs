@@ -11,6 +11,8 @@ namespace GuardVsMannequin.Player
     /// 소유자 권한으로 움직이는 아바타의 위치를 서버에서 검증한다.
     /// - 이동 거리: 현재 최대 속도로 갈 수 있는 거리를 "예산"으로 쌓아 두고, 그보다 멀리 움직이면 되돌린다.
     ///   (네트워크 지연으로 위치가 몰려 도착해도 쌓인 예산 안이면 통과하므로 정상 플레이를 막지 않는다)
+    /// - 달리기: 스태미나로 더 갈 수 있는 거리를 "달리기 예산"으로 따로 두고, 기본 예산을 넘는 이동에 쓴다.
+    ///   스태미나와 같은 비율(<see cref="SprintRules"/>)로 회복되므로 스태미나 이상으로 계속 달리면 되돌려진다.
     /// - 가드 대기 시간: 가드는 대기실 영역(<see cref="WaitingRoomArea"/>) 밖으로 나갈 수 없다.
     /// 위반하면 마지막으로 정상이던 위치로 소유자에게 되돌림을 보낸다.
     /// 떨어지는 움직임(아래 방향)은 검사하지 않는다. 호스트 자신의 아바타는 검사하지 않는다.
@@ -39,6 +41,7 @@ namespace GuardVsMannequin.Player
         private PlayerIdentity identity;
         private Vector3 lastValidPosition;
         private float horizontalBudget;
+        private float sprintBudget;
         private float riseBudget;
         private float nextCorrectionTime;
         private float lastBudgetTime;
@@ -60,8 +63,7 @@ namespace GuardVsMannequin.Player
         {
             base.OnStartServer();
             lastValidPosition = transform.position;
-            horizontalBudget = GetMaxBudget(GetAllowedSpeed());
-            riseBudget = horizontalBudget + riseAllowance;
+            FillBudgets(GetAllowedSpeed());
             lastBudgetTime = Time.realtimeSinceStartup;
             isTracking = true;
         }
@@ -88,11 +90,11 @@ namespace GuardVsMannequin.Player
             if (elapsed > StallThreshold)
             {
                 lastValidPosition = transform.position;
-                horizontalBudget = maxBudget;
-                riseBudget = maxBudget + riseAllowance;
+                FillBudgets(speed);
                 return;
             }
             horizontalBudget = Mathf.Min(horizontalBudget + speed * elapsed, maxBudget);
+            sprintBudget = Mathf.Min(sprintBudget + SprintRules.GetExtraDistanceRecoverRate(speed) * elapsed, SprintRules.GetMaxExtraDistance(speed));
             riseBudget = Mathf.Min(riseBudget + speed * elapsed, maxBudget + riseAllowance);
 
             Vector3 current = transform.position;
@@ -100,9 +102,9 @@ namespace GuardVsMannequin.Player
             float horizontal = new Vector2(delta.x, delta.z).magnitude;
             float rise = Mathf.Max(0f, delta.y);
 
-            if (horizontal <= horizontalBudget && rise <= riseBudget && IsInAllowedArea(current))
+            if (horizontal <= horizontalBudget + sprintBudget && rise <= riseBudget && IsInAllowedArea(current))
             {
-                horizontalBudget -= horizontal;
+                ConsumeHorizontal(horizontal);
                 riseBudget -= rise;
                 lastValidPosition = current;
                 return;
@@ -136,7 +138,27 @@ namespace GuardVsMannequin.Player
         }
 
         /// <summary>
-        /// 현재 설정의 걷기/비행(벽타기) 속도 중 큰 값에 여유 배율을 곱한다. (MoveSpeedController가 서버에도 적용)
+        /// 모든 예산을 가득 채운다. (검증 시작, 서버 멈춤 후)
+        /// </summary>
+        private void FillBudgets(float speed)
+        {
+            horizontalBudget = GetMaxBudget(speed);
+            sprintBudget = SprintRules.GetMaxExtraDistance(speed);
+            riseBudget = horizontalBudget + riseAllowance;
+        }
+
+        /// <summary>
+        /// 수평 이동 거리를 기본 예산에서 먼저 쓰고, 모자라면 달리기 예산에서 쓴다.
+        /// </summary>
+        private void ConsumeHorizontal(float horizontal)
+        {
+            float fromBase = Mathf.Min(horizontal, horizontalBudget);
+            horizontalBudget -= fromBase;
+            sprintBudget = Mathf.Max(0f, sprintBudget - (horizontal - fromBase));
+        }
+
+        /// <summary>
+        /// 현재 설정의 걷기/비행(벽타기) 속도 중 큰 값에 여유 배율을 곱한다. (MoveSpeedController가 서버에도 적용, 달리기 배율은 제외)
         /// </summary>
         private float GetAllowedSpeed()
         {
@@ -175,7 +197,7 @@ namespace GuardVsMannequin.Player
                 return;
 
             nextCorrectionTime = Time.time + CorrectionInterval;
-            Debug.LogWarning($"[MovementValidator] 비정상 이동 되돌림: 연결 {Owner.ClientId}, 수평 {horizontal:F1}m / 예산 {horizontalBudget:F1}m, 상승 {rise:F1}m, 상태 {GameServices.CurrentStateOrWaiting}");
+            Debug.LogWarning($"[MovementValidator] 비정상 이동 되돌림: 연결 {Owner.ClientId}, 수평 {horizontal:F1}m / 예산 {horizontalBudget:F1}m + 달리기 {sprintBudget:F1}m, 상승 {rise:F1}m, 상태 {GameServices.CurrentStateOrWaiting}");
             CorrectPositionTargetRpc(Owner, lastValidPosition);
         }
 

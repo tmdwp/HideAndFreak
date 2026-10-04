@@ -215,13 +215,13 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 게임 HUD(상단 시간/목표, 조준점, 대기 문구, 하단 목표/상태, 결과 화면)를 만든다.
+        /// 게임 HUD(상단 단계/시간/마네킹 수, 조준점, 대기 문구, 좌측 조작 안내, 우측 목표, 하단 스태미나·상태, 결과 화면)를 만든다.
         /// 게임 상태 참조는 호출한 쪽에서 연결한다.
         /// </summary>
         public static GameHud CreateGameHud(Transform canvas)
         {
-            // 상단: 시간, 남은 마네킹, 목표
-            RectTransform top = EditorUiFactory.CreatePanel(canvas, "TopPanel", new Vector2(0.28f, 0.9f), new Vector2(0.72f, 0.985f), new Color(0f, 0f, 0f, 0.45f));
+            // 상단: 단계 | 시간, 남은 마네킹 / 전체 마네킹
+            RectTransform top = EditorUiFactory.CreatePanel(canvas, "TopPanel", new Vector2(0.32f, 0.9f), new Vector2(0.68f, 0.985f), new Color(0f, 0f, 0f, 0.45f));
             Text topText = EditorUiFactory.CreateText(top, "TopText", string.Empty, 26, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
             EditorUiFactory.Stretch(topText.rectTransform);
 
@@ -232,13 +232,16 @@ namespace GuardVsMannequin.Editor
             Text waiting = EditorUiFactory.CreateText(canvas, "WaitingText", "hud.waiting", 32, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
             waiting.rectTransform.sizeDelta = new Vector2(900f, 60f);
 
-            // 하단: 목표/관전 안내, 체력과 도구
+            // 하단: 관전 안내, 체력과 도구
             RectTransform bottom = EditorUiFactory.CreatePanel(canvas, "BottomPanel", new Vector2(0.18f, 0.02f), new Vector2(0.82f, 0.14f), new Color(0f, 0f, 0f, 0.45f));
             EditorUiFactory.AddVerticalLayout(bottom, 4f, 10);
-            Text objective = EditorUiFactory.CreateText(bottom, "ObjectiveText", string.Empty, 22, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
-            objective.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
+            Text spectator = EditorUiFactory.CreateText(bottom, "ObjectiveText", string.Empty, 22, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
+            spectator.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
             Text status = EditorUiFactory.CreateText(bottom, "StatusText", string.Empty, 22, TextAnchor.MiddleCenter, EditorUiFactory.NoticeColor);
             EditorUiFactory.SetHeight(status, 30f);
+
+            // 좌측 조작 안내, 우측 목표, 하단 스태미나 (결과 화면보다 먼저 만들어 아래에 그린다)
+            AddMissingHudSections(canvas);
 
             // 결과
             RectTransform result = EditorUiFactory.CreatePanel(canvas, "ResultPanel", new Vector2(0.3f, 0.2f), new Vector2(0.7f, 0.82f), EditorUiFactory.PanelColor);
@@ -264,7 +267,7 @@ namespace GuardVsMannequin.Editor
 
             HudBottomPanel bottomSection = canvas.gameObject.AddComponent<HudBottomPanel>();
             TestEnvironmentSetupTool.SetField(bottomSection, "bottomPanel", bottom.gameObject);
-            TestEnvironmentSetupTool.SetField(bottomSection, "objectiveText", objective);
+            TestEnvironmentSetupTool.SetField(bottomSection, "spectatorText", spectator);
             TestEnvironmentSetupTool.SetField(bottomSection, "statusText", status);
 
             HudResultPanel resultSection = canvas.gameObject.AddComponent<HudResultPanel>();
@@ -274,6 +277,155 @@ namespace GuardVsMannequin.Editor
             TestEnvironmentSetupTool.SetField(resultSection, "resultCountdownText", countdown);
             TestEnvironmentSetupTool.SetField(resultSection, "returnToRoomButton", returnButton);
             return hud;
+        }
+
+        /// <summary>
+        /// HUD 캔버스에 없는 영역(좌측 조작 안내, 우측 목표, 하단 스태미나)만 만들어 붙인다.
+        /// 이미 있는 프리팹을 고치지 않고 영역만 더할 때도 쓴다. 결과 화면·ESC 메뉴보다 아래에 그려지도록 그 앞에 끼워 넣는다.
+        /// </summary>
+        /// <returns>새로 추가한 영역 수.</returns>
+        public static int AddMissingHudSections(Transform canvas)
+        {
+            int added = 0;
+            if (canvas.GetComponent<HudControlsPanel>() == null)
+            {
+                InsertBeforeOverlays(canvas, CreateControlsSection(canvas));
+                added++;
+            }
+            if (canvas.GetComponent<HudObjectivePanel>() == null)
+            {
+                InsertBeforeOverlays(canvas, CreateObjectiveSection(canvas));
+                added++;
+            }
+            if (canvas.GetComponent<HudStaminaBar>() == null)
+            {
+                InsertBeforeOverlays(canvas, CreateStaminaSection(canvas));
+                added++;
+            }
+            return added;
+        }
+
+        /// <summary>
+        /// 중앙 좌측 조작 키 안내 영역. (내용은 HudControlsPanel이 키 설정에 맞춰 채운다)
+        /// </summary>
+        private static RectTransform CreateControlsSection(Transform canvas)
+        {
+            RectTransform panel = EditorUiFactory.CreatePanel(canvas, "ControlsPanel", new Vector2(0.01f, 0.37f), new Vector2(0.17f, 0.63f), new Color(0f, 0f, 0f, 0.35f));
+            panel.GetComponent<Image>().raycastTarget = false;
+            Text text = EditorUiFactory.CreateText(panel, "ControlsText", string.Empty, 22, TextAnchor.MiddleLeft, EditorUiFactory.TextColor);
+            EditorUiFactory.StretchWithPadding(text.rectTransform, 16f);
+            text.raycastTarget = false;
+
+            HudControlsPanel section = canvas.gameObject.AddComponent<HudControlsPanel>();
+            TestEnvironmentSetupTool.SetField(section, "controlsPanel", panel.gameObject);
+            TestEnvironmentSetupTool.SetField(section, "controlsText", text);
+            TestEnvironmentSetupTool.SetField(section, "inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
+            return panel;
+        }
+
+        /// <summary>
+        /// 중앙 우측 목표 영역: "목표" 제목, 목표 문구, 남은 수.
+        /// </summary>
+        private static RectTransform CreateObjectiveSection(Transform canvas)
+        {
+            RectTransform panel = EditorUiFactory.CreatePanel(canvas, "ObjectivePanel", new Vector2(0.83f, 0.42f), new Vector2(0.99f, 0.58f), new Color(0f, 0f, 0f, 0.35f));
+            panel.GetComponent<Image>().raycastTarget = false;
+            EditorUiFactory.AddVerticalLayout(panel, 4f, 12);
+
+            Text title = EditorUiFactory.CreateText(panel, "Title", "hud.objective.title", 20, TextAnchor.MiddleRight, EditorUiFactory.NoticeColor);
+            EditorUiFactory.SetHeight(title, 26f);
+            Text goal = EditorUiFactory.CreateText(panel, "GoalText", string.Empty, 30, TextAnchor.MiddleRight, EditorUiFactory.AccentColor);
+            goal.fontStyle = FontStyle.Bold;
+            EditorUiFactory.SetHeight(goal, 42f);
+            Text detail = EditorUiFactory.CreateText(panel, "DetailText", string.Empty, 22, TextAnchor.MiddleRight, EditorUiFactory.TextColor);
+            EditorUiFactory.SetHeight(detail, 30f);
+            foreach (Text text in new[] { title, goal, detail })
+                text.raycastTarget = false;
+
+            HudObjectivePanel section = canvas.gameObject.AddComponent<HudObjectivePanel>();
+            TestEnvironmentSetupTool.SetField(section, "objectivePanel", panel.gameObject);
+            TestEnvironmentSetupTool.SetField(section, "goalText", goal);
+            TestEnvironmentSetupTool.SetField(section, "detailText", detail);
+            return panel;
+        }
+
+        /// <summary>
+        /// 하단 중앙 스태미나 막대: 어두운 바탕 위에 채움 막대와 "스태미나" 글자.
+        /// </summary>
+        private static RectTransform CreateStaminaSection(Transform canvas)
+        {
+            RectTransform bar = EditorUiFactory.CreatePanel(canvas, "StaminaBar", new Vector2(0.38f, 0.152f), new Vector2(0.62f, 0.174f), new Color(0f, 0f, 0f, 0.55f));
+            bar.GetComponent<Image>().raycastTarget = false;
+
+            RectTransform fill = EditorUiFactory.CreatePanel(bar, "Fill", Vector2.zero, Vector2.one, new Color(0.95f, 0.8f, 0.3f, 1f));
+            Image fillImage = fill.GetComponent<Image>();
+            fillImage.raycastTarget = false;
+
+            // 막대가 줄어도 읽히도록 밝은 글자에 그림자를 둔다.
+            Text label = EditorUiFactory.CreateText(bar, "Label", "hud.stamina", 16, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
+            EditorUiFactory.Stretch(label.rectTransform);
+            label.raycastTarget = false;
+            label.gameObject.AddComponent<Shadow>().effectColor = new Color(0f, 0f, 0f, 0.9f);
+
+            HudStaminaBar section = canvas.gameObject.AddComponent<HudStaminaBar>();
+            TestEnvironmentSetupTool.SetField(section, "staminaPanel", bar.gameObject);
+            TestEnvironmentSetupTool.SetField(section, "fill", fill);
+            TestEnvironmentSetupTool.SetField(section, "fillGraphic", fillImage);
+            return bar;
+        }
+
+        /// <summary>
+        /// 결과 화면이나 ESC 메뉴가 있으면 그 앞에 둬서 그 아래에 그려지게 한다. 없으면 맨 뒤에 그대로 둔다.
+        /// </summary>
+        private static void InsertBeforeOverlays(Transform canvas, Transform section)
+        {
+            foreach (string overlayName in new[] { "ResultPanel", "PauseMenu" })
+            {
+                Transform overlay = canvas.Find(overlayName);
+                if (overlay == null)
+                    continue;
+                section.SetSiblingIndex(overlay.GetSiblingIndex());
+                return;
+            }
+        }
+
+        /// <summary>
+        /// 설정 화면의 키 설정 목록에 없는 키(새로 추가된 달리기·점프 등)의 줄을 만들어 붙인다.
+        /// </summary>
+        /// <param name="settingsPanel">설정 화면 프리팹의 루트.</param>
+        /// <returns>새로 추가한 줄 수. 키 설정 목록을 찾지 못하면 -1.</returns>
+        public static int AddMissingRebindRows(GameObject settingsPanel)
+        {
+            ControlSettingsSection controls = settingsPanel.GetComponentInChildren<ControlSettingsSection>(true);
+            if (controls == null)
+                return -1;
+
+            var serialized = new SerializedObject(controls);
+            SerializedProperty rows = serialized.FindProperty("rebindRows");
+            var existing = new System.Collections.Generic.List<RebindRowView>();
+            for (int i = 0; i < rows.arraySize; i++)
+            {
+                if (rows.GetArrayElementAtIndex(i).objectReferenceValue is RebindRowView row)
+                    existing.Add(row);
+            }
+            if (existing.Count == 0)
+                return -1;
+
+            Transform list = existing[0].transform.parent;
+            int added = 0;
+            foreach (KeyBindingCatalog.Entry entry in KeyBindingCatalog.All)
+            {
+                string part = entry.partName ?? string.Empty;
+                if (existing.Any(row => row.ActionName == entry.actionName && row.PartName == part))
+                    continue;
+
+                RebindRowView newRow = CreateRebindRow(list, entry);
+                rows.InsertArrayElementAtIndex(rows.arraySize);
+                rows.GetArrayElementAtIndex(rows.arraySize - 1).objectReferenceValue = newRow;
+                added++;
+            }
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return added;
         }
 
         /// <summary>

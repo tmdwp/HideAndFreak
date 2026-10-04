@@ -9,7 +9,23 @@ namespace GuardVsMannequin.Player
     /// </summary>
     public static class AimRaycaster
     {
+        /// <summary>클라이언트가 보낸 조준 원점이 아바타에서 이보다 멀면 비정상으로 본다(m). (3인칭 카메라 거리 포함)</summary>
+        public const float MaxOriginOffset = 3f;
+
         private static readonly RaycastHit[] hitBuffer = new RaycastHit[32];
+
+        /// <summary>
+        /// 서버에서 클라이언트가 보낸 조준 원점을 검증한다. 아바타에서 너무 멀면(조작 의심) 아바타 눈 높이로 대체한다.
+        /// </summary>
+        /// <param name="origin">클라이언트가 보낸 원점.</param>
+        /// <param name="owner">아바타 트랜스폼.</param>
+        /// <param name="eyeHeight">대체할 눈 높이(m).</param>
+        public static Vector3 SanitizeOrigin(Vector3 origin, Transform owner, float eyeHeight)
+        {
+            if ((origin - owner.position).sqrMagnitude > MaxOriginOffset * MaxOriginOffset)
+                return owner.position + Vector3.up * eyeHeight;
+            return origin;
+        }
 
         /// <summary>
         /// ignoreRoot 하위의 충돌체와 트리거를 제외하고 가장 가까운 충돌을 찾는다.

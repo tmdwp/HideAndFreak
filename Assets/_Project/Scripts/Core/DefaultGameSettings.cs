@@ -12,6 +12,13 @@ namespace GuardVsMannequin.Core
         private const string FilePath = "Data/default_game_settings";
         private const string Extension = ".json";
 
+        private static GameSettings? cached;
+
+        /// <summary>
+        /// 처음 한 번 읽은 기본 설정. (자주 조회하는 곳에서 파일을 매번 읽지 않기 위함)
+        /// </summary>
+        public static GameSettings Cached => cached ??= Load();
+
         /// <summary>
         /// 초기 게임 설정을 불러온다. 외부·내장 파일을 모두 쓸 수 없으면 코드 기본값을 쓴다.
         /// </summary>

@@ -1,3 +1,4 @@
+using System;
 using GuardVsMannequin.Localization;
 using GuardVsMannequin.Network;
 using UnityEngine;
@@ -8,21 +9,30 @@ namespace GuardVsMannequin.UI
 {
     /// <summary>
     /// 로비(메인 메뉴) 화면 관리. 화면(패널)을 하나씩 보여주며 이동하고, 공통 상태 문구와 뒤로 가기(버튼·ESC)를 처리한다.
-    /// 메인 ─ 방 만들기 ─ 스팀 방 만들기(암호) / 직접 방 만들기
-    ///      ─ 참가     ─ 스팀 방 입장(방 코드, 암호) / IP로 참가(주소)
-    ///      ─ 설정, 크레딧, 종료
+    /// 화면과 "뒤로 가면 어디로 가는지"(부모 화면)는 인스펙터의 화면 목록으로 정한다. 화면을 추가해도 이 코드는 바꾸지 않는다.
+    /// 기본 구성: 메인 ─ 방 만들기 ─ 스팀 방 만들기(암호) / 직접 방 만들기
+    ///               ─ 참가     ─ 스팀 방 입장(방 코드, 암호) / IP로 참가(주소)
+    ///               ─ 설정, 크레딧, 종료
     /// 각 화면의 버튼 동작은 메뉴 코드가 맡는다: <see cref="LobbyMainMenu"/>, <see cref="LobbyCreateMenu"/>, <see cref="LobbyJoinMenu"/>.
-    /// 화면 요소는 Layout Group 없이 배치되어 있어 프리팹에서 위치·크기를 자유롭게 바꿀 수 있다.
     /// </summary>
-    public class LobbyView : MonoBehaviour, ILobbyNavigator
+    public class LobbyView : MonoBehaviour, ILobbyNavigator, ILobbyOverlays
     {
-        [Header("화면")]
-        [SerializeField] private GameObject mainMenu;
-        [SerializeField] private GameObject createMenu;
-        [SerializeField] private GameObject steamCreatePanel;
-        [SerializeField] private GameObject joinMenu;
-        [SerializeField] private GameObject steamJoinPanel;
-        [SerializeField] private GameObject directJoinPanel;
+        /// <summary>화면 하나: 종류, 패널, 뒤로 가면 돌아갈 화면.</summary>
+        [Serializable]
+        private class ScreenEntry
+        {
+            [Tooltip("화면 종류")]
+            public LobbyScreen screen;
+
+            [Tooltip("이 화면의 패널 오브젝트")]
+            public GameObject panel;
+
+            [Tooltip("뒤로 가기(버튼·ESC) 때 돌아갈 화면. 자기 자신이면 더 돌아가지 않는다.")]
+            public LobbyScreen parent;
+        }
+
+        [Header("화면 (첫 항목이 시작 화면)")]
+        [SerializeField] private ScreenEntry[] screens = Array.Empty<ScreenEntry>();
 
         [Header("뒤로 (각 화면의 뒤로 버튼)")]
         [SerializeField] private Button[] backButtons;
@@ -38,19 +48,17 @@ namespace GuardVsMannequin.UI
         private LobbyScreen currentScreen;
 
         /// <summary>
-        /// 뒤로 버튼을 연결하고 메인 화면을 보여준다. (게임에서 돌아왔을 때 커서가 잠겨 있을 수 있어 풀어 둔다)
+        /// 뒤로 버튼을 연결하고 시작 화면을 보여준다.
         /// </summary>
         private void Start()
         {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
             foreach (Button back in backButtons)
                 back.onClick.AddListener(Back);
 
             settingsPanel.gameObject.SetActive(false);
             creditsPanel.gameObject.SetActive(false);
-            Show(LobbyScreen.Main);
+            if (screens.Length > 0)
+                Show(screens[0].screen);
         }
 
         /// <summary>
@@ -85,24 +93,26 @@ namespace GuardVsMannequin.UI
         /// <inheritdoc />
         public void Show(LobbyScreen screen)
         {
-            currentScreen = screen;
-            foreach (LobbyScreen candidate in new[] { LobbyScreen.Main, LobbyScreen.Create, LobbyScreen.SteamCreate, LobbyScreen.Join, LobbyScreen.SteamJoin, LobbyScreen.DirectJoin })
+            if (FindEntry(screen) == null)
             {
-                GameObject target = GetScreenObject(candidate);
-                if (target != null)
-                    target.SetActive(candidate == screen);
+                Debug.LogWarning($"[LobbyView] 화면 목록에 {screen}이 없습니다. 인스펙터의 화면 목록을 확인하세요.", this);
+                return;
+            }
+
+            currentScreen = screen;
+            foreach (ScreenEntry entry in screens)
+            {
+                if (entry.panel != null)
+                    entry.panel.SetActive(entry.screen == screen);
             }
         }
 
         /// <inheritdoc />
         public void Back()
         {
-            Show(currentScreen switch
-            {
-                LobbyScreen.SteamCreate => LobbyScreen.Create,
-                LobbyScreen.SteamJoin or LobbyScreen.DirectJoin => LobbyScreen.Join,
-                _ => LobbyScreen.Main
-            });
+            ScreenEntry entry = FindEntry(currentScreen);
+            if (entry != null && entry.parent != currentScreen)
+                Show(entry.parent);
         }
 
         /// <inheritdoc />
@@ -118,20 +128,11 @@ namespace GuardVsMannequin.UI
         }
 
         /// <summary>
-        /// 화면 종류에 해당하는 패널 오브젝트를 반환한다.
+        /// 화면 종류의 목록 항목을 찾는다. 없으면 null.
         /// </summary>
-        private GameObject GetScreenObject(LobbyScreen screen)
+        private ScreenEntry FindEntry(LobbyScreen screen)
         {
-            return screen switch
-            {
-                LobbyScreen.Main => mainMenu,
-                LobbyScreen.Create => createMenu,
-                LobbyScreen.SteamCreate => steamCreatePanel,
-                LobbyScreen.Join => joinMenu,
-                LobbyScreen.SteamJoin => steamJoinPanel,
-                LobbyScreen.DirectJoin => directJoinPanel,
-                _ => null
-            };
+            return Array.Find(screens, entry => entry.screen == screen);
         }
     }
 }

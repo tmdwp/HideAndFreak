@@ -49,8 +49,29 @@ namespace GuardVsMannequin.Settings
             new Entry("Emote5", null, "key.emote5"),
             new Entry("Emote6", null, "key.emote6"),
             new Entry("SpectatePrevious", null, "key.spectatePrevious"),
-            new Entry("SpectateNext", null, "key.spectateNext")
+            new Entry("SpectateNext", null, "key.spectateNext"),
+            new Entry("Sprint", null, "key.sprint"),
+            new Entry("Jump", null, "key.jump")
         };
+
+        /// <summary>
+        /// 액션 이름과 부분 이름이 같은 항목을 찾는다. (설정 화면의 키 설정 줄을 항목과 짝지을 때)
+        /// </summary>
+        /// <param name="partName">복합 입력의 부분 이름. 단일 바인딩이면 null 또는 빈 문자열.</param>
+        public static bool TryFind(string actionName, string partName, out Entry entry)
+        {
+            string part = string.IsNullOrEmpty(partName) ? null : partName;
+            foreach (Entry candidate in All)
+            {
+                if (candidate.actionName == actionName && candidate.partName == part)
+                {
+                    entry = candidate;
+                    return true;
+                }
+            }
+            entry = default;
+            return false;
+        }
 
         /// <summary>
         /// 액션에서 항목이 가리키는 바인딩의 인덱스를 찾는다. 없으면 -1.

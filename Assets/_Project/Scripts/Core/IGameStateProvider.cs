@@ -73,5 +73,11 @@ namespace GuardVsMannequin.Core
         /// 현재 상태를 반환한다. 제공자가 없으면 Waiting으로 취급한다.
         /// </summary>
         public static GameState CurrentStateOrWaiting => State?.CurrentState ?? GameState.Waiting;
+
+        /// <summary>
+        /// 이번 판 설정을 반환한다. 제공자가 없으면(게임 씬 밖, 테스트) 기본 설정 파일 값을 쓴다.
+        /// 기본값 숫자를 코드 곳곳에 따로 적지 않도록 설정은 여기서 읽는다.
+        /// </summary>
+        public static GameSettings CurrentSettingsOrDefault => State?.Settings ?? DefaultGameSettings.Cached;
     }
 }
