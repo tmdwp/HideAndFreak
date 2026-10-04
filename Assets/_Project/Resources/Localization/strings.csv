@@ -86,7 +86,7 @@ loading.progress,{0}% · {1}초,{0}% · {1}s
 
 # 게임 설정 항목 (이름)
 setting.Map,맵,Map
-setting.PreparationTime,가드 대기 시간,Guard Wait Time
+setting.HuntDelay,헌트 타임까지 보호 시간 (목표 0회),Hunt Delay (0 Objectives)
 setting.PlayTime,제한 시간,Time Limit
 setting.HuntTime,사냥 시간,Hunt Time
 setting.GuardCount,가드 수,Guards
@@ -94,7 +94,7 @@ setting.ObjectiveCount,목표 수행 횟수,Objectives Required
 setting.GeneratorCount,전원 장치 수,Power Units
 setting.GeneratorDestroyTime,전원 장치 파괴 시간,Power Unit Destroy Time
 setting.GunCooldown,총 쿨타임,Gun Cooldown
-setting.DetectorCooldown,탐지기 쿨타임,Detector Cooldown
+setting.GrenadeCooldown,수류탄 쿨타임,Grenade Cooldown
 setting.GuardMaxHealth,가드 체력,Guard Health
 setting.MannequinMaxHealth,마네킹 체력,Mannequin Health
 setting.HuntHealthMultiplier,사냥 시간 마네킹 체력 배율,Hunt Mannequin Health Multiplier
@@ -148,7 +148,7 @@ key.moveDown,뒤로 이동,Move Backward
 key.moveLeft,왼쪽 이동,Move Left
 key.moveRight,오른쪽 이동,Move Right
 key.primary,사격 / 파괴 / 공격,Fire / Destroy / Attack
-key.secondary,탐지기 / 변신,Detector / Disguise
+key.secondary,수류탄 / 변신,Grenade / Disguise
 key.flashlight,손전등 (가드),Flashlight (Guard)
 key.rotateLeft,변신 중 왼쪽 회전,Rotate Left (Disguised)
 key.rotateRight,변신 중 오른쪽 회전,Rotate Right (Disguised)
@@ -181,7 +181,7 @@ pause.leave,방 나가기,Leave Room
 
 # 게임 HUD
 hud.waiting,다른 플레이어를 기다리는 중...,Waiting for other players...
-hud.phase.preparation,가드 대기 시간,Guard Wait
+hud.phase.preparation,시작 준비,Get Ready
 hud.phase.playing,가드 타임,Guard Time
 hud.phase.hunting,헌트 타임,Hunt Time
 hud.phase.ended,종료,Finished
@@ -190,7 +190,7 @@ hud.objective.title,목표,Objective
 hud.objective.generatorsLeft,남은 전원 장치 {0},Power units left {0}
 hud.objective.guardsLeft,남은 가드 {0},Guards left {0}
 hud.objective.mannequinsLeft,남은 마네킹 {0},Mannequins left {0}
-hud.objective.none.preparation,"대기 시간 후 {0}초간 가드 보호, 이후 헌트 타임","{0}s guard protection after the wait, then Hunt Time"
+hud.objective.none.preparation,"시작 후 {0}초간 가드 보호, 이후 헌트 타임","{0}s guard protection after the start, then Hunt Time"
 hud.objective.none.playing,{0}초 후 헌트 타임,Hunt Time in {0}s
 hud.controls.title,조작,Controls
 hud.controls.move,이동,Move
@@ -209,8 +209,8 @@ hud.guide.guard.objective.playing,포획,Capture
 hud.guide.guard.objective.hunting,생존,Survive
 hud.guide.guard.primary.playing,사격,Fire
 hud.guide.guard.primary.hunting,사격,Fire
-hud.guide.guard.secondary.playing,탐지기,Detector
-hud.guide.guard.secondary.hunting,탐지기,Detector
+hud.guide.guard.secondary.playing,수류탄,Grenade
+hud.guide.guard.secondary.hunting,수류탄,Grenade
 hud.guide.mannequin.objective.playing,전원 장치 파괴,Destroy Power Units
 hud.guide.mannequin.objective.hunting,사냥,Hunt
 hud.guide.mannequin.primary.playing,파괴 (누르고 있기),Destroy (Hold)
@@ -224,6 +224,9 @@ role.mannequin,마네킹,Mannequin
 role.none,-,-
 tool.gun,총,Gun
 tool.detector,탐지기,Detector
+tool.grenade,수류탄,Grenade
+hud.guardToolLock,도구 사용 가능까지 {0}초,Tools unlock in {0}s
+hud.grenadeHit,수류탄에 맞았습니다! 위치가 드러납니다.,Hit by a grenade! Your position is revealed.
 tool.flashlight,손전등,Flashlight
 tool.disguise,변신,Disguise
 tool.attack,공격,Attack

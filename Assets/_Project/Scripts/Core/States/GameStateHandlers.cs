@@ -30,7 +30,7 @@ namespace GuardVsMannequin.Core.States
     }
 
     /// <summary>
-    /// 가드 대기 시간. 끝나면 탐색 단계로 넘어간다.
+    /// 판 시작 준비(카운트다운). 모두 스폰된 뒤 잠시 멈춰 있다가 탐색 단계로 넘어간다. (로딩이 늦은 플레이어와 시작을 맞춤)
     /// </summary>
     public sealed class PreparationStateHandler : TimedStateHandler
     {
@@ -38,9 +38,9 @@ namespace GuardVsMannequin.Core.States
         protected override GameState NextState => GameState.Playing;
 
         /// <summary>
-        /// 가드 대기 시간을 반환한다.
+        /// 시작 준비 시간을 반환한다. (조정 파일 값, 호스트 설정 아님)
         /// </summary>
-        protected override float GetDuration(GameSettings settings) => settings.preparationTime;
+        protected override float GetDuration(GameSettings settings) => GameTuning.MatchStartDelay;
     }
 
     /// <summary>

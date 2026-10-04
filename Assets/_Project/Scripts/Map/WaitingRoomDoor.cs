@@ -7,6 +7,7 @@ namespace GuardVsMannequin.Map
     /// 가드 대기실 문. 가드 대기 시간(Preparation)과 접속 대기 중에는 닫혀 있고,
     /// 탐색 단계부터 열린다. 동기화된 게임 상태만 보고 움직이므로 별도 네트워크 오브젝트가 필요 없다.
     /// </summary>
+    [System.Obsolete("Phase 7: 가드 대기실 제거. 맵 씬에서 지운 뒤 파일도 삭제한다.")]
     public class WaitingRoomDoor : MonoBehaviour
     {
         [Tooltip("열렸을 때의 위치 이동량(로컬 기준). 기본은 위로 올라가 천장 속으로 사라진다.")]

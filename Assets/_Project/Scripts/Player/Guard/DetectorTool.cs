@@ -25,10 +25,10 @@ namespace GuardVsMannequin.Player.Guard
 
         public string DisplayName => Loc.Get("tool.detector");
         public float CooldownRemaining => cooldown.LocalRemaining;
-        public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting);
+        public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.State);
 
         /// <summary>호스트 설정의 탐지기 쿨타임.</summary>
-        private static float Cooldown => GameServices.CurrentSettingsOrDefault.detectorCooldown;
+        private static float Cooldown => GameServices.CurrentSettingsOrDefault.grenadeCooldown;
 
         /// <summary>
         /// 입력과 소음 구현을 캐시한다.
@@ -77,7 +77,7 @@ namespace GuardVsMannequin.Player.Guard
         [ServerRpc]
         private void DetectServerRpc()
         {
-            if (!DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting))
+            if (!DamageRules.CanUseGuardTools(GameServices.State))
                 return;
             if (!cooldown.TryStartServer(Cooldown))
                 return;

@@ -96,6 +96,33 @@ namespace GuardVsMannequin.Core
 
         #region 가드
 
+        /// <summary>가드 스폰 위치가 마네킹 스폰 지점에서 떨어져야 하는 최소 거리(m).</summary>
+        public static float GuardSpawnMinDistance => Get(nameof(GuardSpawnMinDistance), 15f);
+
+        /// <summary>가드끼리 스폰 위치가 떨어져야 하는 최소 거리(m).</summary>
+        public static float GuardSpawnSeparation => Get(nameof(GuardSpawnSeparation), 8f);
+
+        /// <summary>탐색 시작 후 가드가 총·수류탄을 쓸 수 없는 시간(초). (출발 보호)</summary>
+        public static float GuardToolLockTime => Get(nameof(GuardToolLockTime), 10f);
+
+        /// <summary>수류탄 폭발 반경(m).</summary>
+        public static float GrenadeRadius => Get(nameof(GrenadeRadius), 2f);
+
+        /// <summary>수류탄에 맞은 마네킹의 외곽선이 가드에게 보이는 시간(초).</summary>
+        public static float GrenadeRevealDuration => Get(nameof(GrenadeRevealDuration), 4f);
+
+        /// <summary>수류탄에 맞은 마네킹의 감속 시간(초).</summary>
+        public static float GrenadeSlowDuration => Get(nameof(GrenadeSlowDuration), 3f);
+
+        /// <summary>수류탄 감속 배율.</summary>
+        public static float GrenadeSlowMultiplier => Get(nameof(GrenadeSlowMultiplier), 0.5f);
+
+        /// <summary>수류탄을 던지는 초기 속도(m/s).</summary>
+        public static float GrenadeThrowSpeed => Get(nameof(GrenadeThrowSpeed), 14f);
+
+        /// <summary>수류탄 최대 비행 시간(초). 넘으면 그 자리에서 터진다.</summary>
+        public static float GrenadeMaxFlightTime => Get(nameof(GrenadeMaxFlightTime), 3f);
+
         /// <summary>가드 탐지기 반경(m).</summary>
         public static float DetectorRadius => Get(nameof(DetectorRadius), 10f);
 
@@ -118,8 +145,8 @@ namespace GuardVsMannequin.Core
         /// <summary>탐색 단계 남은 시간이 이 값(초) 이하가 되면 가짜 마네킹을 정리한다.</summary>
         public static float FakeMannequinPurgeTime => Get(nameof(FakeMannequinPurgeTime), 20f);
 
-        /// <summary>목표 0회 판에서 탐색 시작 후 헌트 타임까지의 가드 보호 시간(초).</summary>
-        public static float ZeroObjectiveHuntDelay => Get(nameof(ZeroObjectiveHuntDelay), 20f);
+        /// <summary>판 시작 준비(카운트다운) 시간(초). 이 동안은 아무도 움직일 수 없다.</summary>
+        public static float MatchStartDelay => Get(nameof(MatchStartDelay), 3f);
 
         /// <summary>결과 화면을 보여준 뒤 룸으로 돌아가기까지의 시간(초).</summary>
         public static float ResultDisplayDuration => Get(nameof(ResultDisplayDuration), 10f);

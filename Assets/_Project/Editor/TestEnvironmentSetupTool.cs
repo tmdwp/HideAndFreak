@@ -935,7 +935,7 @@ namespace GuardVsMannequin.Editor
 
             CreateFloorAndOuterWalls(mapRoot, materials, wallPieceId);
             CreateInvisibleCeiling();
-            CreateWaitingRoom(mapRoot, materials, wallPieceId);
+            CreateGuardSpawnPoints(mapRoot);
             CreateProps(mapRoot, materials["Prop"], layoutPropIds);
             CreateMannequinSpawnPoints(mapRoot);
             CreateGeneratorSpawnPoints(mapRoot);
@@ -1096,48 +1096,21 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 북동쪽 모서리(x, z: 12~20)에 가드 대기실, 여닫히는 문, 가드 스폰 지점을 만든다.
+        /// 맵 가장자리에 가드 스폰 후보를 배치한다. 실제 위치는 판마다 마네킹 스폰에서 먼 곳을 고른다. (GuardSpawnSelector)
         /// </summary>
-        private static void CreateWaitingRoom(Transform parent, Dictionary<string, Material> materials, int wallPieceId)
+        private static void CreateGuardSpawnPoints(Transform parent)
         {
-            Transform room = new GameObject("WaitingRoom").transform;
-            room.SetParent(parent, false);
+            Transform points = new GameObject(MapSceneBuilder.GuardSpawnGroup).transform;
+            points.SetParent(parent, false);
 
-            const float roomMin = 12f;
-            const float doorCenterZ = 16f;
-            const float doorWidth = 2f;
-            float wallY = WallHeight * 0.5f;
-            Material wallMaterial = materials["WaitingRoom"];
-
-            // 남쪽 벽(z = 12): 문 없음
-            AddTransformable(CreateBlock(room, "Wall_South", new Vector3((roomMin + MapHalfSize) * 0.5f, wallY, roomMin), new Vector3(MapHalfSize - roomMin, WallHeight, WallThickness), wallMaterial), wallPieceId);
-
-            // 서쪽 벽(x = 12): 가운데에 문
-            float lowerLength = doorCenterZ - doorWidth * 0.5f - roomMin;
-            float upperStart = doorCenterZ + doorWidth * 0.5f;
-            float upperLength = MapHalfSize - upperStart;
-            AddTransformable(CreateBlock(room, "Wall_West_Lower", new Vector3(roomMin, wallY, roomMin + lowerLength * 0.5f), new Vector3(WallThickness, WallHeight, lowerLength), wallMaterial), wallPieceId);
-            AddTransformable(CreateBlock(room, "Wall_West_Upper", new Vector3(roomMin, wallY, upperStart + upperLength * 0.5f), new Vector3(WallThickness, WallHeight, upperLength), wallMaterial), wallPieceId);
-
-            // 문: 움직이므로 정적 오브젝트가 아니며, 변신 대상이 아니다.
-            GameObject door = CreateBlock(room, "Door", new Vector3(roomMin, wallY, doorCenterZ), new Vector3(WallThickness * 0.8f, WallHeight, doorWidth), materials["Door"]);
-            door.isStatic = false;
-            door.AddComponent<WaitingRoomDoor>();
-
-            // 가드 대기 시간 동안 가드가 머물러야 하는 영역 (서버 이동 검증용). 벽 두께만큼 여유를 둔다.
-            float roomCenter = (roomMin + MapHalfSize) * 0.5f;
-            float roomSize = MapHalfSize - roomMin + WallThickness * 2f;
-            var area = new SerializedObject(room.gameObject.AddComponent<WaitingRoomArea>());
-            area.FindProperty("center").vector3Value = new Vector3(roomCenter, WallHeight * 0.5f, roomCenter);
-            area.FindProperty("size").vector3Value = new Vector3(roomSize, WallHeight + 2f, roomSize);
-            area.ApplyModifiedPropertiesWithoutUndo();
-
-            // 가드 최대 인원(5명)만큼 스폰 지점
-            for (int i = 0; i < GameConstants.MaxPlayers / 2; i++)
+            var positions = new[]
             {
-                Vector3 position = new Vector3(14f + (i % 3) * 2f, 0f, 14f + (i / 3) * 3f);
-                CreateSpawnPoint(room, PlayerRole.Guard, position, Quaternion.Euler(0f, -90f, 0f));
-            }
+                new Vector3(17f, 0f, 17f), new Vector3(17f, 0f, -7f), new Vector3(-7f, 0f, 17f),
+                new Vector3(-17f, 0f, -7f), new Vector3(7f, 0f, -17f)
+            };
+
+            foreach (Vector3 position in positions)
+                CreateSpawnPoint(points, PlayerRole.Guard, position, Quaternion.LookRotation(-new Vector3(position.x, 0f, position.z)));
         }
 
         /// <summary>

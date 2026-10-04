@@ -68,7 +68,7 @@ namespace GuardVsMannequin.Player
         /// </summary>
         private void ApplyJump()
         {
-            bool isJumpHeld = playerInput.IsJumpHeld;
+            bool isJumpHeld = playerInput.IsJumpHeld && MovementRules.CanMove(GameServices.CurrentStateOrWaiting);
             if (isJumpHeld == wasJumpHeld)
                 return;
 
@@ -84,7 +84,8 @@ namespace GuardVsMannequin.Player
         /// </summary>
         private void ApplyMovement()
         {
-            Vector2 move = playerInput.Move;
+            // 판 시작 준비(카운트다운) 중에는 움직이지 않는다. (서버도 같은 규칙으로 검증)
+            Vector2 move = MovementRules.CanMove(GameServices.CurrentStateOrWaiting) ? playerInput.Move : Vector2.zero;
             Transform cameraTransform = character.cameraTransform;
 
             // 벽타기 중에는 벽/천장 면을, 평소에는 중력의 반대 방향을 이동 평면으로 사용한다.

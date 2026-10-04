@@ -6,6 +6,7 @@ namespace GuardVsMannequin.Map
     /// 탐색 단계가 시작될 때 대기실의 가드가 옮겨질 맵 안의 출발 지점.
     /// 대기실이 맵과 떨어져 있는 맵에서 사용한다. (<see cref="GuardReleaseTeleporter"/>)
     /// </summary>
+    [System.Obsolete("Phase 7: 가드 대기실 제거. 맵 씬에서 지운 뒤 파일도 삭제한다.")]
     public class GuardReleasePoint : MonoBehaviour
     {
         /// <summary>

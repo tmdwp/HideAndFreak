@@ -25,8 +25,9 @@ namespace GuardVsMannequin.Player.Guard
         private CharacterSkinView skinView;
 
         public string DisplayName => Loc.Get("tool.gun");
-        public float CooldownRemaining => cooldown.LocalRemaining;
-        public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting);
+        // 출발 보호(탐색 시작 직후 도구 잠금)도 쿨타임처럼 남은 시간으로 보여준다.
+        public float CooldownRemaining => Mathf.Max(cooldown.LocalRemaining, DamageRules.GetGuardToolLockRemaining(GameServices.State));
+        public bool IsReady => CooldownRemaining <= 0f && DamageRules.CanUseGuardTools(GameServices.State);
 
         /// <summary>호스트 설정의 총 쿨타임.</summary>
         private static float Cooldown => GameServices.CurrentSettingsOrDefault.gunCooldown;
@@ -84,7 +85,7 @@ namespace GuardVsMannequin.Player.Guard
         [ServerRpc]
         private void FireServerRpc(Vector3 origin, Vector3 direction)
         {
-            if (!DamageRules.CanUseGuardTools(GameServices.CurrentStateOrWaiting))
+            if (!DamageRules.CanUseGuardTools(GameServices.State))
                 return;
             if (!cooldown.TryStartServer(Cooldown))
                 return;

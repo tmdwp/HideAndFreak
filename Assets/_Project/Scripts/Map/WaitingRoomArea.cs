@@ -7,6 +7,7 @@ namespace GuardVsMannequin.Map
     /// 서버의 이동 검증(<see cref="Player.MovementValidator"/>)이 대기실 탈출을 막는 데 사용한다.
     /// 맵마다 대기실 오브젝트에 하나만 둔다.
     /// </summary>
+    [System.Obsolete("Phase 7: 가드 대기실 제거. 맵 씬에서 지운 뒤 파일도 삭제한다.")]
     public class WaitingRoomArea : MonoBehaviour
     {
         [Tooltip("영역 중심. (이 오브젝트의 로컬 좌표)")]

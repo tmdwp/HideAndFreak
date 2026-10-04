@@ -40,13 +40,14 @@ namespace GuardVsMannequin.Editor
 
         // 룸 설정의 전원 장치 수 최댓값(game_settings.csv)과 맞춘다.
         internal const int GeneratorCandidateCount = 12;
-        private const int GuardReleaseCount = 5;
-        private const int WaitingRoomSpawnCount = 5;
+        private const int GuardSpawnCount = 5;
+
+        /// <summary>가드 스폰 후보 지점을 모아 두는 그룹 이름.</summary>
+        internal const string GuardSpawnGroup = "GuardSpawnPoints";
 
         private const float SpawnEdgeClearance = 0.5f;
         internal const float GeneratorEdgeClearance = 1.0f;
         private const float IndoorCeilingCheck = 12f;
-        private const float WaitingRoomDepth = 60f;
         private const float LampSpacingArea = 70f;
         private const int ShadowLightLimit = 24;
 
@@ -149,7 +150,7 @@ namespace GuardVsMannequin.Editor
 
             List<Vector3> mannequinSpawns = PickSpread(floor, MannequinSpawnCount, SpawnEdgeClearance);
             List<Vector3> generatorPoints = PickSpread(floor, GeneratorCandidateCount, GeneratorEdgeClearance);
-            List<Vector3> guardReleases = PickSpread(floor, GuardReleaseCount, SpawnEdgeClearance);
+            List<Vector3> guardSpawns = PickSpread(floor, GuardSpawnCount, SpawnEdgeClearance);
             int addedLamps = SetupLights(mapRoot, environment, floor, map.indoor);
 
             // NavMesh는 서버가 실행 중에 다시 굽는다. 에디터에서 구운 데이터는 배치에만 쓰고 지운다.
@@ -160,11 +161,11 @@ namespace GuardVsMannequin.Editor
                 (parent, position, rotation) => TestEnvironmentSetupTool.CreateSpawnPoint(parent, PlayerRole.Mannequin, position, rotation));
             CreatePoints(mapRoot, "GeneratorSpawnPoints", generatorPoints, playArea.center,
                 (parent, position, rotation) => CreateMarker<GeneratorSpawnPoint>(parent, "GeneratorSpawnPoint", position, rotation));
-            CreatePoints(mapRoot, "GuardReleasePoints", guardReleases, playArea.center,
-                (parent, position, rotation) => CreateMarker<GuardReleasePoint>(parent, "GuardReleasePoint", position, rotation));
+            // 가드 스폰 후보: 실제 위치는 판마다 마네킹 스폰에서 먼 곳을 고른다. (GuardSpawnSelector, NavMesh 지점도 함께 씀)
+            CreatePoints(mapRoot, GuardSpawnGroup, guardSpawns, playArea.center,
+                (parent, position, rotation) => TestEnvironmentSetupTool.CreateSpawnPoint(parent, PlayerRole.Guard, position, rotation));
 
             float ceilingHeight = CreateBoundary(playArea, environment);
-            CreateWaitingRoom(playArea);
 
             MapInfo mapInfo = mapRoot.gameObject.AddComponent<MapInfo>();
             var mapInfoSerialized = new SerializedObject(mapInfo);
@@ -789,52 +790,6 @@ namespace GuardVsMannequin.Editor
             box.transform.position = position;
             box.isStatic = true;
             box.AddComponent<BoxCollider>().size = size;
-        }
-
-        /// <summary>
-        /// 맵 아래 떨어진 곳에 닫힌 가드 대기실을 만든다. (가드는 대기 시간 동안 맵을 볼 수 없다)
-        /// 대기실 영역(이동 검증), 가드 스폰 지점, 탐색 단계 시작 시 가드를 맵으로 옮기는 장치를 포함한다.
-        /// </summary>
-        internal static void CreateWaitingRoom(Bounds playArea)
-        {
-            const float roomSize = 8f;
-            const float roomHeight = 3f;
-            const float wall = 0.5f;
-
-            Material wallMaterial = AssetDatabase.LoadAssetAtPath<Material>($"{TestEnvironmentSetupTool.MaterialFolder}/M_WaitingRoom.mat");
-            Material floorMaterial = AssetDatabase.LoadAssetAtPath<Material>($"{TestEnvironmentSetupTool.MaterialFolder}/M_Floor.mat");
-
-            Transform room = new GameObject("WaitingRoom").transform;
-            room.position = new Vector3(playArea.center.x, playArea.min.y - WaitingRoomDepth, playArea.center.z);
-
-            float half = roomSize * 0.5f;
-            TestEnvironmentSetupTool.CreateBlock(room, "Floor", new Vector3(0f, -0.25f, 0f), new Vector3(roomSize + wall * 2f, 0.5f, roomSize + wall * 2f), floorMaterial);
-            TestEnvironmentSetupTool.CreateBlock(room, "Ceiling", new Vector3(0f, roomHeight + 0.25f, 0f), new Vector3(roomSize + wall * 2f, 0.5f, roomSize + wall * 2f), wallMaterial);
-            TestEnvironmentSetupTool.CreateBlock(room, "Wall_North", new Vector3(0f, roomHeight * 0.5f, half + wall * 0.5f), new Vector3(roomSize + wall * 2f, roomHeight, wall), wallMaterial);
-            TestEnvironmentSetupTool.CreateBlock(room, "Wall_South", new Vector3(0f, roomHeight * 0.5f, -half - wall * 0.5f), new Vector3(roomSize + wall * 2f, roomHeight, wall), wallMaterial);
-            TestEnvironmentSetupTool.CreateBlock(room, "Wall_East", new Vector3(half + wall * 0.5f, roomHeight * 0.5f, 0f), new Vector3(wall, roomHeight, roomSize), wallMaterial);
-            TestEnvironmentSetupTool.CreateBlock(room, "Wall_West", new Vector3(-half - wall * 0.5f, roomHeight * 0.5f, 0f), new Vector3(wall, roomHeight, roomSize), wallMaterial);
-
-            var lightObject = new GameObject("RoomLight");
-            lightObject.transform.SetParent(room, false);
-            lightObject.transform.localPosition = new Vector3(0f, roomHeight - 0.3f, 0f);
-            Light roomLight = lightObject.AddComponent<Light>();
-            roomLight.type = LightType.Point;
-            roomLight.range = 10f;
-            roomLight.intensity = 2f;
-
-            for (int i = 0; i < WaitingRoomSpawnCount; i++)
-            {
-                var local = new Vector3(-2f + (i % 3) * 2f, 0f, -1.5f + (i / 3) * 3f);
-                TestEnvironmentSetupTool.CreateSpawnPoint(room, PlayerRole.Guard, room.position + local, Quaternion.identity);
-            }
-
-            var area = new SerializedObject(room.gameObject.AddComponent<WaitingRoomArea>());
-            area.FindProperty("center").vector3Value = new Vector3(0f, roomHeight * 0.5f, 0f);
-            area.FindProperty("size").vector3Value = new Vector3(roomSize + wall * 2f, roomHeight + 2f, roomSize + wall * 2f);
-            area.ApplyModifiedPropertiesWithoutUndo();
-
-            room.gameObject.AddComponent<GuardReleaseTeleporter>();
         }
 
         /// <summary>

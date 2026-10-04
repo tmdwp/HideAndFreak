@@ -95,7 +95,7 @@ namespace GuardVsMannequin.Player.Mannequin
         {
             if (IsDisguised)
             {
-                cooldown.StartLocal(GetUntransformCooldown(GameServices.CurrentStateOrWaiting));
+                cooldown.StartLocal(GameTuning.UntransformCooldown);
                 UntransformServerRpc();
                 return;
             }
@@ -143,7 +143,7 @@ namespace GuardVsMannequin.Player.Mannequin
                 return;
 
             currentPropId.Value = PropDatabase.NoProp;
-            cooldown.StartServer(GetUntransformCooldown(GameServices.CurrentStateOrWaiting));
+            cooldown.StartServer(GameTuning.UntransformCooldown);
         }
 
         /// <summary>
@@ -156,19 +156,11 @@ namespace GuardVsMannequin.Player.Mannequin
         }
 
         /// <summary>
-        /// 변신이 가능한 상태인지 확인한다. (준비/탐색/사냥 시간 가능)
+        /// 변신이 가능한 상태인지 확인한다. (탐색/사냥 시간만, 판 시작 준비 중에는 불가)
         /// </summary>
         private static bool CanTransformIn(GameState state)
         {
-            return state == GameState.Preparation || state == GameState.Playing || state == GameState.Hunting;
-        }
-
-        /// <summary>
-        /// 변신 해제 쿨타임을 반환한다. 가드 대기 시간에는 쿨타임이 없다.
-        /// </summary>
-        private static float GetUntransformCooldown(GameState state)
-        {
-            return state == GameState.Preparation ? 0f : GameTuning.UntransformCooldown;
+            return state == GameState.Playing || state == GameState.Hunting;
         }
 
         /// <summary>

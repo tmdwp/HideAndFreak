@@ -55,9 +55,6 @@ namespace GuardVsMannequin.Editor
             if (prop.GetComponentInParent<Generator>() != null)
                 return "전원 장치는 변신 대상이 될 수 없습니다.";
 
-            if (prop.GetComponent<WaitingRoomDoor>() != null)
-                return "대기실 문은 변신 대상이 될 수 없습니다.";
-
             string lowerName = prop.name.ToLowerInvariant();
             if (lowerName.Contains("floor") || lowerName.Contains("ceiling"))
                 return "천장과 바닥은 변신 대상이 될 수 없습니다.";

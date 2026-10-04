@@ -22,7 +22,6 @@ namespace GuardVsMannequin.Editor
         private const string MapRootName = "Map";
         private const string GeneratorGroup = "GeneratorSpawnPoints";
         private const string MannequinGroup = "MannequinSpawnPoints";
-        private const string ReleaseGroup = "GuardReleasePoints";
 
         [MenuItem("GuardVsMannequin/맵 편집/전원 장치 후보 추가 (씬 뷰 중앙)")]
         internal static void AddGeneratorPoint()
@@ -38,11 +37,11 @@ namespace GuardVsMannequin.Editor
                 (parent, position, rotation) => TestEnvironmentSetupTool.CreateSpawnPoint(parent, PlayerRole.Mannequin, position, rotation));
         }
 
-        [MenuItem("GuardVsMannequin/맵 편집/가드 출발 지점 추가 (씬 뷰 중앙)")]
-        internal static void AddGuardReleasePoint()
+        [MenuItem("GuardVsMannequin/맵 편집/가드 스폰 후보 추가 (씬 뷰 중앙)")]
+        internal static void AddGuardSpawn()
         {
-            AddAtSceneViewCenter(ReleaseGroup, "GuardReleasePoint",
-                (parent, position, rotation) => MapSceneBuilder.CreateMarker<GuardReleasePoint>(parent, "GuardReleasePoint", position, rotation));
+            AddAtSceneViewCenter(MapSceneBuilder.GuardSpawnGroup, "SpawnPoint_Guard",
+                (parent, position, rotation) => TestEnvironmentSetupTool.CreateSpawnPoint(parent, PlayerRole.Guard, position, rotation));
         }
 
         /// <summary>

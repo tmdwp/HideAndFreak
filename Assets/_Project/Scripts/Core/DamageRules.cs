@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace GuardVsMannequin.Core
 {
     /// <summary>
@@ -23,11 +25,27 @@ namespace GuardVsMannequin.Core
         }
 
         /// <summary>
-        /// 가드 도구(총, 탐지기)를 사용할 수 있는 상태인지 확인한다.
+        /// 가드 도구(총, 수류탄)를 사용할 수 있는지 확인한다.
+        /// 탐색 시작 후 출발 보호 시간(<see cref="GameTuning.GuardToolLockTime"/>) 동안은 쓸 수 없다.
         /// </summary>
-        public static bool CanUseGuardTools(GameState state)
+        public static bool CanUseGuardTools(IGameStateProvider provider)
         {
-            return state == GameState.Playing || state == GameState.Hunting;
+            if (provider == null)
+                return false;
+            GameState state = provider.CurrentState;
+            return (state == GameState.Playing || state == GameState.Hunting) && GetGuardToolLockRemaining(provider) <= 0f;
+        }
+
+        /// <summary>
+        /// 가드 도구 출발 보호의 남은 시간(초). 탐색 단계가 아니면 0.
+        /// </summary>
+        public static float GetGuardToolLockRemaining(IGameStateProvider provider)
+        {
+            if (provider == null || provider.CurrentState != GameState.Playing)
+                return 0f;
+
+            float elapsed = provider.Settings.playTime - provider.RemainingTime;
+            return Mathf.Max(0f, GameTuning.GuardToolLockTime - elapsed);
         }
     }
 }

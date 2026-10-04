@@ -64,7 +64,7 @@ namespace GuardVsMannequin.Editor
                 issues.Add(new Issue(false, "Map/Environment가 없습니다. 맵 최적화와 경계 맞추기는 이 오브젝트 아래 모델을 대상으로 합니다.", mapInfo));
 
             CheckSpawns(issues);
-            CheckWaitingRoom(issues);
+            CheckGuardSpawns(issues);
             CheckLights(issues);
             CheckProps(issues, mapInfo);
 
@@ -106,31 +106,30 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 대기실 영역과, 가드가 대기실에서 나오는 방법(문 또는 출발 지점)을 확인한다.
+        /// 가드 스폰 후보를 확인한다. 후보가 없어도 NavMesh 위 무작위 위치를 쓰지만, 마네킹 스폰 지점과 가까운 후보는 쓰이지 않는다.
+        /// 예전 가드 대기실이 남아 있으면 오류로 알린다. (Phase 7 적용 메뉴로 지움)
         /// </summary>
-        private static void CheckWaitingRoom(List<Issue> issues)
+        private static void CheckGuardSpawns(List<Issue> issues)
         {
-            WaitingRoomArea[] areas = Object.FindObjectsByType<WaitingRoomArea>(FindObjectsInactive.Include);
-            if (areas.Length != 1)
+            GameObject waitingRoom = GameObject.Find("WaitingRoom");
+            if (waitingRoom != null)
+                issues.Add(new Issue(true, "예전 가드 대기실이 남아 있습니다. 'Phase 7 > 게임플레이 개편 적용'을 실행하세요.", waitingRoom));
+
+            SpawnPoint[] spawns = Object.FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include);
+            Vector3[] mannequins = spawns.Where(s => s.Role == PlayerRole.Mannequin).Select(s => s.transform.position).ToArray();
+            SpawnPoint[] guards = spawns.Where(s => s.Role == PlayerRole.Guard).ToArray();
+            if (guards.Length == 0)
             {
-                issues.Add(new Issue(true, $"대기실 영역(WaitingRoomArea)이 {areas.Length}개입니다. 하나여야 가드 대기 시간에 가드를 가둘 수 있습니다."));
-            }
-            else
-            {
-                foreach (SpawnPoint spawn in Object.FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include).Where(s => s.Role == PlayerRole.Guard))
-                {
-                    if (!areas[0].Contains(spawn.transform.position + Vector3.up * 0.5f))
-                        issues.Add(new Issue(true, "가드 스폰 지점이 대기실 영역 밖에 있습니다. 대기 시간에 계속 되돌려집니다.", spawn));
-                }
+                issues.Add(new Issue(false, "가드 스폰 후보가 없습니다. 바닥(NavMesh) 무작위 위치만 씁니다."));
+                return;
             }
 
-            bool hasReleasePoints = Object.FindObjectsByType<GuardReleasePoint>(FindObjectsInactive.Include).Length > 0;
-            bool hasTeleporter = Object.FindObjectsByType<GuardReleaseTeleporter>(FindObjectsInactive.Include).Length > 0;
-            bool hasDoor = Object.FindObjectsByType<WaitingRoomDoor>(FindObjectsInactive.Include).Length > 0;
-            if (hasReleasePoints && !hasTeleporter)
-                issues.Add(new Issue(true, "가드 출발 지점은 있지만 GuardReleaseTeleporter가 없습니다. 가드가 대기실에서 나오지 못합니다."));
-            if (!hasReleasePoints && !hasDoor)
-                issues.Add(new Issue(true, "가드 출발 지점도 대기실 문도 없습니다. 가드가 대기실에서 나오지 못합니다."));
+            float minDistance = GameTuning.GuardSpawnMinDistance;
+            foreach (SpawnPoint guard in guards)
+            {
+                if (mannequins.Any(m => Vector3.Distance(m, guard.transform.position) < minDistance))
+                    issues.Add(new Issue(false, $"가드 스폰 후보가 마네킹 스폰 지점과 {minDistance}m보다 가깝습니다. 이 후보는 거의 쓰이지 않습니다.", guard));
+            }
         }
 
         /// <summary>
@@ -141,8 +140,7 @@ namespace GuardVsMannequin.Editor
             if (Object.FindObjectsByType<HuntingLightingController>(FindObjectsInactive.Include).Length == 0)
                 issues.Add(new Issue(true, "HuntingLightingController가 없습니다. 사냥 시간에 조명이 꺼지지 않습니다."));
 
-            Light[] lights = Object.FindObjectsByType<Light>(FindObjectsInactive.Include)
-                .Where(l => l.GetComponentInParent<WaitingRoomArea>() == null).ToArray();
+            Light[] lights = Object.FindObjectsByType<Light>(FindObjectsInactive.Include);
             int unregistered = lights.Count(l => l.GetComponentInParent<MapLight>() == null);
             if (lights.Length == 0)
                 issues.Add(new Issue(false, "맵에 조명이 없습니다."));

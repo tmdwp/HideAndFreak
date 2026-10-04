@@ -96,10 +96,10 @@ namespace GuardVsMannequin.Player
 
             Vector3 position = Vector3.zero;
             Quaternion rotation = Quaternion.identity;
-            if (spawnPoints.TryGetNext(role, out SpawnPoint point))
+            if (spawnPoints.TryGetSpawnPose(role, out Pose pose))
             {
-                position = point.transform.position;
-                rotation = point.transform.rotation;
+                position = pose.position;
+                rotation = pose.rotation;
             }
             else
             {

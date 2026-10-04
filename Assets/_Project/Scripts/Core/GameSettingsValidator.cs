@@ -9,8 +9,8 @@ namespace GuardVsMannequin.Core
     public static class GameSettingsValidator
     {
         // 최후의 안전선. 룸에서 고를 수 있는 범위는 game_settings.csv에서 정하며, 이 값보다 넓힐 수 없다.
-        public const float MinPreparationTime = 15f;
-        public const float MaxPreparationTime = 180f;
+        public const float MinHuntDelay = 5f;
+        public const float MaxHuntDelay = 300f;
         public const float MinPlayTime = 120f;
         public const float MaxPlayTime = 1800f;
         public const float MaxHuntTime = 900f;
@@ -24,7 +24,7 @@ namespace GuardVsMannequin.Core
         /// <param name="playerCount">현재 참가 인원.</param>
         public static GameSettings Validate(GameSettings settings, int playerCount)
         {
-            settings.preparationTime = Mathf.Clamp(settings.preparationTime, MinPreparationTime, MaxPreparationTime);
+            settings.huntDelay = Mathf.Clamp(settings.huntDelay, MinHuntDelay, MaxHuntDelay);
             settings.playTime = Mathf.Clamp(settings.playTime, MinPlayTime, MaxPlayTime);
             settings.huntTime = Mathf.Clamp(settings.huntTime, 1f, MaxHuntTime);
 
@@ -38,7 +38,7 @@ namespace GuardVsMannequin.Core
             settings.generatorDestroyTime = Mathf.Max(0.1f, settings.generatorDestroyTime);
 
             settings.gunCooldown = Mathf.Max(0f, settings.gunCooldown);
-            settings.detectorCooldown = Mathf.Max(0f, settings.detectorCooldown);
+            settings.grenadeCooldown = Mathf.Max(0f, settings.grenadeCooldown);
             settings.guardMaxHealth = Mathf.Max(1, settings.guardMaxHealth);
             settings.mannequinMaxHealth = Mathf.Max(1, settings.mannequinMaxHealth);
             settings.huntHealthMultiplier = Mathf.Max(1f, settings.huntHealthMultiplier);

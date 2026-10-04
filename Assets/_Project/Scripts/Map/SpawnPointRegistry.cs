@@ -5,12 +5,19 @@ using UnityEngine;
 namespace GuardVsMannequin.Map
 {
     /// <summary>
-    /// 씬의 스폰 지점을 역할별로 모아 두고, 겹치지 않게 순서대로 나눠 준다.
+    /// 씬의 스폰 지점을 역할별로 모아 두고, 판마다 스폰 위치를 나눠 준다.
+    /// 역할의 스폰 방식(<see cref="RoleDefinition.Placement"/>)에 따라
+    /// 놓인 지점을 차례로 쓰거나(마네킹), 마네킹 스폰 지점에서 먼 무작위 위치를 고른다(가드, <see cref="GuardSpawnSelector"/>).
     /// </summary>
     public class SpawnPointRegistry : MonoBehaviour
     {
         private readonly Dictionary<PlayerRole, List<SpawnPoint>> pointsByRole = new();
         private readonly Dictionary<PlayerRole, int> nextIndexByRole = new();
+
+        // 가드 무작위 위치 후보로 뽑을 NavMesh 지점 수
+        private const int NavMeshCandidateCount = 40;
+
+        private GuardSpawnSelector awaySelector;
 
         /// <summary>
         /// 하위 계층을 포함해 씬의 모든 스폰 지점을 수집한다.
@@ -39,6 +46,64 @@ namespace GuardVsMannequin.Map
             nextIndexByRole.Clear();
             foreach (List<SpawnPoint> list in pointsByRole.Values)
                 Shuffle(list);
+            awaySelector = null;
+        }
+
+        /// <summary>
+        /// 역할의 스폰 방식에 맞는 위치와 방향을 고른다.
+        /// </summary>
+        /// <returns>위치를 정할 수 있으면 true. (지점도 NavMesh도 없으면 false)</returns>
+        public bool TryGetSpawnPose(PlayerRole role, out Pose pose)
+        {
+            if (RoleDefinitions.Get(role).Placement == SpawnPlacement.AwayFromMannequins)
+            {
+                awaySelector ??= CreateAwaySelector(role);
+                if (awaySelector.TrySelect(out pose))
+                    return true;
+            }
+
+            if (TryGetNext(role, out SpawnPoint point))
+            {
+                pose = new Pose(point.transform.position, point.transform.rotation);
+                return true;
+            }
+
+            pose = default;
+            return false;
+        }
+
+        /// <summary>
+        /// 이번 판의 "마네킹에서 먼 위치" 선택기를 만든다. 후보는 역할의 스폰 지점과 NavMesh 무작위 지점이다.
+        /// </summary>
+        private GuardSpawnSelector CreateAwaySelector(PlayerRole role)
+        {
+            var mannequinSpawns = new List<Vector3>();
+            foreach (SpawnPoint point in GetPoints(PlayerRole.Mannequin))
+                mannequinSpawns.Add(point.transform.position);
+
+            var rolePoints = new List<Vector3>();
+            foreach (SpawnPoint point in GetPoints(role))
+                rolePoints.Add(point.transform.position);
+
+            List<Vector3> navMeshPoints = NavMeshPointSampler.Sample(NavMeshCandidateCount, out Vector3 center);
+            if (navMeshPoints.Count == 0)
+                center = Average(mannequinSpawns);
+
+            return new GuardSpawnSelector(rolePoints, navMeshPoints, mannequinSpawns, center,
+                GameTuning.GuardSpawnMinDistance, GameTuning.GuardSpawnSeparation);
+        }
+
+        /// <summary>
+        /// 점들의 평균. 비면 원점.
+        /// </summary>
+        private static Vector3 Average(List<Vector3> points)
+        {
+            if (points.Count == 0)
+                return Vector3.zero;
+            Vector3 sum = Vector3.zero;
+            foreach (Vector3 point in points)
+                sum += point;
+            return sum / points.Count;
         }
 
         /// <summary>

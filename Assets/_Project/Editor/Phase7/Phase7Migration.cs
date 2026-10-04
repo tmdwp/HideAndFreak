@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace GuardVsMannequin.Editor
@@ -20,9 +21,16 @@ namespace GuardVsMannequin.Editor
                     "열려 있는 씬의 저장하지 않은 변경은 먼저 저장하세요.", "실행", "취소"))
                 return;
 
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+
             var summary = new System.Text.StringBuilder("[Phase7Migration] 결과\n");
             summary.AppendLine($"- 외곽선 기능: {Describe(OutlineFeatureInstaller.Install(), "렌더러에 추가")}");
+            summary.AppendLine($"- 룸 설정 줄 이름: {Describe(RoomSettingRowRenamer.Run(), "변경")}");
+            summary.AppendLine($"- 가드 대기실 제거: {Describe(WaitingRoomMigration.Run(), "씬 변경")}");
+            AssetDatabase.SaveAssets();
             Debug.Log(summary.ToString());
+            EditorUtility.DisplayDialog("Phase 7 게임플레이 개편 적용", summary.ToString(), "확인");
         }
 
         /// <summary>

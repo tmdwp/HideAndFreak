@@ -81,7 +81,6 @@ namespace GuardVsMannequin.Editor
 
             Physics.SyncTransforms();
             float ceilingHeight = MapSceneBuilder.CreateBoundary(playArea, environment);
-            MapSceneBuilder.CreateWaitingRoom(playArea);
 
             MapInfo mapInfo = mapRoot.gameObject.AddComponent<MapInfo>();
             var info = new SerializedObject(mapInfo);
@@ -135,7 +134,7 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 기본 지점(마네킹 스폰 10, 전원 장치 후보 12, 가드 출발 5)을 원형으로 놓는다. 맵을 만든 뒤 옮기거나 다시 배치한다.
+        /// 기본 지점(마네킹 스폰 10, 전원 장치 후보 12, 가드 스폰 후보 5)을 원형으로 놓는다. 맵을 만든 뒤 옮기거나 다시 배치한다.
         /// </summary>
         private static void CreateDefaultPoints(Transform mapRoot)
         {
@@ -143,8 +142,8 @@ namespace GuardVsMannequin.Editor
                 (parent, position, rotation) => TestEnvironmentSetupTool.CreateSpawnPoint(parent, PlayerRole.Mannequin, position, rotation));
             MapSceneBuilder.CreatePoints(mapRoot, "GeneratorSpawnPoints", Ring(12, 16f), Vector3.zero,
                 (parent, position, rotation) => MapSceneBuilder.CreateMarker<GeneratorSpawnPoint>(parent, "GeneratorSpawnPoint", position, rotation));
-            MapSceneBuilder.CreatePoints(mapRoot, "GuardReleasePoints", Ring(5, 3f), Vector3.zero,
-                (parent, position, rotation) => MapSceneBuilder.CreateMarker<GuardReleasePoint>(parent, "GuardReleasePoint", position, rotation));
+            MapSceneBuilder.CreatePoints(mapRoot, MapSceneBuilder.GuardSpawnGroup, Ring(5, 18f), Vector3.zero,
+                (parent, position, rotation) => TestEnvironmentSetupTool.CreateSpawnPoint(parent, PlayerRole.Guard, position, rotation));
         }
 
         /// <summary>
@@ -263,10 +262,6 @@ namespace GuardVsMannequin.Editor
             int registered = 0;
             foreach (Light target in lights)
             {
-                // 대기실 조명은 사냥 시간과 무관하므로 제외한다.
-                if (target.GetComponentInParent<WaitingRoomArea>() != null)
-                    continue;
-
                 Undo.RecordObject(target, "조명 등록");
                 target.lightmapBakeType = LightmapBakeType.Realtime;
                 if (target.GetComponent<MapLight>() == null)

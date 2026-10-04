@@ -2,7 +2,6 @@ using ECM2;
 using FishNet.Connection;
 using FishNet.Object;
 using GuardVsMannequin.Core;
-using GuardVsMannequin.Map;
 using UnityEngine;
 
 namespace GuardVsMannequin.Player
@@ -13,7 +12,7 @@ namespace GuardVsMannequin.Player
     ///   (네트워크 지연으로 위치가 몰려 도착해도 쌓인 예산 안이면 통과하므로 정상 플레이를 막지 않는다)
     /// - 달리기: 스태미나로 더 갈 수 있는 거리를 "달리기 예산"으로 따로 두고, 기본 예산을 넘는 이동에 쓴다.
     ///   스태미나와 같은 비율(<see cref="SprintRules"/>)로 회복되므로 스태미나 이상으로 계속 달리면 되돌려진다.
-    /// - 가드 대기 시간: 가드는 대기실 영역(<see cref="WaitingRoomArea"/>) 밖으로 나갈 수 없다.
+    /// - 판 시작 준비(카운트다운): 아무도 수평으로 움직일 수 없다(<see cref="MovementRules"/>). 작은 흔들림만 허용한다.
     /// 위반하면 마지막으로 정상이던 위치로 소유자에게 되돌림을 보낸다.
     /// 떨어지는 움직임(아래 방향)은 검사하지 않는다. 호스트 자신의 아바타는 검사하지 않는다.
     /// </summary>
@@ -24,6 +23,9 @@ namespace GuardVsMannequin.Player
 
         // 서버 프레임 사이 간격이 이보다 길면 서버가 멈췄던 것으로 본다. (초)
         private const float StallThreshold = 0.5f;
+
+        // 이동 금지 중 허용하는 수평 흔들림(m). (스폰 직후 물리 정착, 경사면 미끄러짐)
+        private const float FrozenDriftAllowance = 0.5f;
 
         [Tooltip("최대 속도에 곱하는 여유 배율.")]
         [SerializeField] private float speedTolerance = 1.3f;
@@ -38,7 +40,6 @@ namespace GuardVsMannequin.Player
         [SerializeField] private float riseAllowance = 2f;
 
         private Character character;
-        private PlayerIdentity identity;
         private Vector3 lastValidPosition;
         private float horizontalBudget;
         private float sprintBudget;
@@ -53,7 +54,6 @@ namespace GuardVsMannequin.Player
         private void Awake()
         {
             character = GetComponent<Character>();
-            identity = GetComponent<PlayerIdentity>();
         }
 
         /// <summary>
@@ -102,7 +102,15 @@ namespace GuardVsMannequin.Player
             float horizontal = new Vector2(delta.x, delta.z).magnitude;
             float rise = Mathf.Max(0f, delta.y);
 
-            if (horizontal <= horizontalBudget + sprintBudget && rise <= riseBudget && IsInAllowedArea(current))
+            if (!MovementRules.CanMove(GameServices.CurrentStateOrWaiting))
+            {
+                // 이동 금지 중: 기준 위치(스폰 위치)에서 거의 벗어나지 않아야 한다. 떨어지는 것은 허용한다.
+                if (horizontal > FrozenDriftAllowance || rise > FrozenDriftAllowance)
+                    Correct(horizontal, rise);
+                return;
+            }
+
+            if (horizontal <= horizontalBudget + sprintBudget && rise <= riseBudget)
             {
                 ConsumeHorizontal(horizontal);
                 riseBudget -= rise;
@@ -171,20 +179,6 @@ namespace GuardVsMannequin.Player
         private float GetMaxBudget(float speed)
         {
             return speed * maxBurstSeconds + extraSlack;
-        }
-
-        /// <summary>
-        /// 가드 대기 시간에는 가드가 대기실 안에 있어야 한다. 그 외에는 제한이 없다.
-        /// </summary>
-        private bool IsInAllowedArea(Vector3 position)
-        {
-            if (identity == null || identity.Role != PlayerRole.Guard)
-                return true;
-            if (GameServices.CurrentStateOrWaiting != GameState.Preparation)
-                return true;
-
-            WaitingRoomArea area = WaitingRoomArea.Current;
-            return area == null || area.Contains(position);
         }
 
         /// <summary>

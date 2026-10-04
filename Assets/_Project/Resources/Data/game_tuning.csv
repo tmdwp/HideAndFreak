@@ -31,7 +31,15 @@ HuntVisionFogStart,3,검은 안개가 시작되는 거리(m)
 HuntVisionFogEnd,13.5,완전히 안 보이는 거리(m)
 
 # 가드
-DetectorRadius,10,탐지기 반경(m)
+GuardSpawnMinDistance,15,가드 스폰이 마네킹 스폰 지점에서 떨어져야 하는 최소 거리(m)
+GuardSpawnSeparation,8,가드끼리 스폰 위치 최소 거리(m)
+GuardToolLockTime,10,탐색 시작 후 가드가 총·수류탄을 못 쓰는 시간(초)
+GrenadeRadius,2,수류탄 폭발 반경(m)
+GrenadeRevealDuration,4,맞은 마네킹 외곽선이 가드에게 보이는 시간(초)
+GrenadeSlowDuration,3,맞은 마네킹 감속 시간(초)
+GrenadeSlowMultiplier,0.5,감속 배율
+GrenadeThrowSpeed,14,던지는 초기 속도(m/s)
+GrenadeMaxFlightTime,3,최대 비행 시간(초). 넘으면 그 자리에서 폭발
 FlashlightRange,25,손전등 범위(m)
 FlashlightAngle,55,손전등 퍼짐 각도(도)
 
@@ -39,5 +47,5 @@ FlashlightAngle,55,손전등 퍼짐 각도(도)
 FakeMannequinMinCount,6,게임 시작 시 가짜 마네킹 수 최소
 FakeMannequinMaxCount,12,게임 시작 시 가짜 마네킹 수 최대
 FakeMannequinPurgeTime,20,탐색 남은 시간이 이 값(초) 이하가 되면 가짜 마네킹을 정리
-ZeroObjectiveHuntDelay,20,목표 0회 판에서 헌트 타임까지 가드 보호 시간(초)
+MatchStartDelay,3,판 시작 준비(카운트다운) 시간(초). 이 동안은 이동 불가
 ResultDisplayDuration,10,결과 화면 표시 시간(초)

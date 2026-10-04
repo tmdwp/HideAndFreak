@@ -80,12 +80,12 @@ namespace GuardVsMannequin.Editor
                         MapEditTools.AddGeneratorPoint();
                     if (GUILayout.Button("마네킹 스폰"))
                         MapEditTools.AddMannequinSpawn();
-                    if (GUILayout.Button("가드 출발 지점"))
-                        MapEditTools.AddGuardReleasePoint();
+                    if (GUILayout.Button("가드 스폰 후보"))
+                        MapEditTools.AddGuardSpawn();
                 }
                 if (GUILayout.Button("전원 장치 후보 넓게 다시 배치 (바닥 자동 분석)"))
                     MapEditTools.RespreadGenerators();
-                EditorGUILayout.LabelField("가드는 맵 아래 대기실에서 시작해, 탐색 단계가 되면 출발 지점으로 옮겨집니다.", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("가드는 판마다 마네킹 스폰에서 먼 곳(가드 스폰 후보 + 바닥 무작위 위치)에서 시작합니다.", EditorStyles.miniLabel);
 
                 Section("5. 경계", "플레이어가 맵 밖으로 나가지 않도록 투명 벽·천장을 Environment 크기에 맞춥니다.");
                 if (GUILayout.Button("경계를 맵 크기에 맞추기"))

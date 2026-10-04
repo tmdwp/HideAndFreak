@@ -11,7 +11,8 @@ namespace GuardVsMannequin.Room
     public enum GameSettingId : byte
     {
         Map,
-        PreparationTime,
+        // 1번은 예전 PreparationTime(가드 대기 시간) 자리. 번호를 유지해 룸 UI의 기존 줄을 그대로 쓴다.
+        HuntDelay,
         PlayTime,
         HuntTime,
         GuardCount,
@@ -19,7 +20,8 @@ namespace GuardVsMannequin.Room
         GeneratorCount,
         GeneratorDestroyTime,
         GunCooldown,
-        DetectorCooldown,
+        // 9번은 예전 DetectorCooldown(탐지기) 자리.
+        GrenadeCooldown,
         GuardMaxHealth,
         MannequinMaxHealth,
         HuntHealthMultiplier,
@@ -70,7 +72,7 @@ namespace GuardVsMannequin.Room
         private static readonly Definition[] fallbackDefinitions =
         {
             new(GameSettingId.Map, 1f, 0f, 4f, string.Empty),
-            new(GameSettingId.PreparationTime, 5f, GameSettingsValidator.MinPreparationTime, GameSettingsValidator.MaxPreparationTime, "unit.seconds"),
+            new(GameSettingId.HuntDelay, 5f, 10f, 120f, "unit.seconds"),
             new(GameSettingId.PlayTime, 30f, GameSettingsValidator.MinPlayTime, GameSettingsValidator.MaxPlayTime, "unit.seconds"),
             new(GameSettingId.HuntTime, 15f, 30f, GameSettingsValidator.MaxHuntTime, "unit.seconds"),
             new(GameSettingId.GuardCount, 1f, 1f, GameConstants.MaxPlayers / 2, "unit.people"),
@@ -78,7 +80,7 @@ namespace GuardVsMannequin.Room
             new(GameSettingId.GeneratorCount, 1f, 1f, 12f, "unit.count"),
             new(GameSettingId.GeneratorDestroyTime, 1f, 3f, 30f, "unit.seconds"),
             new(GameSettingId.GunCooldown, 0.5f, 0.5f, 10f, "unit.seconds"),
-            new(GameSettingId.DetectorCooldown, 1f, 3f, 30f, "unit.seconds"),
+            new(GameSettingId.GrenadeCooldown, 1f, 5f, 60f, "unit.seconds"),
             new(GameSettingId.GuardMaxHealth, 1f, 1f, 100f, string.Empty),
             new(GameSettingId.MannequinMaxHealth, 1f, 1f, 500f, string.Empty),
             new(GameSettingId.HuntHealthMultiplier, 1f, 1f, 100f, "unit.multiplier"),
@@ -130,7 +132,7 @@ namespace GuardVsMannequin.Room
             return id switch
             {
                 GameSettingId.Map => settings.mapId,
-                GameSettingId.PreparationTime => settings.preparationTime,
+                GameSettingId.HuntDelay => settings.huntDelay,
                 GameSettingId.PlayTime => settings.playTime,
                 GameSettingId.HuntTime => settings.huntTime,
                 GameSettingId.GuardCount => settings.guardCount,
@@ -138,7 +140,7 @@ namespace GuardVsMannequin.Room
                 GameSettingId.GeneratorCount => settings.generatorCount,
                 GameSettingId.GeneratorDestroyTime => settings.generatorDestroyTime,
                 GameSettingId.GunCooldown => settings.gunCooldown,
-                GameSettingId.DetectorCooldown => settings.detectorCooldown,
+                GameSettingId.GrenadeCooldown => settings.grenadeCooldown,
                 GameSettingId.GuardMaxHealth => settings.guardMaxHealth,
                 GameSettingId.MannequinMaxHealth => settings.mannequinMaxHealth,
                 GameSettingId.HuntHealthMultiplier => settings.huntHealthMultiplier,
@@ -216,7 +218,7 @@ namespace GuardVsMannequin.Room
             switch (id)
             {
                 case GameSettingId.Map: settings.mapId = rounded; break;
-                case GameSettingId.PreparationTime: settings.preparationTime = value; break;
+                case GameSettingId.HuntDelay: settings.huntDelay = value; break;
                 case GameSettingId.PlayTime: settings.playTime = value; break;
                 case GameSettingId.HuntTime: settings.huntTime = value; break;
                 case GameSettingId.GuardCount: settings.guardCount = rounded; break;
@@ -224,7 +226,7 @@ namespace GuardVsMannequin.Room
                 case GameSettingId.GeneratorCount: settings.generatorCount = rounded; break;
                 case GameSettingId.GeneratorDestroyTime: settings.generatorDestroyTime = value; break;
                 case GameSettingId.GunCooldown: settings.gunCooldown = value; break;
-                case GameSettingId.DetectorCooldown: settings.detectorCooldown = value; break;
+                case GameSettingId.GrenadeCooldown: settings.grenadeCooldown = value; break;
                 case GameSettingId.GuardMaxHealth: settings.guardMaxHealth = rounded; break;
                 case GameSettingId.MannequinMaxHealth: settings.mannequinMaxHealth = rounded; break;
                 case GameSettingId.HuntHealthMultiplier: settings.huntHealthMultiplier = value; break;
