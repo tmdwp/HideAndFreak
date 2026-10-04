@@ -6758,7 +6758,7 @@ GameObject:
   - component: {fileID: 6148917884298052968}
   - component: {fileID: 1845101945169076419}
   m_Layer: 0
-  m_Name: Row_DetectorCooldown
+  m_Name: Row_GrenadeCooldown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13854,7 +13854,7 @@ GameObject:
   - component: {fileID: 7588632583578208197}
   - component: {fileID: 1658857940832555256}
   m_Layer: 0
-  m_Name: Row_PreparationTime
+  m_Name: Row_HuntDelay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
