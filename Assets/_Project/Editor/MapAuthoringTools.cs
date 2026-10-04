@@ -17,10 +17,10 @@ namespace GuardVsMannequin.Editor
 {
     /// <summary>
     /// 맵을 직접 만들 때 쓰는 작업들. (맵 제작 도우미 창 <see cref="MapMakerWindow"/>에서 호출)
-    /// - 새 맵 뼈대: 게임에 필요한 시스템·UI·대기실·경계·지점이 들어 있고, 바닥만 있는 씬을 Scenes/Custom에 만든다.
+    /// - 새 맵 뼈대: 게임에 필요한 시스템·UI·경계·지점이 들어 있고, 바닥만 있는 씬을 Scenes/Custom에 만든다.
     /// - 선택한 오브젝트를 변신 사물/벽으로 등록·해제, 충돌체 추가, 조명을 사냥 시간에 꺼지는 조명으로 등록
     /// - 투명 경계를 환경 크기에 맞추기
-    /// 씬 구조 규칙: Map(MapInfo, NavMeshSurface) / Map/Environment(맵 모델) / Map/Lights / 지점 그룹, 맵 밖에 Boundary (Invisible)와 WaitingRoom.
+    /// 씬 구조 규칙: Map(MapInfo, NavMeshSurface) / Map/Environment(맵 모델) / Map/Lights / 지점 그룹, 맵 밖에 Boundary (Invisible).
     /// </summary>
     public static class MapAuthoringTools
     {
@@ -178,43 +178,6 @@ namespace GuardVsMannequin.Editor
         public static int RegisterSelectedAsWalls()
         {
             return RegisterSelected((registrar, target) => registrar.RegisterWall(target), "벽");
-        }
-
-        /// <summary>
-        /// 모든 맵 씬을 차례로 열어, 사물 목록의 변신 기울기를 맵에 놓인 모습으로 다시 채운다.
-        /// (기울기 저장 기능 이전에 만든 맵은 모델이 눕혀진 사물이 누운 채로 변신하므로 한 번 실행)
-        /// </summary>
-        [MenuItem("GuardVsMannequin/맵 편집/변신 사물 기울기 갱신 (전체 맵)")]
-        public static void RefreshPropRotationsInAllMaps()
-        {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                return;
-
-            string previousScene = SceneManager.GetActiveScene().path;
-            int total = 0;
-            foreach (MapCatalog.Entry map in MapCatalog.AllMaps)
-            {
-                if (!File.Exists(map.ScenePath))
-                    continue;
-
-                Scene scene = EditorSceneManager.OpenScene(map.ScenePath, OpenSceneMode.Single);
-                Transform mapRoot = FindMapRoot(scene);
-                MapInfo mapInfo = mapRoot != null ? mapRoot.GetComponent<MapInfo>() : null;
-                PropDatabase database = mapInfo != null ? mapInfo.PropDatabase : null;
-                if (database == null)
-                    continue;
-
-                var registrar = new PropRegistrar(database);
-                int updated = registrar.RefreshRotations(mapRoot.GetComponentsInChildren<TransformableProp>(true));
-                registrar.Save();
-                total += updated;
-                Debug.Log($"[MapAuthoringTools] {map.sceneName}: 변신 사물 기울기 {updated}개 갱신");
-            }
-
-            AssetDatabase.SaveAssets();
-            if (!string.IsNullOrEmpty(previousScene) && File.Exists(previousScene))
-                EditorSceneManager.OpenScene(previousScene, OpenSceneMode.Single);
-            EditorUtility.DisplayDialog("변신 사물 기울기 갱신", $"전체 맵에서 {total}개 사물의 기울기를 갱신했습니다.", "확인");
         }
 
         /// <summary>

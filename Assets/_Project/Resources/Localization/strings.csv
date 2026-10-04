@@ -223,7 +223,6 @@ role.guard,가드,Guard
 role.mannequin,마네킹,Mannequin
 role.none,-,-
 tool.gun,총,Gun
-tool.detector,탐지기,Detector
 tool.grenade,수류탄,Grenade
 hud.grenadeHit,수류탄에 맞았습니다! 위치가 드러납니다.,Hit by a grenade! Your position is revealed.
 tool.flashlight,손전등,Flashlight

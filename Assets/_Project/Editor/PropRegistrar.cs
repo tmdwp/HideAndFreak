@@ -122,30 +122,6 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 이미 등록된 사물의 기울기를 맵에 놓인 모습으로 다시 채운다. (기울기 저장 전에 만든 사물 목록 갱신용)
-        /// 같은 사물 번호를 여러 오브젝트가 쓰면 처음 찾은 오브젝트 기준. 갱신한 개수를 반환한다.
-        /// </summary>
-        public int RefreshRotations(IEnumerable<TransformableProp> props)
-        {
-            var visited = new HashSet<int>();
-            int updated = 0;
-            foreach (TransformableProp prop in props)
-            {
-                if (!visited.Add(prop.PropId) || !database.TryGet(prop.PropId, out PropDefinition definition))
-                    continue;
-                if (IsWallPiece(definition))
-                    continue;
-
-                Vector3 rotation = TiltOf(prop.transform);
-                if (definition.rotation == rotation)
-                    continue;
-                definition.rotation = rotation;
-                updated++;
-            }
-            return updated;
-        }
-
-        /// <summary>
         /// 벽 조각 항목인지 확인한다. (벽 조각은 이름 앞에 WallPiecePrefix가 붙는다)
         /// </summary>
         private static bool IsWallPiece(PropDefinition definition)

@@ -23,10 +23,10 @@ namespace GuardVsMannequin.Editor
     /// 1. 원본 씬의 오브젝트를 가져와 게임에 필요 없는 스크립트·카메라·UI를 제거하고 머티리얼을 URP로 변환한다.
     /// 2. 충돌체가 없는 메시에 충돌체를 붙이고, 크기·이름으로 변신 가능 사물과 벽을 골라 맵 전용 사물 목록을 만든다.
     /// 3. NavMesh를 임시로 구워 플레이 가능한 바닥(실내 맵은 천장이 있는 곳)을 찾고,
-    ///    마네킹 스폰 지점·전원 장치 후보·가드 출발 지점을 고르게 배치한다.
+    ///    마네킹 스폰 지점·전원 장치 후보·가드 스폰 후보를 고르게 배치한다.
     /// 4. 조명을 사냥 시간에 꺼지는 MapLight로 등록하고, 부족하면 조명을 추가한다.
-    /// 5. 맵 밖(아래)에 닫힌 가드 대기실을 만들고, 탐색 단계가 시작되면 가드를 출발 지점으로 옮긴다.
-    /// 6. 투명 경계(벽·천장), 게임 시스템, HUD를 추가하고 저장한 뒤 빌드 설정과 룸 맵 목록에 등록한다.
+    /// 5. 투명 경계(벽·천장), 게임 시스템, HUD를 추가하고 저장한 뒤 빌드 설정과 룸 맵 목록에 등록한다.
+    /// NavMesh는 "맵 최적화"(<see cref="MapOptimizer"/>)에서 구워 저장한다. 굽지 않은 맵은 서버가 실행 중에 굽는다.
     /// 자동 배치는 추정이므로, 생성 후 씬에서 위치를 확인하고 필요하면 옮긴다.
     /// "테스트 환경 생성"을 먼저 실행해 프리팹이 있어야 한다.
     /// </summary>
@@ -153,7 +153,7 @@ namespace GuardVsMannequin.Editor
             List<Vector3> guardSpawns = PickSpread(floor, GuardSpawnCount, SpawnEdgeClearance);
             int addedLamps = SetupLights(mapRoot, environment, floor, map.indoor);
 
-            // NavMesh는 서버가 실행 중에 다시 굽는다. 에디터에서 구운 데이터는 배치에만 쓰고 지운다.
+            // 여기서 구운 NavMesh는 배치에만 쓰고 지운다. (맵 최적화에서 다시 구워 저장, 없으면 서버가 실행 중에 굽는다)
             navMeshSurface.RemoveData();
             navMeshSurface.navMeshData = null;
 
@@ -190,7 +190,7 @@ namespace GuardVsMannequin.Editor
 
             Debug.Log($"[MapSceneBuilder] {map.displayName} 완료: {map.ScenePath}\n" +
                       $"맵 크기 배율 {mapScale:F2}, 머티리얼 변환 {converted}개, 충돌체 추가 {colliders}개, 변신 사물 {propCount}개(벽 {wallCount}개), " +
-                      $"바닥 샘플 {floor.Count}개, 조명 추가 {addedLamps}개. 스폰·전원 장치·출발 지점 위치를 씬에서 확인하세요.");
+                      $"바닥 샘플 {floor.Count}개, 조명 추가 {addedLamps}개. 스폰·전원 장치·가드 스폰 후보 위치를 씬에서 확인하세요.");
         }
 
         #region 환경 가져오기
@@ -753,7 +753,7 @@ namespace GuardVsMannequin.Editor
 
         #endregion
 
-        #region 경계와 대기실
+        #region 경계
 
         /// <summary>
         /// 플레이 영역을 둘러싸는 투명 벽과 천장(충돌체만)을 만든다. 맵 루트 밖에 두어 NavMesh와 변신 대상에서 제외한다.

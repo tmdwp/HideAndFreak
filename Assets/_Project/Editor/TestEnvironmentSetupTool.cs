@@ -51,8 +51,8 @@ namespace GuardVsMannequin.Editor
 
         internal const string InputActionsPath = RootFolder + "/Input/GameInput.inputactions";
         private const string PropDatabasePath = SoFolder + "/PropDatabase_Test.asset";
-        internal const string GuardPrefabPath = PrefabFolder + "/Guard.prefab";
-        internal const string MannequinPrefabPath = PrefabFolder + "/Mannequin.prefab";
+        private const string GuardPrefabPath = PrefabFolder + "/Guard.prefab";
+        private const string MannequinPrefabPath = PrefabFolder + "/Mannequin.prefab";
         private const string GeneratorPrefabPath = PrefabFolder + "/Generator.prefab";
         private const string FakeMannequinPrefabPath = PrefabFolder + "/FakeMannequin.prefab";
         internal const string NoiseLibraryPath = SoFolder + "/NoiseLibrary.asset";
@@ -60,7 +60,7 @@ namespace GuardVsMannequin.Editor
         internal const string LobbyScenePath = SceneFolder + "/Lobby.unity";
         internal const string RoomScenePath = SceneFolder + "/Room.unity";
         internal const string RoomStatePrefabPath = PrefabFolder + "/RoomState.prefab";
-        internal const string DefaultPrefabObjectsPath = "Assets/DefaultPrefabObjects.asset";
+        private const string DefaultPrefabObjectsPath = "Assets/DefaultPrefabObjects.asset";
 
         /// <summary>게임 이름. (창 제목, 빌드 정보)</summary>
         internal const string ProductName = "Hide&Freak";
@@ -87,7 +87,7 @@ namespace GuardVsMannequin.Editor
             (PrimitiveType.Cube, new Vector3(-15f, 0.9f, 10f), new Vector3(1.2f, 1.8f, 0.6f)),
         };
 
-        /// <summary>전원 장치 후보 위치. (대기실 바깥)</summary>
+        /// <summary>전원 장치 후보 위치.</summary>
         private static readonly Vector3[] GeneratorPositions =
         {
             new Vector3(-18f, 0f, -18f), new Vector3(-18f, 0f, 5f), new Vector3(-10f, 0f, 18f),
@@ -235,8 +235,6 @@ namespace GuardVsMannequin.Editor
                 { "Visor", new Color(0.1f, 0.1f, 0.1f) },
                 { "Floor", new Color(0.45f, 0.45f, 0.45f) },
                 { "Wall", new Color(0.75f, 0.75f, 0.72f) },
-                { "WaitingRoom", new Color(0.55f, 0.65f, 0.8f) },
-                { "Door", new Color(0.8f, 0.3f, 0.2f) },
                 { "Prop", new Color(0.55f, 0.4f, 0.3f) },
                 { "Generator", new Color(0.2f, 0.6f, 0.3f) },
                 { "GeneratorDestroyed", new Color(0.15f, 0.15f, 0.15f) }
@@ -390,7 +388,7 @@ namespace GuardVsMannequin.Editor
         /// FishNet 내부의 DefaultPrefabObjects.SetAssetPathHashes(int)를 호출해 모든 프리팹의 해시를 다시 계산한다.
         /// 공개 API가 없어 리플렉션을 사용하며, 실패하면 FishNet 메뉴를 안내한다.
         /// </summary>
-        internal static void RefreshAssetPathHashes(DefaultPrefabObjects collection)
+        private static void RefreshAssetPathHashes(DefaultPrefabObjects collection)
         {
             MethodInfo method = typeof(DefaultPrefabObjects).GetMethod("SetAssetPathHashes", BindingFlags.Instance | BindingFlags.NonPublic,
                 null, new[] { typeof(int) }, null);
@@ -543,7 +541,7 @@ namespace GuardVsMannequin.Editor
             serialized.FindProperty("role").enumValueIndex = (int)role;
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
-            // 소유자 권한 이동을 서버에서 검증한다. (스피드핵, 순간이동, 대기실 탈출 방지)
+            // 소유자 권한 이동을 서버에서 검증한다. (스피드핵, 순간이동, 시작 준비 중 이동 방지)
             root.AddComponent<MovementValidator>();
         }
 
@@ -702,9 +700,9 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 가드에 수류탄 도구와 연출을 붙인다. (Phase 7 이전 메뉴도 같은 함수를 쓴다)
+        /// 가드에 수류탄 도구와 연출을 붙인다.
         /// </summary>
-        internal static void AddGrenade(GameObject root)
+        private static void AddGrenade(GameObject root)
         {
             // ?? 연산자는 Unity의 "없는 컴포넌트" 가짜 null을 걸러내지 못하므로 TryGetComponent를 쓴다.
             if (!root.TryGetComponent(out GrenadeView view))
@@ -718,9 +716,9 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 마네킹에 수류탄 효과(상태 동기화, 상대 화면 외곽선)를 붙인다. (Phase 7 이전 메뉴도 같은 함수를 쓴다)
+        /// 마네킹에 수류탄 효과(상태 동기화, 상대 화면 외곽선)를 붙인다.
         /// </summary>
-        internal static void AddGrenadeTargetComponents(GameObject root)
+        private static void AddGrenadeTargetComponents(GameObject root)
         {
             if (root.GetComponent<StatusEffects>() == null)
                 root.AddComponent<StatusEffects>();
@@ -1014,7 +1012,7 @@ namespace GuardVsMannequin.Editor
             sun.shadows = LightShadows.Soft;
             sunObject.AddComponent<MapLight>();
 
-            // 천장 조명 4x4 (대기실 포함)
+            // 천장 조명 4x4
             float[] grid = { -15f, -5f, 5f, 15f };
             foreach (float x in grid)
             {

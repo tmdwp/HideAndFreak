@@ -8,13 +8,7 @@ namespace GuardVsMannequin.Audio
         /// <summary>가드 사격.</summary>
         GunShot = 0,
 
-        /// <summary>(사용 안 함) 가드 탐지기 작동. Phase 7에서 수류탄으로 교체. 번호 1은 다시 쓰지 않는다.</summary>
-        [System.Obsolete("Phase 7: 탐지기 제거")]
-        DetectorPing = 1,
-
-        /// <summary>(사용 안 함) 탐지기 범위 안의 마네킹이 내는 소음. 번호 2는 다시 쓰지 않는다.</summary>
-        [System.Obsolete("Phase 7: 탐지기 제거")]
-        MannequinDetected = 2,
+        // 1, 2번은 예전 탐지기 소음 자리. 다시 쓰지 않는다.
 
         /// <summary>변신 중인 마네킹의 주기적 소음.</summary>
         DisguiseCreak = 3,

@@ -12,7 +12,8 @@ namespace GuardVsMannequin.Rendering
     /// ① 마스크 패스: <see cref="IOutlineSource"/>의 렌더러를 깊이 검사 없이 마스크 텍스처에 그린다. (R = 조준, G = 수류탄 표시)
     /// ② 합성 패스: 마스크 가장자리를 넓혀 화면에 외곽선 색을 덧그린다.
     /// 메시 법선과 무관하게 같은 두께로 그려지고, 스킨 메시·오클루전 컬링으로 가려진 대상도 그릴 수 있다. (벽 너머 표시)
-    /// 깊이 사전 패스(Depth Priming)와도 무관하다. 설치는 에디터 메뉴(Phase 7 적용)가 PC_Renderer에 추가한다.
+    /// 깊이 사전 패스(Depth Priming)와도 무관하다. PC_Renderer·Mobile_Renderer(Assets/Settings)에 추가되어 있다.
+    /// 셰이더 두 개(OutlineMask, OutlineComposite)는 빌드에 포함되도록 설정에 직접 연결한다.
     /// </summary>
     public class OutlineRendererFeature : ScriptableRendererFeature
     {

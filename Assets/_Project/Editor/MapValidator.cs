@@ -107,14 +107,9 @@ namespace GuardVsMannequin.Editor
 
         /// <summary>
         /// 가드 스폰 후보를 확인한다. 후보가 없어도 NavMesh 위 무작위 위치를 쓰지만, 마네킹 스폰 지점과 가까운 후보는 쓰이지 않는다.
-        /// 예전 가드 대기실이 남아 있으면 오류로 알린다. (Phase 7 적용 메뉴로 지움)
         /// </summary>
         private static void CheckGuardSpawns(List<Issue> issues)
         {
-            GameObject waitingRoom = GameObject.Find("WaitingRoom");
-            if (waitingRoom != null)
-                issues.Add(new Issue(true, "예전 가드 대기실이 남아 있습니다. 'Phase 7 > 게임플레이 개편 적용'을 실행하세요.", waitingRoom));
-
             SpawnPoint[] spawns = Object.FindObjectsByType<SpawnPoint>(FindObjectsInactive.Include);
             Vector3[] mannequins = spawns.Where(s => s.Role == PlayerRole.Mannequin).Select(s => s.transform.position).ToArray();
             SpawnPoint[] guards = spawns.Where(s => s.Role == PlayerRole.Guard).ToArray();

@@ -58,10 +58,7 @@ namespace GuardVsMannequin.Audio
         /// <returns>추가된 항목이 있는지 여부.</returns>
         public bool AddMissingDefaults()
         {
-            // 사용하지 않는 종류(탐지기)는 지운다.
-#pragma warning disable CS0618
-            bool added = entries.RemoveAll(entry => entry.type == NoiseType.DetectorPing || entry.type == NoiseType.MannequinDetected) > 0;
-#pragma warning restore CS0618
+            bool added = false;
             foreach (Entry defaultEntry in CreateDefaults())
             {
                 if (entries.Exists(entry => entry.type == defaultEntry.type))

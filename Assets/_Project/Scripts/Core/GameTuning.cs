@@ -123,9 +123,6 @@ namespace GuardVsMannequin.Core
         /// <summary>수류탄 최대 비행 시간(초). 넘으면 그 자리에서 터진다.</summary>
         public static float GrenadeMaxFlightTime => Get(nameof(GrenadeMaxFlightTime), 3f);
 
-        /// <summary>가드 탐지기 반경(m).</summary>
-        public static float DetectorRadius => Get(nameof(DetectorRadius), 10f);
-
         /// <summary>손전등 범위(m).</summary>
         public static float FlashlightRange => Get(nameof(FlashlightRange), 25f);
 

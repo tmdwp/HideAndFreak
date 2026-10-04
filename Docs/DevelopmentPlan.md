@@ -48,11 +48,11 @@ Assets/_Project/
 │  ├─ Player/        # 공통 플레이어, 역할, 체력, 입력
 │  │  ├─ Guard/
 │  │  └─ Mannequin/
-│  ├─ Tools/         # 총, 탐지기, 손전등
+│  ├─ Tools/         # 총, 수류탄, 손전등
 │  ├─ Props/         # 변신 가능 사물, PropDatabase
 │  ├─ Objectives/    # 전원 장치
 │  ├─ AI/            # 가짜 마네킹
-│  ├─ Map/           # 대기실 문, 조명 제어
+│  ├─ Map/           # 스폰 지점·가드 스폰 선택, 조명 제어
 │  ├─ Audio/         # 소음 시스템
 │  ├─ Cameras/       # UnityEngine.Camera와 이름 충돌을 피하기 위해 복수형 사용
 │  └─ UI/
@@ -80,8 +80,8 @@ Waiting ─▶ Preparation ─▶ Playing ─▶ Hunting ─▶ Ended
 | # | 항목 | 확정 규칙 |
 |---|---|---|
 | 1 | **공동 전원 장치 파괴 속도** | 참여 인원 `n`일 때 **총 속도 = 1.4^(n−1)** (1인 = 1.0, 2인 = 1.4, 3인 = 1.96, 4인 = 2.744). 초당 진행도 = `1.4^(n−1) / 파괴 소요 시간`. 개인 기여분 = 총 속도 / n. 한 명이라도 상호작용이 끊기면 **그 사람은 이탈**하고, **참여자가 0명이 되면 진행도 초기화** |
-| 2 | **목표 수행 횟수 0회** | `Playing` 단계 진입(대기실 문 열림) **20초 후 자동으로 사냥 시간** 시작 (가드 보호 목적). HUD의 목표 칸에 **가드 보호 시간과 사냥 시간 시작까지 남은 시간**을 표시한다 (`HuntTiming`) |
-| 3 | **가드 대기 시간** | 가드는 맵과 연결된 **별도의 대기실**에서 스폰. 대기 시간 동안 문은 닫혀 있고, 대기 시간이 끝나면 **문이 열려** 맵으로 나갈 수 있음 |
+| 2 | **목표 수행 횟수 0회** | `Playing` 단계 진입 후 **룸 설정 `huntDelay`(기본 35초) 뒤 자동으로 사냥 시간** 시작 (가드 보호 목적). HUD의 목표 칸에 **가드 보호 시간과 사냥 시간 시작까지 남은 시간**을 표시한다 (`HuntTiming`) |
+| 3 | **판 시작 준비** | 모두 스폰된 뒤 **3초 카운트다운** 동안 아무도 움직일 수 없음. 가드는 마네킹 스폰 지점에서 먼 **무작위 위치**에서 시작하고, 탐색 시작 후 **10초 동안 도구를 쓸 수 없음**(출발 보호). (Phase 7-A에서 가드 대기실을 대체) |
 | 4 | **사냥 시간 중 가드 무기** | 사냥 시간에도 **총 사용 가능** (쿨타임 동일). 마네킹 체력 배율은 **호스트 설정값 `huntHealthMultiplier`** (기본값 10) |
 | 5 | **변신 불가 사물** | 천장, 바닥, **조명 기구**, **전원 장치**, **전원 장치 주변 구조물** |
 | 6 | **조명 방식** | **실시간 조명** + URP **Forward+** 렌더러. 전구는 Emission 머티리얼과 Light 컴포넌트를 함께 끄고 켬 |
@@ -114,7 +114,7 @@ Waiting ─▶ Preparation ─▶ Playing ─▶ Hunting ─▶ Ended
 - 값 검증(범위 제한)은 `GameSettingsValidator`가 담당합니다 (SRP).
 
 ### 2.2 밸런스 조정 수치 (`GameTuning`, `Resources/Data/game_tuning.csv`)
-- 개발 중에 다듬는 고정 수치(사냥 시간 이동 배율, 달리기·스태미나, 점프, 변신·상호작용 거리, 쿨타임, 사냥 시야, 탐지기·손전등, 가짜 마네킹 수, 결과 화면 시간 등)는 모두 이 파일 한 곳에서 `id,value,설명` 형식으로 고친다. 값과 설명이 전부 파일에 있으므로 목록은 파일을 본다.
+- 개발 중에 다듬는 고정 수치(사냥 시간 이동 배율, 달리기·스태미나, 점프, 변신·상호작용 거리, 쿨타임, 사냥 시야, 가드 스폰·출발 보호, 수류탄·손전등, 가짜 마네킹 수, 결과 화면 시간 등)는 모두 이 파일 한 곳에서 `id,value,설명` 형식으로 고친다. 값과 설명이 전부 파일에 있으므로 목록은 파일을 본다.
 - 빌드 후에도 `GameData/Data/game_tuning.csv`로 복사되어 고칠 수 있다(`DataFiles`). 파일에 없는 항목·숫자가 아닌 값은 코드 기본값, 모르는 id는 경고 후 무시.
 - 값이 다른 PC끼리는 판정이 어긋나므로 파일 값의 지문을 게임 버전 끝(`-t xxxxxxxx`)에 붙여 접속을 막는다(`GameVersion`).
 - 항목 추가: `GameTuning`에 속성 한 줄(이름 = id, 코드 기본값) + csv에 한 줄.
@@ -402,14 +402,14 @@ public interface ITransformable { int PropId { get; } }
   - `RoomAuthenticator`(FishNet Authenticator, `SessionService`가 실행 시 등록): 판 진행 중 접속, 인원 초과, Steam 방의 비로비 SteamID·외부 IP 접속을 거부한다. 로비 멤버 목록 갱신이 늦을 수 있어 최대 5초 기다린다. `RoomState`는 **인증을 통과한 연결만** 참가자로 등록한다.
   - 로비 공개 범위는 `SteamLobbyService.lobbyType`(기본 FriendsOnly). Public은 코드를 아는 누구나 들어올 수 있고 AppID 480에서는 로비 검색에 보일 수 있다. **정식 AppID로 교체 전까지 FriendsOnly 권장.**
   - 닉네임은 서버에서 `<`, `>`, 제어 문자를 제거한다(리치 텍스트 태그로 UI를 깨뜨리는 것 방지).
-  - `MovementValidator`(가드·마네킹 프리팹): 소유자 권한 이동을 서버가 검증한다. 최대 속도 × 1.3으로 이동 예산을 쌓고(최대 1.5초분 + 1m), 수평 이동·상승이 예산을 넘으면 마지막 정상 위치로 되돌린다(`TargetRpc`). 가드 대기 시간에는 가드가 `WaitingRoomArea`(대기실 오브젝트, 로컬 상자) 밖으로 나가면 되돌린다. 낙하는 검사하지 않는다. 새 맵에는 대기실에 `WaitingRoomArea`를 붙여야 한다.
+  - `MovementValidator`(가드·마네킹 프리팹): 소유자 권한 이동을 서버가 검증한다. 최대 속도 × 1.3으로 이동 예산을 쌓고(최대 1.5초분 + 1m), 수평 이동·상승이 예산을 넘으면 마지막 정상 위치로 되돌린다(`TargetRpc`). 낙하는 검사하지 않는다. (Phase 7-A: 대기실 검사 → 시작 준비 중 이동 금지 검사, 달리기 예산·수류탄 감속 반영)
 - **빌드 후 편집 가능한 데이터 파일**: `DataFiles`가 ① 빌드 폴더 `<게임>_Data/StreamingAssets/GameData/…` → ② 내장 원본(`Resources`) → ③ 코드 기본값 순서로 읽는다. 파일이 없거나, UTF-8이 아니거나(깨진 글자 포함), 해석에 실패하면 다음 순서로 넘어간다. 원본은 계속 `Assets/_Project/Resources`에서 편집하며, 빌드가 끝나면 `DataFilesBuildProcessor`가 `Localization`, `Credits`, `Data` 폴더와 안내문(README.txt)을 빌드 폴더로 복사한다. (Windows/Linux 빌드)
 - **캐릭터 외형**: `CharacterSkin`(모델 + 애니메이터) 에셋을 `CharacterSkinView`가 아바타에 붙인다. 맵의 `MapInfo`에 마네킹/가드 외형을 지정하면 그 맵에서만 바뀌고(가짜 마네킹 포함), 비우면 프리팹 기본 외형(마네킹=더미, 가드=Ethan)을 쓴다. 애니메이션은 위치 변화로 속도를 계산해 `Speed`, `MoveX`, `MoveZ` 중 컨트롤러에 있는 파라미터만 설정한다. 몸체 렌더러는 `CharacterSkinView.BodyRenderers`로 변신 숨김·1인칭 그림자 처리에 쓰인다.
   - 외형·무기 모델은 메뉴 `GuardVsMannequin > 캐릭터·무기 에셋 생성`(테스트 환경 생성에 포함)이 만든다: 원본에서 스크립트·충돌체를 빼고, 발을 원점에 맞추고 키를 맞추고(사람 1.8m, 슬라임 1.3m, 유령 1.6m), 머티리얼을 URP Lit으로 변환해 `Assets/_Project/Art/Skins`에 저장. 휴머노이드(더미·Ethan)는 Kevin Iglesias 8방향 걷기·달리기 2D 블렌드 컨트롤러를 공유한다.
   - 새 외형 추가: `Create > GuardVsMannequin > Character Skin`으로 에셋을 만들고 모델 프리팹(발 원점, 정면 +Z)과 컨트롤러를 지정 → 맵의 `MapInfo`에 넣는다. 정면이 다르면 `yawOffset`으로 보정.
 - **가드 총**: `GuardWeaponView`가 소유자에게는 카메라 앞 1인칭 리볼버, 다른 플레이어에게는 오른손 위치에서 조준 방향을 향하는 3인칭 리볼버를 보여준다(휴머노이드는 `HandAimIK`로 오른손을 조준 방향으로 뻗음). 판정은 그대로 서버 히트스캔이고, `ShotTracerView`가 보는 사람 기준 총구에서 총알 이펙트(`BulletEffect`)를 끝점까지 날리고 명중·총구 화염 이펙트를 재생한다. (MasterStylizedProjectiles의 OrangeGunShot)
 - **맵 자동 생성** (`GuardVsMannequin > 맵 생성`, `MapCatalog`의 순서 = 맵 번호): 원본 데모 씬을 가져와 정리(프리팹 연결 해제, 카메라·UI·에셋 스크립트 제거, 물리 고정) → 머티리얼 URP 변환(`UrpMaterialConverter`, 원본 에셋 머티리얼을 직접 바꿈) → 충돌체 없는 메시에 MeshCollider → 크기·이름 규칙으로 변신 사물/벽 조각 지정(맵 전용 `PropDatabase_<씬>`) → 임시 NavMesh로 플레이 가능한 바닥(실내 맵은 천장 있는 곳, 가장 넓게 이어진 영역)을 분석해 마네킹 스폰 10·전원 장치 후보 12·가드 출발 지점 5를 고르게 배치 → 조명을 실시간 MapLight로 바꾸고 부족하면 추가 → 투명 경계·천장, 맵 아래 닫힌 대기실 → 게임 시스템·HUD → 빌드 설정과 RoomState 맵 목록 등록.
-  - 새 맵의 가드 대기실은 맵과 떨어져 있어, 탐색 단계 시작 시 `GuardReleaseTeleporter`가 가드를 `GuardReleasePoint`로 옮긴다(`MovementValidator.ServerTeleport`). 테스트 맵은 출발 지점이 없어 기존처럼 문이 열린다.
+  - (Phase 7-A에서 대기실·출발 지점을 없애고 가드 스폰 후보 + `GuardSpawnSelector`로 바꿨다.)
   - 빌드 설정에 없는 맵을 고르면 `RoomState`가 테스트 맵으로 대신한다.
 - **UI 프리팹과 맵 제작 도구**: 사용법은 `Docs/UiAndMapGuide.md`. UI는 `Prefabs/UI`의 프리팹(설정·크레딧 패널은 중첩 프리팹)으로 관리되어 씬 생성 도구를 다시 실행해도 직접 수정한 내용이 유지된다(`UiPrefabLibrary`). 맵은 "맵 제작 도우미" 창(`MapMakerWindow`)에서 새 맵 뼈대 생성 → 등록(`PropRegistrar` 공용) → 지점 배치 → 경계 → 검사(`MapValidator`) → 최적화 → 맵 목록 갱신(`MapRegistrySync`: 빌드 설정·RoomState·strings.csv·game_settings.csv) 순서로 만든다. 직접 만든 맵은 `Scenes/Custom`에 두면 자동 생성 맵 뒤 번호로 붙는다.
 - **맵 크기**: 걸을 수 있는 바닥이 800㎡보다 좁은 맵은 생성 시 환경 전체를 키운다(최대 2.5배, 조명 범위도 함께). `MapCatalog`의 `scale`에 값을 넣으면 그 배율로 고정된다(0 = 자동).
@@ -523,7 +523,7 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 - 외곽선은 Rendering Layer 대신 `OutlineRegistry`에 등록된 렌더러를 `DrawRenderer`로 직접 마스크에 그린다. 오클루전 컬링으로 가려진 대상도 그려지고 렌더러 설정을 바꾸지 않는다. (GPU Resident Drawer 영향 없음)
 - 수류탄 외곽선은 "상대 진영의 살아 있는 플레이어"에게만 보인다(`RoleDefinition.Side` 비교). 맞은 마네킹에게는 HUD 하단 문구로 알린다. (화면 가장자리 효과는 보류)
 - 출발 보호 남은 시간은 HUD 도구 쿨타임 칸에 표시한다(총·수류탄의 `CooldownRemaining`).
-- 기존 에셋 이전: 메뉴 **Phase 7 > 게임플레이 개편 적용** (외곽선 기능 설치, 탐지기 → 수류탄, 마네킹 효과 컴포넌트, 맵 대기실 제거 + NavMesh 다시 굽기, 룸 설정 줄 이름). 실행 확인 후 `[Obsolete]`로 남긴 대기실·탐지기 스크립트와 `PropOutline` 셰이더를 지운다.
+- 기존 에셋 이전(완료, 2026-10-04): 일회용 메뉴로 외곽선 기능 설치(PC·Mobile 렌더러), 탐지기 → 수류탄, 마네킹 효과 컴포넌트, 맵 5개 대기실 제거, 룸 설정 줄 이름을 바꾼 뒤, 이전 도구와 예전 대기실·탐지기 스크립트, `PropOutline` 셰이더를 삭제했다.
 
 **구현 단계**
 - [x] 7-A1. 공용 외곽선(`OutlineRendererFeature`, `IOutlineService`)으로 `PropHighlighter` 교체 → 변신 사물 조준 외곽선이 보이는지 확인. (원인 확인을 위해 먼저 Depth Priming 끄기로 시험)
@@ -596,7 +596,7 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 - [ ] 시설 사물 팩 (다양한 크기, 콜라이더 포함)
 - [ ] 전원 장치 (정상 / 파괴 상태)
 - [ ] 조명 기구 (On/Off Emission 머티리얼)
-- [ ] 벽·바닥·천장 모듈 키트, 대기실 문
+- [ ] 벽·바닥·천장 모듈 키트
 
 ### 4.3 애니메이션
 - [ ] 마네킹: Idle, 걷기, 달리기, 감정 표현 6종, 공격, 피격, 사망

@@ -9,7 +9,7 @@ namespace GuardVsMannequin.Core
         /// <summary>접속 대기. 아직 아바타가 스폰되지 않은 상태.</summary>
         Waiting = 0,
 
-        /// <summary>가드 대기 시간(= 마네킹 준비 시간). 가드는 대기실에 갇혀 있다.</summary>
+        /// <summary>판 시작 준비(카운트다운). 모두 스폰된 채 움직일 수 없다. (GameTuning.MatchStartDelay)</summary>
         Preparation = 1,
 
         /// <summary>제한 시간 동안의 탐색 단계.</summary>

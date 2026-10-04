@@ -26,7 +26,8 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 7200000, guid: b9a23f869c4fd45f19c5ada54dd82176, type: 3}
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
-  m_RendererFeatureMap: ad6b866f10d7b46c
+  - {fileID: 1117581839825118244}
+  m_RendererFeatureMap: ad6b866f10d7b46c2424341ac372820f
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -55,6 +56,26 @@ MonoBehaviour:
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 0
+--- !u!114 &1117581839825118244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6818958e1e43a94090edeeb146025e6, type: 3}
+  m_Name: Outline
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Rendering.OutlineRendererFeature
+  m_Active: 1
+  settings:
+    passEvent: 500
+    aimColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+    revealColor: {r: 1, g: 0.2, b: 0.15, a: 1}
+    thickness: 2.5
+    maskShader: {fileID: 4800000, guid: 539550609bc22c54c8b03125784f0a4f, type: 3}
+    compositeShader: {fileID: 4800000, guid: 3062d50d9dc07094f82f6263b4092c5f, type: 3}
 --- !u!114 &7833122117494664109
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -17,14 +17,6 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 4830db4c565789b41bb216c4210c24bf, type: 3}
     volume: 1
     maxDistance: 60
-  - type: 1
-    clip: {fileID: 8300000, guid: f90cf4c68249bff4199dc22b7e6c552f, type: 3}
-    volume: 0.6
-    maxDistance: 20
-  - type: 2
-    clip: {fileID: 8300000, guid: 650435bfbabc95d4db225bc0f715bc16, type: 3}
-    volume: 1
-    maxDistance: 25
   - type: 3
     clip: {fileID: 8300000, guid: 7fb0a6eec3b0324448acf387fedee8af, type: 3}
     volume: 0.8
@@ -45,3 +37,7 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 32d4b1811dda14a6cb9e059ee8ad17d2, type: 3}
     volume: 0.5
     maxDistance: 8
+  - type: 8
+    clip: {fileID: 0}
+    volume: 1
+    maxDistance: 40

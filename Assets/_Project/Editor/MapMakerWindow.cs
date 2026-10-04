@@ -41,7 +41,7 @@ namespace GuardVsMannequin.Editor
                 : "열린 씬이 맵이 아닙니다. 새 맵을 만들거나 맵 씬(Scenes 또는 Scenes/Custom)을 여세요.", isMap ? MessageType.Info : MessageType.Warning);
 
             Section("1. 새 맵 만들기",
-                "게임 시스템·UI·대기실·경계·기본 지점이 들어 있는 빈 맵을 Scenes/Custom에 만듭니다.");
+                "게임 시스템·UI·경계·기본 지점이 들어 있는 빈 맵을 Scenes/Custom에 만듭니다.");
             newMapName = EditorGUILayout.TextField("맵 이름 (영문)", newMapName);
             if (GUILayout.Button("새 맵 만들기"))
                 MapAuthoringTools.CreateNewMap(newMapName);

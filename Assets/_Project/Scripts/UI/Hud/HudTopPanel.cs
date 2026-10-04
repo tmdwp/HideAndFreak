@@ -7,7 +7,7 @@ namespace GuardVsMannequin.UI
 {
     /// <summary>
     /// HUD 상단 중앙: "단계 | 남은 시간(분:초)", 그 아래 "남은 마네킹 / 이번 판 마네킹".
-    /// 단계 이름: 가드 대기 시간 / 가드 타임(탐색) / 헌트 타임(사냥) / 종료.
+    /// 단계 이름: 시작 준비 / 가드 타임(탐색) / 헌트 타임(사냥) / 종료.
     /// </summary>
     public class HudTopPanel : MonoBehaviour, IHudSection
     {

@@ -204,7 +204,7 @@ namespace GuardVsMannequin.Editor
         /// 맵의 NavMesh를 에디터에서 구워 씬 폴더에 에셋으로 저장한다.
         /// 빌드에서는 읽기가 허용되지 않은 메시를 실행 중에 구울 수 없으므로, 서버는 이 데이터를 그대로 쓴다.
         /// </summary>
-        internal static bool BakeNavMesh(Scene scene, Transform mapRoot)
+        private static bool BakeNavMesh(Scene scene, Transform mapRoot)
         {
             NavMeshSurface surface = mapRoot != null ? mapRoot.GetComponent<NavMeshSurface>() : null;
             if (surface == null)

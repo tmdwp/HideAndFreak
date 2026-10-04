@@ -55,10 +55,10 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 지금 프리팹을 지우지 않고, 새로 생긴 UI(HUD 좌측 조작 안내·우측 목표·스태미나 막대, 설정 화면의 새 키 줄)만 더한다.
+        /// 지금 프리팹을 지우지 않고, 코드에는 있지만 프리팹에 빠진 UI(HUD 영역, 설정 화면의 키 줄)만 더한다.
         /// 이미 있는 영역은 건드리지 않으므로 여러 번 실행해도 된다.
         /// </summary>
-        [MenuItem("GuardVsMannequin/UI/새 UI 영역 추가 (HUD 조작·목표·스태미나, 새 키 설정)")]
+        [MenuItem("GuardVsMannequin/UI/빠진 UI 영역·키 줄 추가 (기존 프리팹 유지)")]
         private static void AddNewUiSections()
         {
             AssetDatabase.SaveAssets();

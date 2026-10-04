@@ -5,7 +5,7 @@ namespace GuardVsMannequin.Map
 {
     /// <summary>
     /// 역할별 플레이어 스폰 위치.
-    /// 가드용 스폰 지점은 반드시 대기실 안에 배치한다.
+    /// 가드용은 스폰 후보다. 실제 위치는 판마다 마네킹 스폰에서 먼 곳을 고른다. (GuardSpawnSelector)
     /// </summary>
     public class SpawnPoint : MonoBehaviour
     {

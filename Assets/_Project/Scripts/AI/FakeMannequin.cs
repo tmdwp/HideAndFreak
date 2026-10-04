@@ -7,7 +7,7 @@ namespace GuardVsMannequin.AI
 {
     /// <summary>
     /// 가짜 마네킹의 피격 처리. 가드 입장에서는 실제 마네킹과 똑같이 맞고 사라진다.
-    /// 생존 인원 집계와 탐지기에는 포함되지 않는다. (PlayerIdentity가 없음)
+    /// 생존 인원 집계와 수류탄 효과에는 포함되지 않는다. (PlayerIdentity가 없음)
     /// </summary>
     public class FakeMannequin : NetworkBehaviour, IDamageable
     {

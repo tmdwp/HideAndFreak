@@ -43,6 +43,8 @@ GameObject:
   - component: {fileID: 7920489579145812017}
   - component: {fileID: 4718263095518402736}
   - component: {fileID: 2273572615940856064}
+  - component: {fileID: 2881373125637323731}
+  - component: {fileID: 3698923241498591086}
   m_Layer: 0
   m_Name: Mannequin
   m_TagString: Untagged
@@ -395,18 +397,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.PlayerMovementDriver
   lookSensitivity: {x: 0.1, y: 0.1}
---- !u!114 &2273572615940856064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 569088088292649313}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d83cac38a9a448b9a89231cd26fc6e0, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.SprintAbility
 --- !u!114 &8982155293469663719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -748,6 +738,57 @@ MonoBehaviour:
   followDistance: 3.5
   cameraCollisionRadius: 0.2
   firstPersonForwardOffset: 0.35
+--- !u!114 &4718263095518402736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c7e91a4d2b84f5e9a6d0b1f8e2c4a73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.InteractAnimationView
+--- !u!114 &2273572615940856064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d83cac38a9a448b9a89231cd26fc6e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.SprintAbility
+--- !u!114 &2881373125637323731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb2f068e9a9110444b4356d61373ac7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.StatusEffects
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 5274660207253486401}
+  _networkObjectCache: {fileID: 0}
+--- !u!114 &3698923241498591086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569088088292649313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba221ebe10635a24dbae4b4706509158, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.RevealOutlineView
 --- !u!1 &2691206167928112056
 GameObject:
   m_ObjectHideFlags: 0
@@ -1227,15 +1268,3 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!114 &4718263095518402736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 569088088292649313}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c7e91a4d2b84f5e9a6d0b1f8e2c4a73, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.InteractAnimationView
