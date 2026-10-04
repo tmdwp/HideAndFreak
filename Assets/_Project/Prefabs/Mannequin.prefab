@@ -567,7 +567,6 @@ MonoBehaviour:
   _componentIndexCache: 7
   _addedNetworkObject: {fileID: 5274660207253486401}
   _networkObjectCache: {fileID: 5274660207253486401}
-  outlineMaterial: {fileID: 2100000, guid: 4a3ea67eb1707134f933b0303b4d8c78, type: 2}
 --- !u!114 &2646054283718179590
 MonoBehaviour:
   m_ObjectHideFlags: 0

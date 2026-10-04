@@ -261,17 +261,7 @@ namespace GuardVsMannequin.Editor
             lampOn.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             EditorUtility.SetDirty(lampOn);
 
-            // 변신 가능 사물 외곽선: 색과 두께(픽셀)는 이 머티리얼에서 조정한다. 이미 있으면 사용자가 바꾼 값을 유지한다.
-            string outlinePath = $"{MaterialFolder}/M_PropOutline.mat";
-            Material outline = AssetDatabase.LoadAssetAtPath<Material>(outlinePath);
-            if (outline == null)
-            {
-                outline = new Material(Shader.Find("GuardVsMannequin/PropOutline"));
-                outline.SetColor("_OutlineColor", new Color(1f, 0.9f, 0.4f, 1f));
-                outline.SetFloat("_OutlineWidth", 1.5f);
-                AssetDatabase.CreateAsset(outline, outlinePath);
-            }
-            result["PropOutline"] = outline;
+            // 외곽선은 머티리얼 대신 PC_Renderer의 OutlineRendererFeature가 그린다. (Phase 7 메뉴로 설치)
             return result;
         }
 
@@ -516,9 +506,8 @@ namespace GuardVsMannequin.Editor
             root.AddComponent<MannequinInteractor>();
             root.AddComponent<InteractAnimationView>();
 
-            // 조준한 변신 가능 사물에 외곽선 표시 (본인 화면만)
-            PropHighlighter highlighter = root.AddComponent<PropHighlighter>();
-            SetField(highlighter, "outlineMaterial", materials["PropOutline"]);
+            // 조준한 변신 가능 사물에 외곽선 표시 (본인 화면만, 그리기는 PC_Renderer의 OutlineRendererFeature)
+            root.AddComponent<PropHighlighter>();
 
             // Phase 2: 소음(탐지/변신 중 주기 소음), 벽타기, 감정 표현
             AddNoiseEmitter(root, noiseLibrary);
