@@ -20,6 +20,9 @@ namespace GuardVsMannequin.UI
         /// <summary>로컬 아바타의 스태미나. 없으면 null.</summary>
         public IStaminaSource Stamina { get; private set; }
 
+        /// <summary>로컬 아바타의 일시 효과(수류탄 등). 없으면 null.</summary>
+        public IStatusEffects StatusEffects { get; private set; }
+
         /// <summary>로컬 아바타의 도구 목록.</summary>
         public IReadOnlyList<ITool> Tools { get; private set; } = NoTools;
 
@@ -60,6 +63,7 @@ namespace GuardVsMannequin.UI
             Player = identity;
             Health = identity.GetComponent<PlayerHealth>();
             Stamina = identity.GetComponent<IStaminaSource>();
+            StatusEffects = identity.GetComponent<IStatusEffects>();
             Tools = identity.GetComponents<ITool>();
             LastRole = identity.Role;
         }
@@ -75,6 +79,7 @@ namespace GuardVsMannequin.UI
             Player = null;
             Health = null;
             Stamina = null;
+            StatusEffects = null;
             Tools = NoTools;
         }
     }

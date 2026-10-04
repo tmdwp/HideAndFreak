@@ -6,6 +6,7 @@ namespace GuardVsMannequin.Player.Guard
     /// 탐지기 작동 시 가드 발밑에서 퍼져 나가는 원을 표시한다. (정식 VFX 도입 전 임시 표현)
     /// </summary>
     [RequireComponent(typeof(LineRenderer))]
+    [System.Obsolete("Phase 7: 탐지기 제거. 가드 프리팹에서 지운 뒤 파일도 삭제한다.")]
     public class DetectorPulseView : MonoBehaviour
     {
         private const int Segments = 48;

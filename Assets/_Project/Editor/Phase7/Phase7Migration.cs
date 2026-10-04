@@ -27,6 +27,7 @@ namespace GuardVsMannequin.Editor
             var summary = new System.Text.StringBuilder("[Phase7Migration] 결과\n");
             summary.AppendLine($"- 외곽선 기능: {Describe(OutlineFeatureInstaller.Install(), "렌더러에 추가")}");
             summary.AppendLine($"- 룸 설정 줄 이름: {Describe(RoomSettingRowRenamer.Run(), "변경")}");
+            summary.AppendLine($"- 가드·마네킹 프리팹(탐지기 → 수류탄): {Describe(PlayerPrefabMigration.Run(), "프리팹 변경")}");
             summary.AppendLine($"- 가드 대기실 제거: {Describe(WaitingRoomMigration.Run(), "씬 변경")}");
             AssetDatabase.SaveAssets();
             Debug.Log(summary.ToString());

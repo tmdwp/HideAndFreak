@@ -225,7 +225,6 @@ role.none,-,-
 tool.gun,총,Gun
 tool.detector,탐지기,Detector
 tool.grenade,수류탄,Grenade
-hud.guardToolLock,도구 사용 가능까지 {0}초,Tools unlock in {0}s
 hud.grenadeHit,수류탄에 맞았습니다! 위치가 드러납니다.,Hit by a grenade! Your position is revealed.
 tool.flashlight,손전등,Flashlight
 tool.disguise,변신,Disguise

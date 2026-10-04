@@ -9,14 +9,14 @@ using UnityEngine.UI;
 namespace GuardVsMannequin.UI
 {
     /// <summary>
-    /// HUD 하단: 살아 있으면 내 체력·도구 쿨타임, 사망·미참가면 관전 정보.
+    /// HUD 하단: 살아 있으면 내 체력·도구 쿨타임(수류탄에 맞아 위치가 드러난 동안은 안내 문구), 사망·미참가면 관전 정보.
     /// (목표는 <see cref="HudObjectivePanel"/>, 조작 안내는 <see cref="HudControlsPanel"/>, 스태미나는 <see cref="HudStaminaBar"/>가 맡는다)
     /// </summary>
     public class HudBottomPanel : MonoBehaviour, IHudSection
     {
         [SerializeField] private GameObject bottomPanel;
 
-        [Tooltip("관전 안내 문구. (살아 있는 동안은 비어 있음)")]
+        [Tooltip("관전 안내 문구. 살아 있는 동안은 수류탄 피격 안내에 쓴다.")]
         [FormerlySerializedAs("objectiveText")]
         [SerializeField] private Text spectatorText;
 
@@ -53,7 +53,8 @@ namespace GuardVsMannequin.UI
                 return;
             }
 
-            spectatorText.text = string.Empty;
+            // 수류탄에 맞아 위치가 드러난 동안 본인에게 알린다.
+            spectatorText.text = local.StatusEffects != null && local.StatusEffects.IsRevealed ? Loc.Get("hud.grenadeHit") : string.Empty;
 
             builder.Clear();
             if (local.Health != null)

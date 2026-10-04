@@ -24,14 +24,13 @@ namespace GuardVsMannequin.Audio
             clip = type switch
             {
                 NoiseType.GunShot => Create("GunShot", 0.3f, GunShot),
-                NoiseType.DetectorPing => Create("DetectorPing", 0.35f, DetectorPing),
-                NoiseType.MannequinDetected => Create("MannequinDetected", 0.6f, Creak),
                 NoiseType.DisguiseCreak => Create("DisguiseCreak", 0.3f, ShortCreak),
                 NoiseType.GeneratorDestroyed => Create("GeneratorDestroyed", 1.0f, Boom),
                 NoiseType.PowerDown => Create("PowerDown", 1.8f, PowerDown),
                 NoiseType.MannequinAttack => Create("MannequinAttack", 0.25f, Swipe),
                 NoiseType.FlashlightClick => Create("FlashlightClick", 0.05f, Click),
-                _ => Create("Default", 0.2f, DetectorPing)
+                NoiseType.GrenadeExplosion => Create("GrenadeExplosion", 0.9f, Blast),
+                _ => Create("Default", 0.2f, Ping)
             };
 
             cache[type] = clip;
@@ -59,19 +58,10 @@ namespace GuardVsMannequin.Audio
             return (Random.value * 2f - 1f) * Mathf.Exp(-t * 18f);
         }
 
-        /// <summary>탐지기: 높은 사인파 핑.</summary>
-        private static float DetectorPing(float t, float length)
+        /// <summary>기본음: 높은 사인파 핑.</summary>
+        private static float Ping(float t, float length)
         {
             return Mathf.Sin(2f * Mathf.PI * 1200f * t) * Mathf.Exp(-t * 8f) * 0.6f;
-        }
-
-        /// <summary>마네킹 탐지 소음: 흔들리는 낮은 톱니파 삐걱임.</summary>
-        private static float Creak(float t, float length)
-        {
-            float frequency = 170f + Mathf.Sin(2f * Mathf.PI * 7f * t) * 40f;
-            float saw = 2f * (t * frequency - Mathf.Floor(t * frequency + 0.5f));
-            float envelope = Mathf.Sin(Mathf.PI * t / length);
-            return saw * envelope * 0.5f;
         }
 
         /// <summary>변신 소음: 짧은 삐걱임.</summary>
@@ -101,6 +91,14 @@ namespace GuardVsMannequin.Audio
         private static float Click(float t, float length)
         {
             return Mathf.Sin(2f * Mathf.PI * 2500f * t) * Mathf.Exp(-t * 120f) * 0.5f;
+        }
+
+        /// <summary>수류탄 폭발: 짧고 강한 잡음 + 저음 쿵.</summary>
+        private static float Blast(float t, float length)
+        {
+            float noise = Random.value * 2f - 1f;
+            float thump = Mathf.Sin(2f * Mathf.PI * 70f * t);
+            return (noise * 0.8f * Mathf.Exp(-t * 9f)) + (thump * 0.6f * Mathf.Exp(-t * 5f));
         }
 
         /// <summary>전원 장치 파괴: 저음 폭발 + 잡음.</summary>

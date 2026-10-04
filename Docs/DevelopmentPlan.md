@@ -517,11 +517,19 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 - 가드 대기 시간 20초 → 시작 준비 3초로 줄어 판마다 약 17초 줄어든다. 목표 0회 판은 사냥 시간 진입 시점을 늘리면(A-1 검토) 그만큼 다시 늘어난다.
 - 탐지기(10m 소리)보다 수류탄(2m, 위치 표시)은 범위가 좁고 확실하다. 마네킹을 찾는 시간에 주는 영향은 테스트로 확인한다.
 
+**구현 결과 (2026-10-04, Unity 확인 전)** — 계획과 달라진 점
+- 고정 수치는 `GameConstants` 대신 `GameTuning`(`game_tuning.csv`)에 둔다: `MatchStartDelay` 3초, `GuardSpawnMinDistance` 15m, `GuardSpawnSeparation` 8m, `GuardToolLockTime` 10초, `GrenadeRadius` 2m, `GrenadeRevealDuration` 4초, `GrenadeSlowDuration` 3초, `GrenadeSlowMultiplier` 0.5, `GrenadeThrowSpeed` 14, `GrenadeMaxFlightTime` 3초.
+- 목표 0회 판의 보호 시간은 룸 설정 `huntDelay`(기본 35초, 10~120초)로 승격. `GameSettingId` 1번(예전 PreparationTime)·9번(예전 DetectorCooldown)은 번호를 유지한 채 이름만 `HuntDelay`·`GrenadeCooldown`으로 바꿔 룸 UI 줄을 재사용한다.
+- 외곽선은 Rendering Layer 대신 `OutlineRegistry`에 등록된 렌더러를 `DrawRenderer`로 직접 마스크에 그린다. 오클루전 컬링으로 가려진 대상도 그려지고 렌더러 설정을 바꾸지 않는다. (GPU Resident Drawer 영향 없음)
+- 수류탄 외곽선은 "상대 진영의 살아 있는 플레이어"에게만 보인다(`RoleDefinition.Side` 비교). 맞은 마네킹에게는 HUD 하단 문구로 알린다. (화면 가장자리 효과는 보류)
+- 출발 보호 남은 시간은 HUD 도구 쿨타임 칸에 표시한다(총·수류탄의 `CooldownRemaining`).
+- 기존 에셋 이전: 메뉴 **Phase 7 > 게임플레이 개편 적용** (외곽선 기능 설치, 탐지기 → 수류탄, 마네킹 효과 컴포넌트, 맵 대기실 제거 + NavMesh 다시 굽기, 룸 설정 줄 이름). 실행 확인 후 `[Obsolete]`로 남긴 대기실·탐지기 스크립트와 `PropOutline` 셰이더를 지운다.
+
 **구현 단계**
-- [ ] 7-A1. 공용 외곽선(`OutlineRendererFeature`, `IOutlineService`)으로 `PropHighlighter` 교체 → 변신 사물 조준 외곽선이 보이는지 확인. (원인 확인을 위해 먼저 Depth Priming 끄기로 시험)
-- [ ] 7-A2. 가드 대기 시간 제거: `preparationTime` 삭제, `Preparation` = 고정 3초 시작 준비, 대기실 관련 코드·맵 오브젝트 정리, 기존 맵 이전 메뉴.
-- [ ] 7-A3. 가드 무작위 스폰(`GuardSpawnSelector`) + 가드 출발 보호(도구 잠금).
-- [ ] 7-A4. 수류탄: `GrenadeTool`(서버 궤적 판정, 관찰자 연출), `StatusEffects`(외곽선 표시·감속 동기화), `MoveSpeedController`·`MovementValidator` 감속 반영, `RevealOutlineView`, 설정 `grenadeCooldown`, 탐지기 삭제.
+- [x] 7-A1. 공용 외곽선(`OutlineRendererFeature`, `IOutlineService`)으로 `PropHighlighter` 교체 → 변신 사물 조준 외곽선이 보이는지 확인. (원인 확인을 위해 먼저 Depth Priming 끄기로 시험)
+- [x] 7-A2. 가드 대기 시간 제거: `preparationTime` 삭제, `Preparation` = 고정 3초 시작 준비, 대기실 관련 코드·맵 오브젝트 정리, 기존 맵 이전 메뉴.
+- [x] 7-A3. 가드 무작위 스폰(`GuardSpawnSelector`) + 가드 출발 보호(도구 잠금).
+- [x] 7-A4. 수류탄: `GrenadeTool`(서버 궤적 판정, 관찰자 연출), `StatusEffects`(외곽선 표시·감속 동기화), `MoveSpeedController`·`MovementValidator` 감속 반영, `RevealOutlineView`, 설정 `grenadeCooldown`, 탐지기 삭제.
 - [ ] 7-A5. 문구·HUD·에셋(수류탄 모델·이펙트·사운드) 정리, `AssetLicenses.md` 기록, 밸런스 테스트(출발 보호 시간, 수류탄 쿨타임, 목표 0회 사냥 진입 시점). → `GameSettings` 구조와 RPC가 바뀌므로 **`GameVersion.Protocol` +1**, Player Settings Version은 마이너 버전 올림.
 
 **검토가 필요한 위험**
@@ -595,14 +603,14 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 - [ ] 가드: 3인칭 이동·사격·피격·사망, 1인칭 사격·손전등
 
 ### 4.4 VFX
-- [ ] 총구 화염, 탄착, 변신 연기, 탐지기 펄스, 전원 장치 스파크·폭발
+- [ ] 총구 화염, 탄착, 변신 연기, 수류탄 모델·폭발 이펙트(지금은 임시 도형), 전원 장치 스파크·폭발
 
 ### 4.5 사운드
-- [ ] 가드: 총소리, 쿨다운 완료음, 탐지기, 손전등 클릭, 발소리
+- [ ] 가드: 총소리, 쿨다운 완료음, 수류탄 던지는 소리·폭발음(지금은 합성음), 손전등 클릭, 발소리
 - [ ] 마네킹: 탐지 소음, 변신 상태 주기 소음, 변신/해제, 공격, 발소리
 - [ ] 전원 장치: 파괴 진행 루프, 폭발
 - [ ] 사냥 시간: 전원 차단음, BGM
-- [ ] 기타: 대기실 문 열림, 환경음, 로비 BGM, UI 클릭, 승리/패배 징글
+- [ ] 기타: 시작 카운트다운, 환경음, 로비 BGM, UI 클릭, 승리/패배 징글
 
 ### 4.6 UI
 - [ ] 크로스헤어, 도구 쿨타임 아이콘, 진행도 바, 로비·룸·설정 UI 스킨

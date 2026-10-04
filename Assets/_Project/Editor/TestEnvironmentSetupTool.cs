@@ -51,8 +51,8 @@ namespace GuardVsMannequin.Editor
 
         internal const string InputActionsPath = RootFolder + "/Input/GameInput.inputactions";
         private const string PropDatabasePath = SoFolder + "/PropDatabase_Test.asset";
-        private const string GuardPrefabPath = PrefabFolder + "/Guard.prefab";
-        private const string MannequinPrefabPath = PrefabFolder + "/Mannequin.prefab";
+        internal const string GuardPrefabPath = PrefabFolder + "/Guard.prefab";
+        internal const string MannequinPrefabPath = PrefabFolder + "/Mannequin.prefab";
         private const string GeneratorPrefabPath = PrefabFolder + "/Generator.prefab";
         private const string FakeMannequinPrefabPath = PrefabFolder + "/FakeMannequin.prefab";
         internal const string NoiseLibraryPath = SoFolder + "/NoiseLibrary.asset";
@@ -60,7 +60,7 @@ namespace GuardVsMannequin.Editor
         internal const string LobbyScenePath = SceneFolder + "/Lobby.unity";
         internal const string RoomScenePath = SceneFolder + "/Room.unity";
         internal const string RoomStatePrefabPath = PrefabFolder + "/RoomState.prefab";
-        private const string DefaultPrefabObjectsPath = "Assets/DefaultPrefabObjects.asset";
+        internal const string DefaultPrefabObjectsPath = "Assets/DefaultPrefabObjects.asset";
 
         /// <summary>게임 이름. (창 제목, 빌드 정보)</summary>
         internal const string ProductName = "Hide&Freak";
@@ -390,7 +390,7 @@ namespace GuardVsMannequin.Editor
         /// FishNet 내부의 DefaultPrefabObjects.SetAssetPathHashes(int)를 호출해 모든 프리팹의 해시를 다시 계산한다.
         /// 공개 API가 없어 리플렉션을 사용하며, 실패하면 FishNet 메뉴를 안내한다.
         /// </summary>
-        private static void RefreshAssetPathHashes(DefaultPrefabObjects collection)
+        internal static void RefreshAssetPathHashes(DefaultPrefabObjects collection)
         {
             MethodInfo method = typeof(DefaultPrefabObjects).GetMethod("SetAssetPathHashes", BindingFlags.Instance | BindingFlags.NonPublic,
                 null, new[] { typeof(int) }, null);
@@ -441,9 +441,8 @@ namespace GuardVsMannequin.Editor
             GunTool gun = root.AddComponent<GunTool>();
             SetField(gun, "tracerView", CreateTracer(root.transform, cameraPivot, materials["Tracer"], weaponView));
 
-            // 탐지기: 반경 파동 표시
-            DetectorTool detector = root.AddComponent<DetectorTool>();
-            SetField(detector, "pulseView", CreateDetectorPulse(root.transform, materials["Tracer"]));
+            // 수류탄: 서버 궤적 판정 + 모든 클라이언트 연출
+            AddGrenade(root);
 
             // Phase 3: 상하 시선 동기화, 사냥 시간 손전등
             AddViewSync(root, cameraPivot, cameraPivot, isThirdPerson: false);
@@ -508,6 +507,9 @@ namespace GuardVsMannequin.Editor
 
             // 조준한 변신 가능 사물에 외곽선 표시 (본인 화면만, 그리기는 PC_Renderer의 OutlineRendererFeature)
             root.AddComponent<PropHighlighter>();
+
+            // 수류탄 효과: 외곽선 표시·감속 동기화, 가드 화면의 벽 너머 외곽선
+            AddGrenadeTargetComponents(root);
 
             // Phase 2: 소음(탐지/변신 중 주기 소음), 벽타기, 감정 표현
             AddNoiseEmitter(root, noiseLibrary);
@@ -700,21 +702,30 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 탐지기 반경 파동 표시용 LineRenderer를 만든다.
+        /// 가드에 수류탄 도구와 연출을 붙인다. (Phase 7 이전 메뉴도 같은 함수를 쓴다)
         /// </summary>
-        private static DetectorPulseView CreateDetectorPulse(Transform parent, Material material)
+        internal static void AddGrenade(GameObject root)
         {
-            var pulseObject = new GameObject("DetectorPulse");
-            pulseObject.transform.SetParent(parent, false);
+            // ?? 연산자는 Unity의 "없는 컴포넌트" 가짜 null을 걸러내지 못하므로 TryGetComponent를 쓴다.
+            if (!root.TryGetComponent(out GrenadeView view))
+                view = root.AddComponent<GrenadeView>();
+            SetField(view, "grenadeMaterial", GrenadeAssets.GetGrenadeMaterial());
+            SetField(view, "blastMaterial", GrenadeAssets.GetBlastMaterial());
 
-            LineRenderer line = pulseObject.AddComponent<LineRenderer>();
-            line.sharedMaterial = material;
-            line.startWidth = 0.06f;
-            line.endWidth = 0.06f;
-            line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            line.enabled = false;
+            if (!root.TryGetComponent(out GrenadeTool tool))
+                tool = root.AddComponent<GrenadeTool>();
+            SetField(tool, "view", view);
+        }
 
-            return pulseObject.AddComponent<DetectorPulseView>();
+        /// <summary>
+        /// 마네킹에 수류탄 효과(상태 동기화, 상대 화면 외곽선)를 붙인다. (Phase 7 이전 메뉴도 같은 함수를 쓴다)
+        /// </summary>
+        internal static void AddGrenadeTargetComponents(GameObject root)
+        {
+            if (root.GetComponent<StatusEffects>() == null)
+                root.AddComponent<StatusEffects>();
+            if (root.GetComponent<RevealOutlineView>() == null)
+                root.AddComponent<RevealOutlineView>();
         }
 
         /// <summary>

@@ -58,7 +58,10 @@ namespace GuardVsMannequin.Audio
         /// <returns>추가된 항목이 있는지 여부.</returns>
         public bool AddMissingDefaults()
         {
-            bool added = false;
+            // 사용하지 않는 종류(탐지기)는 지운다.
+#pragma warning disable CS0618
+            bool added = entries.RemoveAll(entry => entry.type == NoiseType.DetectorPing || entry.type == NoiseType.MannequinDetected) > 0;
+#pragma warning restore CS0618
             foreach (Entry defaultEntry in CreateDefaults())
             {
                 if (entries.Exists(entry => entry.type == defaultEntry.type))
@@ -78,13 +81,12 @@ namespace GuardVsMannequin.Audio
             return new List<Entry>
             {
                 new Entry { type = NoiseType.GunShot, volume = 1f, maxDistance = 60f },
-                new Entry { type = NoiseType.DetectorPing, volume = 0.6f, maxDistance = 20f },
-                new Entry { type = NoiseType.MannequinDetected, volume = 1f, maxDistance = 25f },
                 new Entry { type = NoiseType.DisguiseCreak, volume = 0.8f, maxDistance = 18f },
                 new Entry { type = NoiseType.GeneratorDestroyed, volume = 1f, maxDistance = 70f },
                 new Entry { type = NoiseType.PowerDown, volume = 1f, maxDistance = 500f },
                 new Entry { type = NoiseType.MannequinAttack, volume = 0.9f, maxDistance = 15f },
-                new Entry { type = NoiseType.FlashlightClick, volume = 0.5f, maxDistance = 8f }
+                new Entry { type = NoiseType.FlashlightClick, volume = 0.5f, maxDistance = 8f },
+                new Entry { type = NoiseType.GrenadeExplosion, volume = 1f, maxDistance = 40f }
             };
         }
     }

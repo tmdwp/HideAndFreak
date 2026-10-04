@@ -57,5 +57,29 @@ namespace GuardVsMannequin.Audio
             audioSource.maxDistance = entry.maxDistance;
             audioSource.PlayOneShot(library.GetClip(type), entry.volume * AudioVolumes.Sfx);
         }
+
+        /// <summary>
+        /// 이 클라이언트에서만, 오브젝트가 아닌 지정한 위치에서 소음을 재생한다. (수류탄 폭발처럼 떨어진 곳의 소리)
+        /// 재생이 끝나면 임시 오디오 오브젝트를 지운다.
+        /// </summary>
+        public void PlayLocalAt(NoiseType type, Vector3 position)
+        {
+            if (library == null || audioSource == null)
+                return;
+
+            NoiseLibrary.Entry entry = library.Get(type);
+            AudioClip clip = library.GetClip(type);
+            var holder = new GameObject($"Noise_{type}");
+            holder.transform.position = position;
+
+            AudioSource source = holder.AddComponent<AudioSource>();
+            source.spatialBlend = audioSource.spatialBlend;
+            source.rolloffMode = audioSource.rolloffMode;
+            source.minDistance = audioSource.minDistance;
+            source.outputAudioMixerGroup = audioSource.outputAudioMixerGroup;
+            source.maxDistance = entry.maxDistance;
+            source.PlayOneShot(clip, entry.volume * AudioVolumes.Sfx);
+            Destroy(holder, clip.length + 0.1f);
+        }
     }
 }

@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // 지울 예정인 탐지기 소음 종류를 쓴다.
 using System.Collections.Generic;
 using FishNet.Object;
 using GuardVsMannequin.Audio;
@@ -12,6 +13,7 @@ namespace GuardVsMannequin.Player.Guard
     /// 가짜 마네킹은 반응하지 않는다. 쿨타임은 총과 공유하지 않는다.
     /// </summary>
     [RequireComponent(typeof(NoiseEmitter))]
+    [System.Obsolete("Phase 7: 수류탄(GrenadeTool)으로 교체. 가드 프리팹에서 지운 뒤 파일도 삭제한다.")]
     public class DetectorTool : NetworkBehaviour, ITool
     {
         [SerializeField] private DetectorPulseView pulseView;
