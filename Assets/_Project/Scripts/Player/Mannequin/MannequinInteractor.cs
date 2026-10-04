@@ -106,7 +106,7 @@ namespace GuardVsMannequin.Player.Mannequin
 
             Ray aim = aimProvider.GetAimRay();
             float cameraDistance = Vector3.Distance(aim.origin, transform.position);
-            if (!AimRaycaster.TryRaycast(aim, GameConstants.InteractRange + cameraDistance, transform, out RaycastHit hit))
+            if (!AimRaycaster.TryRaycast(aim, GameTuning.InteractRange + cameraDistance, transform, out RaycastHit hit))
                 return;
 
             NetworkObject target = hit.collider.GetComponentInParent<NetworkObject>();

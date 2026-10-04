@@ -48,7 +48,7 @@ namespace GuardVsMannequin.Player.Emotes
                 return;
 
             elapsed += Time.deltaTime;
-            float t = elapsed / GameConstants.EmoteDuration;
+            float t = elapsed / GameTuning.EmoteDuration;
             if (t >= 1f)
             {
                 currentEmote = 0;

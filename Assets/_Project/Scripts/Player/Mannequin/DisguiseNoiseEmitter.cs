@@ -55,7 +55,7 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private void ScheduleNext()
         {
-            nextNoiseTime = Time.time + Random.Range(GameConstants.DisguiseNoiseIntervalMin, GameConstants.DisguiseNoiseIntervalMax);
+            nextNoiseTime = Time.time + Random.Range(GameTuning.DisguiseNoiseIntervalMin, GameTuning.DisguiseNoiseIntervalMax);
         }
     }
 }

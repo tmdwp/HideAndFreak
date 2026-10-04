@@ -79,6 +79,7 @@ namespace GuardVsMannequin.Editor
                 "- Credits/credits.<언어 코드>.txt : 크레딧\n" +
                 "- Data/default_game_settings.json : 방을 만들 때의 게임 설정 기본값\n" +
                 "- Data/game_settings.csv : 룸 설정 항목의 조정 단위와 범위\n" +
+                "- Data/game_tuning.csv : 밸런스 수치 (이동 배율, 스태미나, 시야, 쿨타임 등 / 다르면 함께 플레이 불가)\n" +
                 "파일을 지우거나 형식이 깨지면 게임에 내장된 원본을 사용합니다.\n\n" +
                 "[English]\n" +
                 "Edit the files in this folder and restart the game to apply changes. Save them as UTF-8.\n" +

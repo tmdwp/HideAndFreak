@@ -64,6 +64,7 @@ Assets/_Project/Resources/   메모장·엑셀로 편집하는 데이터 파일
     Credits/credits.<언어>.txt      크레딧
     Data/default_game_settings.json 게임 설정 기본값
     Data/game_settings.csv          룸 설정 항목의 순서·조정 단위·범위
+    Data/game_tuning.csv            밸런스 수치 (이동 배율, 스태미나, 시야, 쿨타임 등 — id,value,설명)
 Docs/                개발 계획서
 Assets/FishNet, ECM2, com.rlabrecque.steamworks.net, Plugins   서드파티
 ```

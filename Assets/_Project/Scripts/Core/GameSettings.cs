@@ -27,7 +27,7 @@ namespace GuardVsMannequin.Core
         /// <summary>가드 이동 속도(m/s).</summary>
         public float guardMoveSpeed;
 
-        /// <summary>마네킹 기본 이동 속도(m/s). 사냥 시간에는 <see cref="GameConstants.MannequinHuntSpeedMultiplier"/>배가 된다.</summary>
+        /// <summary>마네킹 기본 이동 속도(m/s). 사냥 시간에는 <see cref="GameTuning.MannequinHuntSpeedMultiplier"/>배가 된다.</summary>
         public float mannequinMoveSpeed;
 
         /// <summary>가드 총 한 발의 피해량.</summary>

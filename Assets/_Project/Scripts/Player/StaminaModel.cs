@@ -5,7 +5,7 @@ namespace GuardVsMannequin.Player
 {
     /// <summary>
     /// 스태미나 계산만 맡는 순수 로직. (MonoBehaviour·입력에 의존하지 않음)
-    /// 달리는 동안 줄고, 멈추면 잠시 뒤 회복된다. 바닥나면 <see cref="GameConstants.StaminaRestartRatio"/>까지 회복해야 다시 달릴 수 있다.
+    /// 달리는 동안 줄고, 멈추면 잠시 뒤 회복된다. 바닥나면 <see cref="SprintRules.RestartRatio"/>까지 회복해야 다시 달릴 수 있다.
     /// </summary>
     public sealed class StaminaModel
     {
@@ -25,14 +25,14 @@ namespace GuardVsMannequin.Player
         /// <returns>이번 프레임에 실제로 달리는지 여부.</returns>
         public bool Tick(bool wantsSprint, float deltaTime)
         {
-            if (IsExhausted && Current >= GameConstants.StaminaRestartRatio)
+            if (IsExhausted && Current >= SprintRules.RestartRatio)
                 IsExhausted = false;
 
             bool sprinting = wantsSprint && !IsExhausted && Current > 0f;
             if (sprinting)
             {
                 Current = Mathf.Max(0f, Current - SprintRules.DrainPerSecond * deltaTime);
-                recoverDelayRemaining = GameConstants.StaminaRecoverDelay;
+                recoverDelayRemaining = SprintRules.RecoverDelay;
                 if (Current <= 0f)
                     IsExhausted = true;
             }

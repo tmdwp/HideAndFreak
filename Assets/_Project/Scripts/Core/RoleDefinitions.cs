@@ -49,6 +49,7 @@ namespace GuardVsMannequin.Core
     public sealed class RoleDefinition
     {
         private readonly Func<GameSettings, RoleStats> selectStats;
+        private readonly Func<float> huntSpeedMultiplier;
         private readonly ObjectiveCounter playingCounter;
         private readonly ObjectiveCounter huntingCounter;
 
@@ -67,17 +68,18 @@ namespace GuardVsMannequin.Core
         /// <summary>이 역할이 이기면 기록되는 승리 진영.</summary>
         public MatchWinner Side { get; }
 
-        /// <summary>사냥 시간의 이동 속도 배율.</summary>
-        public float HuntSpeedMultiplier { get; }
+        /// <summary>사냥 시간의 이동 속도 배율. (조정 파일 값이 바뀌어도 따라가도록 매번 읽음)</summary>
+        public float HuntSpeedMultiplier => huntSpeedMultiplier();
 
-        public RoleDefinition(PlayerRole role, string nameKey, string guideKeyPrefix, MatchWinner side, float huntSpeedMultiplier,
+        /// <param name="huntSpeedMultiplier">사냥 시간의 이동 속도 배율을 읽는 함수. (<see cref="GameTuning"/> 값)</param>
+        public RoleDefinition(PlayerRole role, string nameKey, string guideKeyPrefix, MatchWinner side, Func<float> huntSpeedMultiplier,
             ObjectiveCounter playingCounter, ObjectiveCounter huntingCounter, Func<GameSettings, RoleStats> selectStats)
         {
             Role = role;
             NameKey = nameKey;
             GuideKeyPrefix = guideKeyPrefix;
             Side = side;
-            HuntSpeedMultiplier = huntSpeedMultiplier;
+            this.huntSpeedMultiplier = huntSpeedMultiplier;
             this.playingCounter = playingCounter;
             this.huntingCounter = huntingCounter;
             this.selectStats = selectStats;
@@ -124,17 +126,17 @@ namespace GuardVsMannequin.Core
     public static class RoleDefinitions
     {
         private static readonly RoleDefinition None =
-            new(PlayerRole.None, "role.none", string.Empty, MatchWinner.None, 1f, ObjectiveCounter.None, ObjectiveCounter.None, null);
+            new(PlayerRole.None, "role.none", string.Empty, MatchWinner.None, () => 1f, ObjectiveCounter.None, ObjectiveCounter.None, null);
 
         private static readonly Dictionary<PlayerRole, RoleDefinition> definitions = new()
         {
             // 가드: 탐색 시간 "포획", 사냥 시간 "생존" (남은 마네킹은 상단에 있으므로 따로 표시하지 않음)
-            [PlayerRole.Guard] = new RoleDefinition(PlayerRole.Guard, "role.guard", "hud.guide.guard", MatchWinner.Guard, 1f,
+            [PlayerRole.Guard] = new RoleDefinition(PlayerRole.Guard, "role.guard", "hud.guide.guard", MatchWinner.Guard, () => 1f,
                 ObjectiveCounter.None, ObjectiveCounter.None,
                 settings => new RoleStats(settings.guardMaxHealth, settings.guardMoveSpeed, settings.gunDamage)),
             // 마네킹: 탐색 시간 "전원 장치 파괴"(남은 전원 장치), 사냥 시간 "사냥"(남은 가드)
             [PlayerRole.Mannequin] = new RoleDefinition(PlayerRole.Mannequin, "role.mannequin", "hud.guide.mannequin", MatchWinner.Mannequin,
-                GameConstants.MannequinHuntSpeedMultiplier,
+                () => GameTuning.MannequinHuntSpeedMultiplier,
                 ObjectiveCounter.RemainingGenerators, ObjectiveCounter.RemainingGuards,
                 settings => new RoleStats(settings.mannequinMaxHealth, settings.mannequinMoveSpeed, settings.mannequinAttackDamage)),
         };

@@ -35,6 +35,10 @@ namespace GuardVsMannequin.Player.Guard
         {
             playerInput = GetComponent<IPlayerInput>();
             noiseEmitter = GetComponent<NoiseEmitter>();
+            // 범위와 퍼짐 각도는 조정 파일(game_tuning.csv)을 따른다.
+            spotLight.range = GameTuning.FlashlightRange;
+            spotLight.spotAngle = GameTuning.FlashlightAngle;
+            spotLight.innerSpotAngle = Mathf.Min(spotLight.innerSpotAngle, spotLight.spotAngle);
             spotLight.enabled = false;
             isOn.OnChange += OnIsOnChanged;
         }

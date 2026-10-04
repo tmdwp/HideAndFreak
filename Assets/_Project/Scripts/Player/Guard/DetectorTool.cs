@@ -98,7 +98,7 @@ namespace GuardVsMannequin.Player.Guard
         private HashSet<PlayerIdentity> FindMannequinsInRange()
         {
             detected.Clear();
-            int count = Physics.OverlapSphereNonAlloc(transform.position, GameConstants.DetectorRadius, overlapBuffer,
+            int count = Physics.OverlapSphereNonAlloc(transform.position, GameTuning.DetectorRadius, overlapBuffer,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
 
             for (int i = 0; i < count; i++)
@@ -117,7 +117,7 @@ namespace GuardVsMannequin.Player.Guard
         private void PulseObserversRpc()
         {
             if (pulseView != null)
-                pulseView.Play(GameConstants.DetectorRadius);
+                pulseView.Play(GameTuning.DetectorRadius);
         }
     }
 }

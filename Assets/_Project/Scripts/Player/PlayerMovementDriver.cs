@@ -1,4 +1,5 @@
 using ECM2;
+using GuardVsMannequin.Core;
 using GuardVsMannequin.Settings;
 using UnityEngine;
 
@@ -29,6 +30,9 @@ namespace GuardVsMannequin.Player
             lookControllable = GetComponent<ILookControllable>();
             playerInput = GetComponent<IPlayerInput>();
             movementPlaneProvider = GetComponent<IMovementPlaneProvider>();
+
+            // 점프 세기는 조정 파일(game_tuning.csv)을 따른다.
+            character.jumpImpulse = GameTuning.JumpImpulse;
 
             // Character가 여러 개면 입력이 카메라가 없는 캐릭터로 전달되어 이동 방향이 고정된다.
             if (GetComponents<Character>().Length > 1)

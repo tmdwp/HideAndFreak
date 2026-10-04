@@ -79,7 +79,7 @@ namespace GuardVsMannequin.Player.Mannequin
                 return;
 
             Ray aim = aimProvider.GetAimRay();
-            cooldown.StartLocal(GameConstants.MannequinAttackCooldown);
+            cooldown.StartLocal(GameTuning.MannequinAttackCooldown);
             AttackServerRpc(aim.origin, aim.direction);
         }
 
@@ -91,7 +91,7 @@ namespace GuardVsMannequin.Player.Mannequin
         {
             if (!CanAttackNow)
                 return;
-            if (!cooldown.TryStartServer(GameConstants.MannequinAttackCooldown))
+            if (!cooldown.TryStartServer(GameTuning.MannequinAttackCooldown))
                 return;
 
             origin = AimRaycaster.SanitizeOrigin(origin, transform, EyeHeight);
@@ -108,7 +108,7 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private IDamageable FindTarget(Ray ray)
         {
-            int count = Physics.SphereCastNonAlloc(ray, GameConstants.MannequinAttackRadius, hitBuffer, AttackRange,
+            int count = Physics.SphereCastNonAlloc(ray, GameTuning.MannequinAttackRadius, hitBuffer, AttackRange,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
 
             RaycastHit? closest = null;

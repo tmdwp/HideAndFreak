@@ -109,6 +109,6 @@ namespace GuardVsMannequin.Core.States
         /// <summary>
         /// 결과 표시 시간을 반환한다.
         /// </summary>
-        protected override float GetDuration(GameSettings settings) => GameConstants.ResultDisplayDuration;
+        protected override float GetDuration(GameSettings settings) => GameTuning.ResultDisplayDuration;
     }
 }

@@ -73,7 +73,7 @@ namespace GuardVsMannequin.UI
         private string GetTimedHuntText(GameSettings settings, GameState state)
         {
             if (state == GameState.Preparation)
-                return Loc.Format("hud.objective.none.preparation", GameConstants.ZeroObjectiveHuntDelay.ToString("0"));
+                return Loc.Format("hud.objective.none.preparation", GameTuning.ZeroObjectiveHuntDelay.ToString("0"));
 
             float remaining = HuntTiming.GetProtectionRemaining(settings, context.State.RemainingTime);
             return Loc.Format("hud.objective.none.playing", Mathf.CeilToInt(Mathf.Max(0f, remaining)));

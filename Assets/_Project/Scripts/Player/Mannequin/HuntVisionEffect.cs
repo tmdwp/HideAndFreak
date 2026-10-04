@@ -1,3 +1,4 @@
+using GuardVsMannequin.Core;
 using UnityEngine;
 
 namespace GuardVsMannequin.Player.Mannequin
@@ -6,18 +7,13 @@ namespace GuardVsMannequin.Player.Mannequin
     /// 사냥 시간 마네킹의 시야. 로컬 화면에만 적용된다.
     /// - 주변을 은은하게 비추는 개인 조명(본인 화면에만 켜짐)으로 가까운 곳은 보이게 한다.
     /// - 검은 선형 안개로 일정 거리 밖은 보이지 않게 해 시야 범위를 줄인다.
+    /// 조명 범위·밝기와 안개 거리는 <see cref="GameTuning"/>(game_tuning.csv)에서 읽는다.
     /// 가드와 다른 플레이어의 화면에는 영향을 주지 않는다. (이 마네킹을 관전하는 사람에게는 같은 시야가 적용된다)
     /// </summary>
     public class HuntVisionEffect : MonoBehaviour, IViewEffect
     {
         [Tooltip("본인 화면에서만 켜지는 개인 조명. 다른 플레이어에게는 꺼진 상태로 남는다.")]
         [SerializeField] private Light visionLight;
-
-        [Tooltip("안개가 시작되는 거리.")]
-        [SerializeField] private float fogStartDistance = 3f;
-
-        [Tooltip("이 거리부터 완전히 보이지 않는다.")]
-        [SerializeField] private float fogEndDistance = 13.5f;
 
         [SerializeField] private Color fogColor = Color.black;
 
@@ -60,14 +56,19 @@ namespace GuardVsMannequin.Player.Mannequin
             originalFogStart = RenderSettings.fogStartDistance;
             originalFogEnd = RenderSettings.fogEndDistance;
 
+            float fogStart = GameTuning.HuntVisionFogStart;
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Linear;
             RenderSettings.fogColor = fogColor;
-            RenderSettings.fogStartDistance = fogStartDistance;
-            RenderSettings.fogEndDistance = fogEndDistance;
+            RenderSettings.fogStartDistance = fogStart;
+            RenderSettings.fogEndDistance = Mathf.Max(fogStart + 0.1f, GameTuning.HuntVisionFogEnd);
 
             if (visionLight != null)
+            {
+                visionLight.range = GameTuning.HuntVisionLightRange;
+                visionLight.intensity = GameTuning.HuntVisionLightIntensity;
                 visionLight.enabled = true;
+            }
         }
 
         /// <summary>

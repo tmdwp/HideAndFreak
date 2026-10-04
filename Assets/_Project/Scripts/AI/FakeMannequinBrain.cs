@@ -135,7 +135,7 @@ namespace GuardVsMannequin.AI
 
             agent.isStopped = true;
             currentAction = Action.Emote;
-            actionEndTime = Time.time + GameConstants.EmoteDuration + 0.2f;
+            actionEndTime = Time.time + GameTuning.EmoteDuration + 0.2f;
             return true;
         }
 

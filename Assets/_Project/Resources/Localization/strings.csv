@@ -102,7 +102,7 @@ setting.GunDamage,가드 총 피해량,Guard Gun Damage
 setting.MannequinAttackDamage,마네킹 공격 피해량,Mannequin Attack Damage
 setting.MannequinAttackRange,마네킹 공격 범위,Mannequin Attack Range
 setting.GuardMoveSpeed,가드 이동 속도,Guard Move Speed
-setting.MannequinMoveSpeed,마네킹 이동 속도 (사냥 시간 0.8배),Mannequin Move Speed (x0.8 in Hunt)
+setting.MannequinMoveSpeed,마네킹 이동 속도 (사냥 시간 배율 별도),Mannequin Move Speed (Hunt multiplier applies)
 
 # 단위 ({0} = 값)
 unit.seconds,{0}초,{0}s

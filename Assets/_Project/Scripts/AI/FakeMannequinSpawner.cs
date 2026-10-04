@@ -92,7 +92,7 @@ namespace GuardVsMannequin.AI
             if (!this.IsServerReady() || stateMachine.CurrentState != GameState.Playing || fakes.Count == 0)
                 return;
 
-            if (stateMachine.RemainingTime <= GameConstants.FakeMannequinPurgeTime)
+            if (stateMachine.RemainingTime <= GameTuning.FakeMannequinPurgeTime)
             {
                 DespawnAll();
                 return;
@@ -119,7 +119,7 @@ namespace GuardVsMannequin.AI
                 return;
             }
 
-            int count = Random.Range(GameConstants.FakeMannequinMinCount, GameConstants.FakeMannequinMaxCount + 1);
+            int count = Random.Range(GameTuning.FakeMannequinMinCount, Mathf.Max(GameTuning.FakeMannequinMinCount, GameTuning.FakeMannequinMaxCount) + 1);
             for (int i = 0; i < count; i++)
             {
                 if (TryFindSpawnPosition(out Vector3 position))
@@ -183,7 +183,7 @@ namespace GuardVsMannequin.AI
         /// </summary>
         private void ScheduleRemovals()
         {
-            float activeTime = stateMachine.Settings.playTime - GameConstants.FakeMannequinPurgeTime;
+            float activeTime = stateMachine.Settings.playTime - GameTuning.FakeMannequinPurgeTime;
             removalInterval = fakes.Count > 0 ? Mathf.Max(1f, activeTime / (fakes.Count + 1)) : float.MaxValue;
             nextRemovalTime = Time.time + removalInterval;
         }

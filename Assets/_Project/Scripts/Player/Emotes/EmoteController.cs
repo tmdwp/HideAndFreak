@@ -80,7 +80,7 @@ namespace GuardVsMannequin.Player.Emotes
             if (emoteId < 1 || emoteId > GameConstants.EmoteCount || Time.time < serverEmoteEndTime)
                 return false;
 
-            serverEmoteEndTime = Time.time + GameConstants.EmoteDuration;
+            serverEmoteEndTime = Time.time + GameTuning.EmoteDuration;
             PlayObserversRpc(emoteId);
             return true;
         }

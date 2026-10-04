@@ -56,7 +56,7 @@ namespace GuardVsMannequin.Player.Mannequin
         {
             playerInput = GetComponent<IPlayerInput>();
             databaseSource = new MapPropDatabaseSource(propDatabase);
-            targetFinder = new PropTargetFinder(transform, GetComponent<IAimProvider>(), databaseSource, GameConstants.TransformRange);
+            targetFinder = new PropTargetFinder(transform, GetComponent<IAimProvider>(), databaseSource, GameTuning.TransformRange);
             currentPropId.OnChange += OnPropIdChanged;
         }
 
@@ -168,7 +168,7 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private static float GetUntransformCooldown(GameState state)
         {
-            return state == GameState.Preparation ? 0f : GameConstants.UntransformCooldown;
+            return state == GameState.Preparation ? 0f : GameTuning.UntransformCooldown;
         }
 
         /// <summary>

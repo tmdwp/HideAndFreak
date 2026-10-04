@@ -29,7 +29,7 @@
   - **D**: 게임플레이 로직은 구체 클래스가 아닌 인터페이스/ScriptableObject 설정에 의존
   - **적용 기준** (2026-10-02 점검 후 추가)
     - 역할(가드/마네킹)에 따른 `if`/`switch`를 여기저기 쓰지 않는다. 역할별 값(프리팹, 스탯, 표시 이름, 안내 문구)은 `RoleDefinition`/`RoleStats` 한곳에서 꺼낸다.
-    - 여러 클래스에 같은 코드가 생기면(쿨타임 판정, 조준 원점 검증, 버튼 활성 조건 등) 공용 타입으로 뺀다. 기본값 숫자도 한곳(`GameConstants`/`DefaultGameSettings`)에만 둔다.
+    - 여러 클래스에 같은 코드가 생기면(쿨타임 판정, 조준 원점 검증, 버튼 활성 조건 등) 공용 타입으로 뺀다. 기본값 숫자도 한곳에만 둔다: 호스트 설정 기본값은 `DefaultGameSettings`, 밸런스 조정 수치는 `GameTuning`(game_tuning.csv), 바꾸면 구조가 달라지는 값만 `GameConstants`.
     - UI는 "화면 관리 + 영역별 컴포넌트"로 나누고, 영역끼리는 인터페이스(`ILobbyNavigator`, `IRoomNotice`, `IHudSection` 등)로만 통신한다.
     - 판정 함수는 값만 반환하고 상태를 바꾸지 않는다. (예: 승패 판정은 결과를 반환하고 기록은 호출한 쪽이 한다)
     - 화면 목록·부모 화면처럼 늘어날 수 있는 구성은 코드 분기 대신 인스펙터 데이터로 받는다.
@@ -108,25 +108,21 @@ Waiting ─▶ Preparation ─▶ Playing ─▶ Hunting ─▶ Ended
 | `huntHealthMultiplier` | float | 10 | 사냥 시간 마네킹 체력 배율 |
 | `mannequinAttackRange` | float | 2 | |
 | `guardMoveSpeed` | float | 2 | 가드 이동 속도(m/s) |
-| `mannequinMoveSpeed` | float | 1.5 | 마네킹 기본 이동 속도(m/s). 사냥 시간에는 × 0.8 (`GameConstants.MannequinHuntSpeedMultiplier`) |
+| `mannequinMoveSpeed` | float | 1.5 | 마네킹 기본 이동 속도(m/s). 사냥 시간에는 × 0.8 (`GameTuning.MannequinHuntSpeedMultiplier`) |
 
 - 기본값은 `Resources/Data/default_game_settings.json`에, 룸에서 조정하는 단위·범위·표시 순서는 `Resources/Data/game_settings.csv`에 둡니다. 런타임 값은 `SyncVar`로 동기화하는 구조체로 관리합니다.
 - 값 검증(범위 제한)은 `GameSettingsValidator`가 담당합니다 (SRP).
 
-### 2.2 고정 상수 (`GameConstants`)
-| 이름 | 값 |
-|---|---|
-| `GuardMoveSpeed` | 2.0 |
-| `MannequinMoveSpeed` | 1.5 |
-| `MannequinHuntMoveSpeed` | 2.2 |
-| `Damage` | 1 |
-| `UntransformCooldown` | 5초 (Preparation 단계에서는 0) |
-| `FakeMannequinPurgeTime` | 남은 시간 20초 |
-| `ZeroObjectiveHuntDelay` | 20초 |
-| `CoopDestroySpeedBase` | 1.4 |
-| `MaxPlayers` | 10 |
+### 2.2 밸런스 조정 수치 (`GameTuning`, `Resources/Data/game_tuning.csv`)
+- 개발 중에 다듬는 고정 수치(사냥 시간 이동 배율, 달리기·스태미나, 점프, 변신·상호작용 거리, 쿨타임, 사냥 시야, 탐지기·손전등, 가짜 마네킹 수, 결과 화면 시간 등)는 모두 이 파일 한 곳에서 `id,value,설명` 형식으로 고친다. 값과 설명이 전부 파일에 있으므로 목록은 파일을 본다.
+- 빌드 후에도 `GameData/Data/game_tuning.csv`로 복사되어 고칠 수 있다(`DataFiles`). 파일에 없는 항목·숫자가 아닌 값은 코드 기본값, 모르는 id는 경고 후 무시.
+- 값이 다른 PC끼리는 판정이 어긋나므로 파일 값의 지문을 게임 버전 끝(`-t xxxxxxxx`)에 붙여 접속을 막는다(`GameVersion`).
+- 항목 추가: `GameTuning`에 속성 한 줄(이름 = id, 코드 기본값) + csv에 한 줄.
 
-### 2.3 주요 인터페이스
+### 2.3 고정 상수 (`GameConstants`)
+바꾸면 구조가 달라지는 값만 둔다: `MinPlayers` 2, `MaxPlayers` 10, `Damage` 1(기본 피해량), `GunRange` 100m(맵 천장보다 커야 함), `EmoteCount` 6.
+
+### 2.4 주요 인터페이스
 ```csharp
 public interface IDamageable { void TakeDamage(int amount, NetworkObject attacker); }
 public interface IInteractable { bool CanInteract(PlayerRole role); void BeginInteract(NetworkConnection conn); void EndInteract(NetworkConnection conn); }

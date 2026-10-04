@@ -38,7 +38,7 @@ namespace GuardVsMannequin.Objectives
         /// <summary>현재 참여 인원. (서버 전용)</summary>
         public int ParticipantCount => participants.Count;
 
-        public float InteractRange => GameConstants.InteractRange;
+        public float InteractRange => GameTuning.InteractRange;
 
         /// <summary>
         /// 거리 판정에 사용할 충돌체와 소음 구현을 캐시한다.
@@ -114,7 +114,7 @@ namespace GuardVsMannequin.Objectives
         /// </summary>
         public static float CalculateTotalSpeed(int participantCount)
         {
-            return participantCount <= 0 ? 0f : Mathf.Pow(GameConstants.CoopDestroySpeedBase, participantCount - 1);
+            return participantCount <= 0 ? 0f : Mathf.Pow(GameTuning.CoopDestroySpeedBase, participantCount - 1);
         }
 
         /// <summary>

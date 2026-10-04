@@ -2,7 +2,7 @@ namespace GuardVsMannequin.Core
 {
     /// <summary>
     /// 목표 수행 횟수가 0회일 때의 사냥 시간 진입 시점 계산.
-    /// 탐색 단계 시작 후 <see cref="GameConstants.ZeroObjectiveHuntDelay"/>초 동안 가드 보호 시간을 준 뒤 사냥 시간이 시작된다.
+    /// 탐색 단계 시작 후 <see cref="GameTuning.ZeroObjectiveHuntDelay"/>초 동안 가드 보호 시간을 준 뒤 사냥 시간이 시작된다.
     /// 승패 규칙과 HUD가 같은 계산을 쓰도록 한곳에 둔다.
     /// </summary>
     public static class HuntTiming
@@ -23,7 +23,7 @@ namespace GuardVsMannequin.Core
         public static float GetProtectionRemaining(GameSettings settings, float remainingPlayTime)
         {
             float elapsed = settings.playTime - remainingPlayTime;
-            return GameConstants.ZeroObjectiveHuntDelay - elapsed;
+            return GameTuning.ZeroObjectiveHuntDelay - elapsed;
         }
     }
 }

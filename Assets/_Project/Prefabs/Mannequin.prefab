@@ -699,8 +699,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Player.Mannequin.HuntVisionEffect
   visionLight: {fileID: 1661711540852089762}
-  fogStartDistance: 3
-  fogEndDistance: 13.5
   fogColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &4475952393218537844
 MonoBehaviour:
