@@ -19,8 +19,8 @@ namespace GuardVsMannequin.Map
         [Tooltip("조명이 하나씩 꺼지는 데 걸리는 최대 지연(초). 한꺼번에 꺼지는 것보다 전원이 나가는 느낌을 준다.")]
         [SerializeField] private float maxOffDelay = 0.5f;
 
-        [Tooltip("사냥 시간의 환경광. 완전히 검으면 손전등 밖이 아무것도 안 보인다.")]
-        [SerializeField] private Color huntingAmbient = new Color(0.02f, 0.02f, 0.03f);
+        [Tooltip("사냥 시간 환경광의 색조. 밝기는 game_tuning.csv의 HuntAmbientBrightness를 곱한다. (가장 밝은 채널 = 1 기준)")]
+        [SerializeField] private Color huntingAmbientTint = new Color(0.67f, 0.67f, 1f);
 
         private MapLight[] mapLights;
         private AudioSource audioSource;
@@ -89,9 +89,20 @@ namespace GuardVsMannequin.Map
                 StartCoroutine(TurnOffAfter(mapLight, Random.Range(0f, maxOffDelay)));
 
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = huntingAmbient;
+            RenderSettings.ambientLight = GetHuntingAmbient();
             RenderSettings.reflectionIntensity = 0f;
             RenderSettings.skybox = darkSkybox;
+        }
+
+        /// <summary>
+        /// 사냥 시간 환경광 = 색조 × 조정 파일의 밝기(0~1). 완전히 검으면 손전등 밖이 아무것도 안 보인다.
+        /// </summary>
+        private Color GetHuntingAmbient()
+        {
+            float brightness = Mathf.Clamp01(GameTuning.HuntAmbientBrightness);
+            Color ambient = huntingAmbientTint * brightness;
+            ambient.a = 1f;
+            return ambient;
         }
 
         /// <summary>

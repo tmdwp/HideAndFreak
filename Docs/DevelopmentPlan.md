@@ -523,6 +523,8 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 - 외곽선은 Rendering Layer 대신 `OutlineRegistry`에 등록된 렌더러를 `DrawRenderer`로 직접 마스크에 그린다. 오클루전 컬링으로 가려진 대상도 그려지고 렌더러 설정을 바꾸지 않는다. (GPU Resident Drawer 영향 없음)
 - 수류탄 외곽선은 "상대 진영의 살아 있는 플레이어"에게만 보인다(`RoleDefinition.Side` 비교). 맞은 마네킹에게는 HUD 하단 문구로 알린다. (화면 가장자리 효과는 보류)
 - 출발 보호 남은 시간은 HUD 도구 쿨타임 칸에 표시한다(총·수류탄의 `CooldownRemaining`).
+- 가드 스폰 보강(2026-10-05): 후보(가드 스폰 지점 + NavMesh 무작위 60개)를 `SpawnCandidateFilter`로 먼저 거른다 — 마네킹 스폰 지점까지 NavMesh 경로가 이어진 곳(투명 천장·지붕 위, 경계 밖, 막힌 방 제외), 서 있을 공간이 있는 곳만. `GuardSpawnSelector`는 거리 조건에 더해 **마네킹 스폰 지점이 직접 보이지 않는 곳**(`GuardSpawnSightDistance` 40m 안, 벽·사물이 가리면 안 보임)을 고른다. 조건을 다 만족하는 곳이 없으면 안 보이는 곳 → 먼 곳 순으로 고른다. 최소 거리 기본값 15 → 20m(가짜 마네킹 흩뿌리기 4m 포함).
+- 사냥 시간 밝기(2026-10-05): 맵 환경광은 `HuntingLightingController`의 색조 × `game_tuning.csv`의 `HuntAmbientBrightness`, 손전등 밝기는 `FlashlightIntensity`.
 - 기존 에셋 이전(완료, 2026-10-04): 일회용 메뉴로 외곽선 기능 설치(PC·Mobile 렌더러), 탐지기 → 수류탄, 마네킹 효과 컴포넌트, 맵 5개 대기실 제거, 룸 설정 줄 이름을 바꾼 뒤, 이전 도구와 예전 대기실·탐지기 스크립트, `PropOutline` 셰이더를 삭제했다.
 
 **구현 단계**

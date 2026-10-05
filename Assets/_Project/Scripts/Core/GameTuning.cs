@@ -78,6 +78,16 @@ namespace GuardVsMannequin.Core
 
         #endregion
 
+        #region 사냥 시간 조명
+
+        /// <summary>사냥 시간 맵 전체 환경광 밝기(0~1). 모든 플레이어 화면에 적용된다. (0.03 = 거의 깜깜)</summary>
+        public static float HuntAmbientBrightness => Get(nameof(HuntAmbientBrightness), 0.03f);
+
+        /// <summary>가드 손전등 밝기.</summary>
+        public static float FlashlightIntensity => Get(nameof(FlashlightIntensity), 8f);
+
+        #endregion
+
         #region 사냥 시간 마네킹 시야
 
         /// <summary>마네킹 본인 화면에만 켜지는 개인 조명의 범위(m).</summary>
@@ -97,10 +107,13 @@ namespace GuardVsMannequin.Core
         #region 가드
 
         /// <summary>가드 스폰 위치가 마네킹 스폰 지점에서 떨어져야 하는 최소 거리(m).</summary>
-        public static float GuardSpawnMinDistance => Get(nameof(GuardSpawnMinDistance), 15f);
+        public static float GuardSpawnMinDistance => Get(nameof(GuardSpawnMinDistance), 20f);
 
         /// <summary>가드끼리 스폰 위치가 떨어져야 하는 최소 거리(m).</summary>
         public static float GuardSpawnSeparation => Get(nameof(GuardSpawnSeparation), 8f);
+
+        /// <summary>가드 스폰 후보에서 마네킹 스폰 지점이 "보인다"고 칠 최대 거리(m). 이보다 멀면 가려지지 않아도 보이지 않는 것으로 친다.</summary>
+        public static float GuardSpawnSightDistance => Get(nameof(GuardSpawnSightDistance), 40f);
 
         /// <summary>탐색 시작 후 가드가 총·수류탄을 쓸 수 없는 시간(초). (출발 보호)</summary>
         public static float GuardToolLockTime => Get(nameof(GuardToolLockTime), 10f);

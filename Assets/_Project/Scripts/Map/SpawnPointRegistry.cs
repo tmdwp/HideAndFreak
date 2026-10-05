@@ -15,7 +15,8 @@ namespace GuardVsMannequin.Map
         private readonly Dictionary<PlayerRole, int> nextIndexByRole = new();
 
         // 가드 무작위 위치 후보로 뽑을 NavMesh 지점 수
-        private const int NavMeshCandidateCount = 40;
+        // (갈 수 없는 곳·마네킹이 보이는 곳이 걸러지므로 넉넉하게 뽑는다)
+        private const int NavMeshCandidateCount = 60;
 
         private GuardSpawnSelector awaySelector;
 
@@ -73,7 +74,9 @@ namespace GuardVsMannequin.Map
         }
 
         /// <summary>
-        /// 이번 판의 "마네킹에서 먼 위치" 선택기를 만든다. 후보는 역할의 스폰 지점과 NavMesh 무작위 지점이다.
+        /// 이번 판의 "마네킹에서 먼 위치" 선택기를 만든다.
+        /// 후보는 역할의 스폰 지점과 NavMesh 무작위 지점 중 마네킹 스폰 지점까지 걸어서 갈 수 있고 서 있을 공간이 있는 곳이다.
+        /// (NavMesh는 투명 천장 위·지붕 위·경계 밖에도 구워지므로 걸러야 한다)
         /// </summary>
         private GuardSpawnSelector CreateAwaySelector(PlayerRole role)
         {
@@ -81,16 +84,26 @@ namespace GuardVsMannequin.Map
             foreach (SpawnPoint point in GetPoints(PlayerRole.Mannequin))
                 mannequinSpawns.Add(point.transform.position);
 
-            var rolePoints = new List<Vector3>();
+            var rawCandidates = new List<Vector3>();
             foreach (SpawnPoint point in GetPoints(role))
-                rolePoints.Add(point.transform.position);
+                rawCandidates.Add(point.transform.position);
+            rawCandidates.AddRange(NavMeshPointSampler.Sample(NavMeshCandidateCount, out _));
 
-            List<Vector3> navMeshPoints = NavMeshPointSampler.Sample(NavMeshCandidateCount, out Vector3 center);
-            if (navMeshPoints.Count == 0)
-                center = Average(mannequinSpawns);
+            List<Vector3> candidates = SpawnCandidateFilter.FilterStandable(rawCandidates, mannequinSpawns);
+            if (candidates.Count == 0)
+            {
+                // 모두 걸러졌으면(NavMesh 이상 등) 예전처럼 거르지 않은 후보를 쓴다.
+                Debug.LogWarning($"[SpawnPointRegistry] 갈 수 있는 가드 스폰 후보가 없어 검사 전 후보 {rawCandidates.Count}개를 사용합니다. 맵의 NavMesh와 스폰 지점을 확인하세요.");
+                candidates = rawCandidates;
+            }
 
-            return new GuardSpawnSelector(rolePoints, navMeshPoints, mannequinSpawns, center,
-                GameTuning.GuardSpawnMinDistance, GameTuning.GuardSpawnSeparation);
+            // 시점 기준인 맵 중심은 갈 수 있는 후보의 평균으로 잡는다. (지붕 위 같은 섬이 중심을 끌어가지 않도록)
+            Vector3 center = candidates.Count > 0 ? Average(candidates) : Average(mannequinSpawns);
+            float sightDistance = GameTuning.GuardSpawnSightDistance;
+
+            return new GuardSpawnSelector(candidates, mannequinSpawns, center,
+                GameTuning.GuardSpawnMinDistance, GameTuning.GuardSpawnSeparation,
+                point => SpawnCandidateFilter.CanSeeAny(point, mannequinSpawns, sightDistance));
         }
 
         /// <summary>

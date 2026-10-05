@@ -24,6 +24,10 @@ DisguiseNoiseIntervalMin,8,변신 중 소음 간격 최소(초)
 DisguiseNoiseIntervalMax,14,변신 중 소음 간격 최대(초)
 EmoteDuration,1.5,감정 표현 재생 시간(초)
 
+# 사냥 시간 조명 (모든 플레이어 화면)
+HuntAmbientBrightness,0.15,"사냥 시간 맵 전체 밝기(0~1). 0.03 = 거의 깜깜, 0.1 = 윤곽이 보임, 0.2 이상 = 꽤 밝음"
+FlashlightIntensity,8,가드 손전등 밝기
+
 # 사냥 시간 마네킹 시야 (마네킹 본인 화면)
 HuntVisionLightRange,12,개인 조명 범위(m)
 HuntVisionLightIntensity,1.5,개인 조명 밝기
@@ -31,8 +35,9 @@ HuntVisionFogStart,3,검은 안개가 시작되는 거리(m)
 HuntVisionFogEnd,13.5,완전히 안 보이는 거리(m)
 
 # 가드
-GuardSpawnMinDistance,15,가드 스폰이 마네킹 스폰 지점에서 떨어져야 하는 최소 거리(m)
+GuardSpawnMinDistance,20,"가드 스폰이 마네킹 스폰 지점에서 떨어져야 하는 최소 거리(m). 가짜 마네킹은 스폰 지점 주변 약 4m에 흩어지므로 그만큼 여유를 둠"
 GuardSpawnSeparation,8,가드끼리 스폰 위치 최소 거리(m)
+GuardSpawnSightDistance,40,"가드 스폰 위치에서 마네킹 스폰 지점이 이 거리(m) 안에 직접 보이면 그 위치는 피함"
 GuardToolLockTime,10,탐색 시작 후 가드가 총·수류탄을 못 쓰는 시간(초)
 GrenadeRadius,2,수류탄 폭발 반경(m)
 GrenadeRevealDuration,4,맞은 마네킹 외곽선이 가드에게 보이는 시간(초)
