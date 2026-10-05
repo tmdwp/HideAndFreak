@@ -80,7 +80,7 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private void OnDisguiseChanged(int propId)
         {
-            if (propId == PropDatabase.NoProp && IsClimbing)
+            if (propId == TransformableProp.None && IsClimbing)
                 StopClimbing();
         }
 

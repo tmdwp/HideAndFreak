@@ -50,7 +50,6 @@ namespace GuardVsMannequin.Editor
         internal const string SceneFolder = RootFolder + "/Scenes";
 
         internal const string InputActionsPath = RootFolder + "/Input/GameInput.inputactions";
-        private const string PropDatabasePath = SoFolder + "/PropDatabase_Test.asset";
         private const string GuardPrefabPath = PrefabFolder + "/Guard.prefab";
         private const string MannequinPrefabPath = PrefabFolder + "/Mannequin.prefab";
         private const string GeneratorPrefabPath = PrefabFolder + "/Generator.prefab";
@@ -68,9 +67,6 @@ namespace GuardVsMannequin.Editor
         private const float MapHalfSize = 20f;
         private const float WallHeight = 4f;
         private const float WallThickness = 0.5f;
-
-        /// <summary>벽으로 변신할 때 사용하는 고정 크기 벽 조각.</summary>
-        private static readonly Vector3 WallPieceScale = new Vector3(1.2f, 2f, 0.25f);
 
         /// <summary>테스트 맵에 배치할 변신 가능 사물(종류, 위치, 크기).</summary>
         private static readonly (PrimitiveType type, Vector3 position, Vector3 scale)[] PropLayout =
@@ -121,13 +117,12 @@ namespace GuardVsMannequin.Editor
                 return;
             }
 
-            PropDatabase propDatabase = CreatePropDatabase(materials, out int[] layoutPropIds, out int wallPieceId);
             NoiseLibrary noiseLibrary = CreateNoiseLibrary();
 
             var prefabs = new ScenePrefabs
             {
                 guard = CreateGuardPrefab(inputActions, materials, noiseLibrary),
-                mannequin = CreateMannequinPrefab(inputActions, materials, propDatabase, noiseLibrary),
+                mannequin = CreateMannequinPrefab(inputActions, materials, noiseLibrary),
                 generator = CreateGeneratorPrefab(materials, noiseLibrary),
                 fakeMannequin = CreateFakeMannequinPrefab(materials)
             };
@@ -135,7 +130,7 @@ namespace GuardVsMannequin.Editor
             RegisterSpawnablePrefabs(prefabs.guard, prefabs.mannequin, prefabs.generator, prefabs.fakeMannequin, roomStatePrefab);
 
             // 게임 씬 → 룸 씬 → 로비 씬(시작 씬) 순서로 만든다. 마지막에 로비 씬이 열린 상태로 끝난다.
-            CreateTestScene(prefabs, materials, layoutPropIds, wallPieceId, noiseLibrary);
+            CreateTestScene(prefabs, materials, noiseLibrary);
             MenuSceneBuilder.BuildRoomScene(RoomScenePath, AssetDatabase.LoadAssetAtPath<NetworkObject>(RoomStatePrefabPath));
             MenuSceneBuilder.BuildLobbyScene(LobbyScenePath, RoomScenePath,
                 AssetDatabase.LoadAssetAtPath<DefaultPrefabObjects>(DefaultPrefabObjectsPath));
@@ -313,57 +308,6 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 테스트 맵의 사물 배치와 벽 조각으로 PropDatabase를 만든다.
-        /// </summary>
-        /// <param name="materials">사물 머티리얼.</param>
-        /// <param name="layoutPropIds">PropLayout 순서대로 배정된 PropId.</param>
-        /// <param name="wallPieceId">벽 조각 PropId.</param>
-        private static PropDatabase CreatePropDatabase(Dictionary<string, Material> materials, out int[] layoutPropIds, out int wallPieceId)
-        {
-            PropDatabase database = AssetDatabase.LoadAssetAtPath<PropDatabase>(PropDatabasePath);
-            if (database == null)
-            {
-                database = ScriptableObject.CreateInstance<PropDatabase>();
-                AssetDatabase.CreateAsset(database, PropDatabasePath);
-            }
-            database.Clear();
-
-            layoutPropIds = new int[PropLayout.Length];
-            for (int i = 0; i < PropLayout.Length; i++)
-            {
-                layoutPropIds[i] = database.Add(new PropDefinition
-                {
-                    displayName = $"{PropLayout[i].type}_{i:00}",
-                    mesh = GetPrimitiveMesh(PropLayout[i].type),
-                    materials = new[] { materials["Prop"] },
-                    scale = PropLayout[i].scale
-                });
-            }
-
-            wallPieceId = database.Add(new PropDefinition
-            {
-                displayName = "WallPiece",
-                mesh = GetPrimitiveMesh(PrimitiveType.Cube),
-                materials = new[] { materials["Wall"] },
-                scale = WallPieceScale
-            });
-
-            EditorUtility.SetDirty(database);
-            return database;
-        }
-
-        /// <summary>
-        /// Unity 기본 도형의 메시를 가져온다.
-        /// </summary>
-        private static Mesh GetPrimitiveMesh(PrimitiveType type)
-        {
-            GameObject temp = GameObject.CreatePrimitive(type);
-            Mesh mesh = temp.GetComponent<MeshFilter>().sharedMesh;
-            Object.DestroyImmediate(temp);
-            return mesh;
-        }
-
-        /// <summary>
         /// 스폰할 프리팹을 FishNet의 DefaultPrefabObjects에 등록한다.
         /// </summary>
         private static void RegisterSpawnablePrefabs(params NetworkObject[] prefabs)
@@ -475,7 +419,7 @@ namespace GuardVsMannequin.Editor
         /// 3인칭 마네킹 프리팹을 만든다.
         /// </summary>
         private static NetworkObject CreateMannequinPrefab(InputActionAsset inputActions, Dictionary<string, Material> materials,
-            PropDatabase propDatabase, NoiseLibrary noiseLibrary)
+            NoiseLibrary noiseLibrary)
         {
             GameObject root = CreateAvatarRoot("Mannequin", inputActions, out MannequinCharacter character, out Behaviour[] ownerOnly);
 
@@ -493,8 +437,7 @@ namespace GuardVsMannequin.Editor
 
             // 변신: 조준 → 변신 상태 → 외형 적용, 상호작용
             root.AddComponent<CameraAimProvider>();
-            MannequinTransformer transformer = root.AddComponent<MannequinTransformer>();
-            SetField(transformer, "propDatabase", propDatabase);
+            root.AddComponent<MannequinTransformer>();
 
             PropDisguiseView disguiseView = root.AddComponent<PropDisguiseView>();
             SetField(disguiseView, "characterMovement", root.GetComponent<CharacterMovement>());
@@ -928,8 +871,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 테스트 씬을 새로 만들어 저장한다.
         /// </summary>
-        private static void CreateTestScene(ScenePrefabs prefabs, Dictionary<string, Material> materials,
-            int[] layoutPropIds, int wallPieceId, NoiseLibrary noiseLibrary)
+        private static void CreateTestScene(ScenePrefabs prefabs, Dictionary<string, Material> materials, NoiseLibrary noiseLibrary)
         {
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -942,10 +884,10 @@ namespace GuardVsMannequin.Editor
             mapInfoSerialized.FindProperty("ceilingHeight").floatValue = WallHeight;
             mapInfoSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-            CreateFloorAndOuterWalls(mapRoot, materials, wallPieceId);
+            CreateFloorAndOuterWalls(mapRoot, materials);
             CreateInvisibleCeiling();
             CreateGuardSpawnPoints(mapRoot);
-            CreateProps(mapRoot, materials["Prop"], layoutPropIds);
+            CreateProps(mapRoot, materials["Prop"]);
             CreateMannequinSpawnPoints(mapRoot);
             CreateGeneratorSpawnPoints(mapRoot);
             NavMeshSurface navMeshSurface = CreateNavMeshSurface(mapRoot);
@@ -1076,16 +1018,16 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 바닥(변신 불가)과 맵 외곽 벽(벽 조각으로 변신 가능)을 만든다.
         /// </summary>
-        private static void CreateFloorAndOuterWalls(Transform parent, Dictionary<string, Material> materials, int wallPieceId)
+        private static void CreateFloorAndOuterWalls(Transform parent, Dictionary<string, Material> materials)
         {
             float size = MapHalfSize * 2f;
             CreateBlock(parent, "Floor", new Vector3(0f, -0.25f, 0f), new Vector3(size, 0.5f, size), materials["Floor"]);
 
             float wallY = WallHeight * 0.5f;
-            AddTransformable(CreateBlock(parent, "Wall_North", new Vector3(0f, wallY, MapHalfSize), new Vector3(size, WallHeight, WallThickness), materials["Wall"]), wallPieceId);
-            AddTransformable(CreateBlock(parent, "Wall_South", new Vector3(0f, wallY, -MapHalfSize), new Vector3(size, WallHeight, WallThickness), materials["Wall"]), wallPieceId);
-            AddTransformable(CreateBlock(parent, "Wall_East", new Vector3(MapHalfSize, wallY, 0f), new Vector3(WallThickness, WallHeight, size), materials["Wall"]), wallPieceId);
-            AddTransformable(CreateBlock(parent, "Wall_West", new Vector3(-MapHalfSize, wallY, 0f), new Vector3(WallThickness, WallHeight, size), materials["Wall"]), wallPieceId);
+            AddTransformable(CreateBlock(parent, "Wall_North", new Vector3(0f, wallY, MapHalfSize), new Vector3(size, WallHeight, WallThickness), materials["Wall"]), isWall: true);
+            AddTransformable(CreateBlock(parent, "Wall_South", new Vector3(0f, wallY, -MapHalfSize), new Vector3(size, WallHeight, WallThickness), materials["Wall"]), isWall: true);
+            AddTransformable(CreateBlock(parent, "Wall_East", new Vector3(MapHalfSize, wallY, 0f), new Vector3(WallThickness, WallHeight, size), materials["Wall"]), isWall: true);
+            AddTransformable(CreateBlock(parent, "Wall_West", new Vector3(-MapHalfSize, wallY, 0f), new Vector3(WallThickness, WallHeight, size), materials["Wall"]), isWall: true);
         }
 
         /// <summary>
@@ -1125,7 +1067,7 @@ namespace GuardVsMannequin.Editor
         /// <summary>
         /// 변신 대상이 될 테스트용 사물을 배치한다.
         /// </summary>
-        private static void CreateProps(Transform parent, Material material, int[] layoutPropIds)
+        private static void CreateProps(Transform parent, Material material)
         {
             Transform props = new GameObject("Props").transform;
             props.SetParent(parent, false);
@@ -1139,7 +1081,7 @@ namespace GuardVsMannequin.Editor
                 prop.transform.localScale = PropLayout[i].scale;
                 prop.GetComponent<Renderer>().sharedMaterial = material;
                 prop.isStatic = true;
-                AddTransformable(prop, layoutPropIds[i]);
+                AddTransformable(prop, isWall: false);
             }
         }
 
@@ -1305,14 +1247,15 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 오브젝트를 변신 가능 사물로 지정한다.
+        /// 오브젝트를 변신 가능 사물로 지정한다. (번호는 씬 저장 때 매겨진다)
         /// </summary>
-        internal static void AddTransformable(GameObject target, int propId)
+        /// <param name="isWall">true면 고정 크기 벽 조각으로 변신한다.</param>
+        internal static void AddTransformable(GameObject target, bool isWall)
         {
             TransformableProp prop = target.AddComponent<TransformableProp>();
-            prop.SetPropId(propId);
+            prop.SetWall(isWall);
 
-            // 정적 배칭으로 합쳐지면 실행 중 메시가 합쳐진 메시로 바뀌어 외곽선 표시가 맵 전체에 그려진다.
+            // 정적 배칭으로 합쳐지면 실행 중 메시가 합쳐진 메시로 바뀌어 변신 외형 복사와 외곽선 표시가 깨진다.
             StaticEditorFlags flags = GameObjectUtility.GetStaticEditorFlags(target);
             GameObjectUtility.SetStaticEditorFlags(target, flags & ~StaticEditorFlags.BatchingStatic);
         }

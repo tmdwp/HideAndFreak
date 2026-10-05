@@ -12,35 +12,31 @@ namespace GuardVsMannequin.Player.Mannequin
 {
     /// <summary>
     /// 마네킹의 변신 상태를 관리한다.
-    /// 우클릭으로 조준한 사물로 변신하거나 변신을 해제하며, 상태는 PropId 하나로 동기화된다.
+    /// 우클릭으로 조준한 사물로 변신하거나 변신을 해제하며, 상태는 맵 사물 번호(<see cref="TransformableProp.Index"/>) 하나로 동기화된다.
     /// 맡은 일은 입력 → 서버 검증 → 동기화뿐이고, 나머지는 나눠 맡긴다:
-    /// 조준한 사물 찾기 <see cref="PropTargetFinder"/>, 사물 목록 결정 <see cref="IPropDatabaseSource"/>,
-    /// 쿨타임 <see cref="ToolCooldown"/>, 외형 적용 <see cref="PropDisguiseView"/>.
+    /// 조준한 사물 찾기 <see cref="PropTargetFinder"/>, 번호로 사물 찾기 <see cref="PropRegistry"/>,
+    /// 쿨타임 <see cref="ToolCooldown"/>, 외형 복사·적용 <see cref="PropDisguiseView"/>.
     /// </summary>
     [RequireComponent(typeof(CameraAimProvider))]
     public class MannequinTransformer : NetworkBehaviour, ITool, IEmoteBlocker
     {
-        [Tooltip("맵이 사물 목록을 지정하지 않았을 때 쓸 기본 목록.")]
-        [SerializeField] private PropDatabase propDatabase;
+        // 서버 거리 검증 여유(m). 클라이언트 조준 판정은 몸-명중 지점 거리, 서버는 몸-사물 경계 거리라 조금 다르다.
+        private const float ServerRangeTolerance = 1.5f;
 
-        private readonly SyncVar<int> currentPropId = new(PropDatabase.NoProp);
+        private readonly SyncVar<int> currentPropIndex = new(TransformableProp.None);
         private readonly ToolCooldown cooldown = new();
 
         private IPlayerInput playerInput;
-        private IPropDatabaseSource databaseSource;
         private PropTargetFinder targetFinder;
 
-        /// <summary>변신 상태가 바뀌었을 때. 인자는 새 PropId(해제 시 NoProp). 각 피어에서 한 번씩 호출된다.</summary>
+        /// <summary>변신 상태가 바뀌었을 때. 인자는 새 사물 번호(해제 시 <see cref="TransformableProp.None"/>). 각 피어에서 한 번씩 호출된다.</summary>
         public event Action<int> DisguiseChanged;
 
-        /// <summary>외형 조회에 사용할 사물 목록. 맵이 목록을 지정하면 그것을, 아니면 프리팹의 기본 목록을 쓴다.</summary>
-        public PropDatabase Database => databaseSource.Database;
-
-        /// <summary>현재 변신한 PropId. 변신하지 않았으면 NoProp.</summary>
-        public int CurrentPropId => currentPropId.Value;
+        /// <summary>현재 변신한 사물 번호. 변신하지 않았으면 <see cref="TransformableProp.None"/>.</summary>
+        public int CurrentPropIndex => currentPropIndex.Value;
 
         /// <summary>변신 중인지 여부.</summary>
-        public bool IsDisguised => currentPropId.Value != PropDatabase.NoProp;
+        public bool IsDisguised => currentPropIndex.Value != TransformableProp.None;
 
         /// <summary>변신 중에는 감정 표현을 할 수 없다.</summary>
         public bool IsEmoteBlocked => IsDisguised;
@@ -55,9 +51,8 @@ namespace GuardVsMannequin.Player.Mannequin
         private void Awake()
         {
             playerInput = GetComponent<IPlayerInput>();
-            databaseSource = new MapPropDatabaseSource(propDatabase);
-            targetFinder = new PropTargetFinder(transform, GetComponent<IAimProvider>(), databaseSource, GameTuning.TransformRange);
-            currentPropId.OnChange += OnPropIdChanged;
+            targetFinder = new PropTargetFinder(transform, GetComponent<IAimProvider>(), GameTuning.TransformRange);
+            currentPropIndex.OnChange += OnPropIndexChanged;
         }
 
         /// <summary>
@@ -65,7 +60,7 @@ namespace GuardVsMannequin.Player.Mannequin
         /// </summary>
         private void OnDestroy()
         {
-            currentPropId.OnChange -= OnPropIdChanged;
+            currentPropIndex.OnChange -= OnPropIndexChanged;
         }
 
         /// <summary>
@@ -104,11 +99,11 @@ namespace GuardVsMannequin.Player.Mannequin
                 return;
 
             if (TryGetAimedProp(out TransformableProp prop))
-                TransformServerRpc(prop.PropId);
+                TransformServerRpc(prop.Index);
         }
 
         /// <summary>
-        /// 지금 조준하고 있는 변신 가능 사물을 찾는다. (변신 사거리 안, 사물 목록에 있는 것만)
+        /// 지금 조준하고 있는 변신 가능 사물을 찾는다. (변신 사거리 안, 번호가 있고 너무 크지 않은 것만)
         /// 외곽선 표시(<see cref="PropHighlighter"/>)도 같은 판정을 쓴다.
         /// </summary>
         public bool TryGetAimedProp(out TransformableProp prop)
@@ -117,20 +112,30 @@ namespace GuardVsMannequin.Player.Mannequin
         }
 
         /// <summary>
-        /// 서버에서 변신 요청을 검증하고 적용한다.
+        /// 서버에서 변신 요청을 검증하고 적용한다. (변신 가능한 사물인지, 사거리 안인지, 단계·쿨타임)
         /// </summary>
         [ServerRpc]
-        private void TransformServerRpc(int propId)
+        private void TransformServerRpc(int propIndex)
         {
-            PropDatabase database = Database;
-            if (IsDisguised || database == null || !database.IsValid(propId))
+            if (IsDisguised || !PropRegistry.TryGet(propIndex, out TransformableProp prop) || !prop.CanDisguiseAs)
+                return;
+            if (!IsWithinRange(prop))
                 return;
             if (!CanTransformIn(GameServices.CurrentStateOrWaiting))
                 return;
             if (!cooldown.IsServerReady)
                 return;
 
-            currentPropId.Value = propId;
+            currentPropIndex.Value = propIndex;
+        }
+
+        /// <summary>
+        /// 몸에서 사물 경계까지의 거리가 변신 사거리(+여유) 안인지 확인한다. (먼 사물 번호를 보내는 조작 방지)
+        /// </summary>
+        private bool IsWithinRange(TransformableProp prop)
+        {
+            float limit = GameTuning.TransformRange + ServerRangeTolerance;
+            return prop.Appearance.WorldBounds.SqrDistance(transform.position) <= limit * limit;
         }
 
         /// <summary>
@@ -142,7 +147,7 @@ namespace GuardVsMannequin.Player.Mannequin
             if (!IsDisguised)
                 return;
 
-            currentPropId.Value = PropDatabase.NoProp;
+            currentPropIndex.Value = TransformableProp.None;
             cooldown.StartServer(GameTuning.UntransformCooldown);
         }
 
@@ -152,7 +157,7 @@ namespace GuardVsMannequin.Player.Mannequin
         [Server]
         public void ForceUntransform()
         {
-            currentPropId.Value = PropDatabase.NoProp;
+            currentPropIndex.Value = TransformableProp.None;
         }
 
         /// <summary>
@@ -164,9 +169,9 @@ namespace GuardVsMannequin.Player.Mannequin
         }
 
         /// <summary>
-        /// PropId 변경을 피어마다 한 번만 알린다. (호스트는 클라이언트 콜백에서만 처리)
+        /// 사물 번호 변경을 피어마다 한 번만 알린다. (호스트는 클라이언트 콜백에서만 처리)
         /// </summary>
-        private void OnPropIdChanged(int prev, int next, bool asServer)
+        private void OnPropIndexChanged(int prev, int next, bool asServer)
         {
             if (asServer && IsClientInitialized)
                 return;

@@ -15,6 +15,7 @@ JumpImpulse,5,"점프 세기(m/s). 점프 높이 ≈ 값×값÷19.6 (5 → 약 1
 
 # 마네킹
 TransformRange,8,변신 대상을 지정할 수 있는 최대 거리(m)
+DisguiseMaxSize,3,"변신할 수 있는 사물의 최대 크기(가장 긴 변, m). 이보다 큰 사물은 변신 불가"
 UntransformCooldown,5,변신 해제 후 다시 변신할 수 있을 때까지 시간(초)
 InteractRange,2.2,전원 장치와 상호작용할 수 있는 거리(m)
 CoopDestroySpeedBase,1.4,여럿이 함께 파괴할 때 속도 증가 밑값 (인원이 늘수록 거듭제곱으로 빨라짐)

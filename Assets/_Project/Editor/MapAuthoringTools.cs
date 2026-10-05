@@ -86,7 +86,6 @@ namespace GuardVsMannequin.Editor
             var info = new SerializedObject(mapInfo);
             info.FindProperty("mapName").stringValue = safeName;
             info.FindProperty("ceilingHeight").floatValue = ceilingHeight;
-            info.FindProperty("propDatabase").objectReferenceValue = MapSceneBuilder.GetOrCreatePropDatabase(sceneName);
             info.ApplyModifiedPropertiesWithoutUndo();
 
             TestEnvironmentSetupTool.GameSystemsRefs systems = TestEnvironmentSetupTool.CreateGameSystems(prefabs, surface);
@@ -165,19 +164,20 @@ namespace GuardVsMannequin.Editor
         #region 선택한 오브젝트
 
         /// <summary>
-        /// 선택한 오브젝트(자식 포함)의 메시를 그 모양 그대로 변신 가능 사물로 등록한다. 등록한 개수를 반환한다.
+        /// 선택한 오브젝트를 하나씩 변신 가능 사물로 등록한다. 자식 조각까지 합쳐 그 모습 그대로 변신한다. 등록한 개수를 반환한다.
+        /// (여러 조각으로 된 가구는 부모를 선택한다)
         /// </summary>
         public static int RegisterSelectedAsProps()
         {
-            return RegisterSelected((registrar, target) => registrar.RegisterProp(target), "변신 사물");
+            return RegisterSelected(isWall: false, "변신 사물");
         }
 
         /// <summary>
-        /// 선택한 오브젝트(자식 포함)를 벽으로 등록한다. (변신하면 고정 크기 벽 조각) 등록한 개수를 반환한다.
+        /// 선택한 오브젝트를 하나씩 벽으로 등록한다. (변신하면 고정 크기 벽 조각) 등록한 개수를 반환한다.
         /// </summary>
         public static int RegisterSelectedAsWalls()
         {
-            return RegisterSelected((registrar, target) => registrar.RegisterWall(target), "벽");
+            return RegisterSelected(isWall: true, "벽");
         }
 
         /// <summary>
@@ -273,43 +273,19 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 선택한 렌더러마다 등록 함수를 실행한다. 맵의 사물 목록이 없으면 만든다.
+        /// 선택한 오브젝트마다 변신 사물로 등록한다. 자식에 따로 붙은 변신 사물 표시는 합친다.
+        /// 선택 안에 다른 선택의 자식이 있으면 가장 위의 오브젝트만 등록한다.
         /// </summary>
-        private static int RegisterSelected(System.Func<PropRegistrar, MeshRenderer, bool> register, string label)
+        private static int RegisterSelected(bool isWall, string label)
         {
-            PropDatabase database = GetMapPropDatabase();
-            if (database == null)
-                return 0;
+            GameObject[] roots = Selection.gameObjects
+                .Where(selected => !Selection.gameObjects.Any(other => other != selected && selected.transform.IsChildOf(other.transform)))
+                .ToArray();
 
-            var registrar = new PropRegistrar(database);
-            int count = SelectedComponents<MeshRenderer>().Count(target => register(registrar, target));
-            registrar.Save();
+            int count = roots.Count(target => PropRegistrar.Register(target, isWall, absorbChildren: true));
             MarkDirty();
-            Debug.Log($"[MapAuthoringTools] {label} {count}개 등록 (사물 목록: {AssetDatabase.GetAssetPath(database)})");
+            Debug.Log($"[MapAuthoringTools] {label} {count}개 등록 (번호는 씬을 저장할 때 매겨집니다)");
             return count;
-        }
-
-        /// <summary>
-        /// 열린 맵의 사물 목록. MapInfo에 없으면 맵 전용 목록을 만들어 연결한다.
-        /// </summary>
-        private static PropDatabase GetMapPropDatabase()
-        {
-            Scene scene = SceneManager.GetActiveScene();
-            Transform mapRoot = FindMapRoot(scene);
-            MapInfo mapInfo = mapRoot != null ? mapRoot.GetComponent<MapInfo>() : null;
-            if (mapInfo == null)
-            {
-                EditorUtility.DisplayDialog("변신 사물 등록", "열린 씬에 Map(MapInfo)이 없습니다. 맵 씬을 열고 실행하세요.", "확인");
-                return null;
-            }
-            if (mapInfo.PropDatabase != null)
-                return mapInfo.PropDatabase;
-
-            PropDatabase database = MapSceneBuilder.GetOrCreatePropDatabase(scene.name);
-            var info = new SerializedObject(mapInfo);
-            info.FindProperty("propDatabase").objectReferenceValue = database;
-            info.ApplyModifiedProperties();
-            return database;
         }
 
         /// <summary>

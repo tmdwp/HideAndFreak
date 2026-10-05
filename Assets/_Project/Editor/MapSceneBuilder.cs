@@ -21,7 +21,7 @@ namespace GuardVsMannequin.Editor
     /// <summary>
     /// 외부 에셋의 데모 씬으로 게임 맵 씬을 만든다. (<see cref="MapCatalog"/>의 1번 이후 맵)
     /// 1. 원본 씬의 오브젝트를 가져와 게임에 필요 없는 스크립트·카메라·UI를 제거하고 머티리얼을 URP로 변환한다.
-    /// 2. 충돌체가 없는 메시에 충돌체를 붙이고, 크기·이름으로 변신 가능 사물과 벽을 골라 맵 전용 사물 목록을 만든다.
+    /// 2. 충돌체가 없는 메시에 충돌체를 붙이고, 크기·이름으로 변신 가능 사물과 벽을 골라 등록한다. (외형은 게임 중에 그대로 복사)
     /// 3. NavMesh를 임시로 구워 플레이 가능한 바닥(실내 맵은 천장이 있는 곳)을 찾고,
     ///    마네킹 스폰 지점·전원 장치 후보·가드 스폰 후보를 고르게 배치한다.
     /// 4. 조명을 사냥 시간에 꺼지는 MapLight로 등록하고, 부족하면 조명을 추가한다.
@@ -140,10 +140,10 @@ namespace GuardVsMannequin.Editor
             navMeshSurface.collectObjects = CollectObjects.Children;
             navMeshSurface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
 
-            // 작은 맵은 환경 전체를 키운다. (변신 사물 크기도 커진 상태로 등록되도록 사물 목록보다 먼저)
+            // 작은 맵은 환경 전체를 키운다. (벽·사물 분류가 커진 크기로 되도록 등록보다 먼저)
             float mapScale = ScaleEnvironment(map, environment, navMeshSurface);
 
-            PropDatabase propDatabase = CreatePropDatabase(map, environment, out int propCount, out int wallCount);
+            RegisterProps(environment, out int propCount, out int wallCount);
 
             List<Vector3> floor = SampleFloorPoints(navMeshSurface, map.indoor);
             Bounds playArea = GetPlayArea(floor, environment);
@@ -172,7 +172,6 @@ namespace GuardVsMannequin.Editor
             mapInfoSerialized.FindProperty("mapName").stringValue = map.displayName;
             mapInfoSerialized.FindProperty("ceilingHeight").floatValue = ceilingHeight;
             mapInfoSerialized.FindProperty("mannequinSkin").objectReferenceValue = AssetDatabase.LoadAssetAtPath<CharacterSkin>(map.mannequinSkinPath);
-            mapInfoSerialized.FindProperty("propDatabase").objectReferenceValue = propDatabase;
             mapInfoSerialized.ApplyModifiedPropertiesWithoutUndo();
 
             TestEnvironmentSetupTool.GameSystemsRefs systems = TestEnvironmentSetupTool.CreateGameSystems(prefabs, navMeshSurface);
@@ -389,17 +388,14 @@ namespace GuardVsMannequin.Editor
         #region 변신 사물
 
         /// <summary>
-        /// 크기와 이름으로 변신 가능 사물과 벽을 골라 맵 전용 사물 목록에 등록한다.
+        /// 크기와 이름으로 변신 가능 사물과 벽을 골라 등록한다. (렌더러마다, 외형은 게임 중에 그대로 복사)
         /// - 사물: 가장 긴 변 0.3~2.6m, 높이 2.4m 이하, 바닥 면적 4㎡ 미만, 구조물 이름이 아님
         /// - 벽: 높이 2m 이상, 두께 0.6m 이하, 길이 1m 이상 → 고정 크기 벽 조각으로 변신
+        ///   (단, 정점이 많고 변신 가능한 크기면 책장·옷장 같은 가구로 보고 그대로 복사)
         /// 조명 기구와 LOD 하위 단계는 제외한다.
         /// </summary>
-        private static PropDatabase CreatePropDatabase(MapCatalog.Entry map, Transform environment, out int propCount, out int wallCount)
+        private static void RegisterProps(Transform environment, out int propCount, out int wallCount)
         {
-            PropDatabase database = GetOrCreatePropDatabase(map.sceneName);
-            database.Clear();
-
-            var registrar = new PropRegistrar(database);
             HashSet<Renderer> lowerLods = GetLowerLodRenderers(environment);
             propCount = 0;
             wallCount = 0;
@@ -417,36 +413,25 @@ namespace GuardVsMannequin.Editor
                 float thickness = Mathf.Min(size.x, size.z);
                 float length = Mathf.Max(size.x, size.z);
 
+                bool isNonProp = HasKeyword(meshRenderer.transform, NonPropKeywords);
                 if (size.y >= 2f && thickness <= 0.6f && length >= 1f)
                 {
-                    if (registrar.RegisterWall(meshRenderer))
+                    if (!isNonProp && PropRegistrar.LooksLikeFurniture(meshRenderer))
+                    {
+                        if (PropRegistrar.Register(meshRenderer.gameObject, isWall: false, absorbChildren: false))
+                            propCount++;
+                    }
+                    else if (PropRegistrar.Register(meshRenderer.gameObject, isWall: true, absorbChildren: false))
+                    {
                         wallCount++;
+                    }
                     continue;
                 }
 
-                bool isProp = longest >= 0.3f && longest <= 2.6f && size.y <= 2.4f && size.x * size.z < 4f
-                              && !HasKeyword(meshRenderer.transform, NonPropKeywords);
-                if (isProp && registrar.RegisterProp(meshRenderer))
+                bool isProp = longest >= 0.3f && longest <= 2.6f && size.y <= 2.4f && size.x * size.z < 4f && !isNonProp;
+                if (isProp && PropRegistrar.Register(meshRenderer.gameObject, isWall: false, absorbChildren: false))
                     propCount++;
             }
-
-            registrar.Save();
-            return database;
-        }
-
-        /// <summary>
-        /// 맵 전용 사물 목록 에셋(ScriptableObjects/PropDatabase_&lt;씬 이름&gt;)을 가져오거나 만든다.
-        /// </summary>
-        internal static PropDatabase GetOrCreatePropDatabase(string sceneName)
-        {
-            string path = $"{TestEnvironmentSetupTool.SoFolder}/PropDatabase_{sceneName}.asset";
-            PropDatabase database = AssetDatabase.LoadAssetAtPath<PropDatabase>(path);
-            if (database == null)
-            {
-                database = ScriptableObject.CreateInstance<PropDatabase>();
-                AssetDatabase.CreateAsset(database, path);
-            }
-            return database;
         }
 
         /// <summary>

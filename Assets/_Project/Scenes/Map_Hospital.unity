@@ -265,7 +265,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 1
+  isWall: 1
 --- !u!1 &30325561
 GameObject:
   m_ObjectHideFlags: 0
@@ -597,7 +598,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 24
+  isWall: 1
 --- !u!1 &55805697
 GameObject:
   m_ObjectHideFlags: 0
@@ -702,7 +704,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 2
+  index: 2
+  isWall: 0
 --- !u!64 &57743811
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -851,7 +854,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 16
+  isWall: 1
 --- !u!65 &180087429
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -885,7 +889,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 7
+  isWall: 1
 --- !u!1 &211746383
 GameObject:
   m_ObjectHideFlags: 0
@@ -1012,7 +1017,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 27
+  isWall: 1
 --- !u!1 &215217006
 GameObject:
   m_ObjectHideFlags: 0
@@ -1117,7 +1123,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 4
+  index: 5
+  isWall: 0
 --- !u!64 &217148848
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1379,7 +1386,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 4
+  isWall: 1
 --- !u!1 &231998399
 GameObject:
   m_ObjectHideFlags: 0
@@ -1841,7 +1849,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 8
+  isWall: 1
 --- !u!1 &298446776
 GameObject:
   m_ObjectHideFlags: 0
@@ -2020,7 +2029,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 20
+  isWall: 1
 --- !u!23 &319210311
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2260,7 +2270,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 22
+  isWall: 1
 --- !u!1 &341105304
 GameObject:
   m_ObjectHideFlags: 0
@@ -2453,7 +2464,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 3
+  isWall: 1
 --- !u!64 &431320629
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2646,7 +2658,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 6
+  isWall: 1
 --- !u!64 &439776326
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -3663,7 +3676,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Map.HuntingLightingController
   noiseLibrary: {fileID: 11400000, guid: ee319f26cc7916e48ba986d566c211df, type: 2}
   maxOffDelay: 0.5
-  huntingAmbient: {r: 0.02, g: 0.02, b: 0.03, a: 1}
+  huntingAmbientTint: {r: 0.67, g: 0.67, b: 1, a: 1}
 --- !u!1 &589864166
 GameObject:
   m_ObjectHideFlags: 0
@@ -4690,7 +4703,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 0
+  isWall: 1
 --- !u!64 &759081348
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -4896,7 +4910,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 25
+  isWall: 1
 --- !u!4 &793401067
 Transform:
   m_ObjectHideFlags: 0
@@ -5001,7 +5016,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 5
+  index: 11
+  isWall: 1
 --- !u!64 &796792525
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -5682,7 +5698,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 2
+  index: 9
+  isWall: 0
 --- !u!64 &888621891
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -6867,7 +6884,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 5
+  index: 12
+  isWall: 1
 --- !u!64 &1233124906
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -6976,7 +6994,6 @@ MonoBehaviour:
   ceilingHeight: 13.468331
   mannequinSkin: {fileID: 11400000, guid: c27012141a81a7842ad367d626e37925, type: 2}
   guardSkin: {fileID: 0}
-  propDatabase: {fileID: 11400000, guid: 56a92b32411307b42b1bb940b9139b19, type: 2}
 --- !u!1 &1240698462
 GameObject:
   m_ObjectHideFlags: 0
@@ -7539,7 +7556,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 2
+  index: 13
+  isWall: 0
 --- !u!64 &1392399648
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -7711,7 +7729,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 5
+  index: 19
+  isWall: 1
 --- !u!64 &1408161591
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -8325,7 +8344,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 4
+  index: 23
+  isWall: 0
 --- !u!64 &1545927195
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -8648,7 +8668,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 2
+  index: 14
+  isWall: 0
 --- !u!64 &1564011157
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -8691,7 +8712,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 15
+  isWall: 1
 --- !u!1 &1571237891
 GameObject:
   m_ObjectHideFlags: 0
@@ -8927,7 +8949,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 18
+  isWall: 1
 --- !u!65 &1614167173
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -9075,7 +9098,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 10
+  isWall: 1
 --- !u!1 &1636619380
 GameObject:
   m_ObjectHideFlags: 0
@@ -12091,7 +12115,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 21
+  isWall: 1
 --- !u!1 &1752779698
 GameObject:
   m_ObjectHideFlags: 0
@@ -12422,7 +12447,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 17
+  isWall: 1
 --- !u!33 &1783222185
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -13190,7 +13216,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 26
+  isWall: 1
 --- !u!23 &2060265300
 MeshRenderer:
   m_ObjectHideFlags: 0

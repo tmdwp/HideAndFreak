@@ -510,7 +510,6 @@ MonoBehaviour:
   _componentIndexCache: 5
   _addedNetworkObject: {fileID: 5274660207253486401}
   _networkObjectCache: {fileID: 5274660207253486401}
-  propDatabase: {fileID: 11400000, guid: e0a629f9b7dddda47abe8d4d66d1b5d1, type: 2}
 --- !u!114 &9486479044456953
 MonoBehaviour:
   m_ObjectHideFlags: 0

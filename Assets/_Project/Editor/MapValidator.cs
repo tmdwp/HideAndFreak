@@ -148,7 +148,8 @@ namespace GuardVsMannequin.Editor
         }
 
         /// <summary>
-        /// 변신 가능 사물이 있고, 모두 맵의 사물 목록에 있는 번호인지 확인한다.
+        /// 변신 가능 사물이 있고, 각 사물이 그대로 복사될 수 있는지 확인한다.
+        /// (번호는 씬 저장 때 자동으로 매겨지므로 검사 전에 다시 매긴다)
         /// </summary>
         private static void CheckProps(List<Issue> issues, MapInfo mapInfo)
         {
@@ -159,18 +160,14 @@ namespace GuardVsMannequin.Editor
                 return;
             }
 
-            PropDatabase database = mapInfo.PropDatabase;
-            if (database == null)
+            if (PropIndexer.AssignIndices(mapInfo.gameObject.scene) > 0)
+                issues.Add(new Issue(false, "변신 사물 번호를 다시 매겼습니다. 씬을 저장하세요."));
+
+            foreach (TransformableProp prop in props)
             {
-                issues.Add(new Issue(true, "MapInfo에 사물 목록(Prop Database)이 없습니다. 변신 사물을 등록하면 자동으로 만들어집니다.", mapInfo));
-                return;
+                if (PropCopyChecks.TryFindProblem(prop, out string problem, out bool isError))
+                    issues.Add(new Issue(isError, $"'{prop.name}': {problem}", prop));
             }
-
-            foreach (TransformableProp prop in props.Where(p => !database.IsValid(p.PropId)))
-                issues.Add(new Issue(true, $"'{prop.name}'의 사물 번호({prop.PropId})가 이 맵의 사물 목록에 없습니다. 다시 등록하세요.", prop));
-
-            foreach (TransformableProp prop in props.Where(p => p.GetComponent<Collider>() == null && p.GetComponentInChildren<Collider>() == null))
-                issues.Add(new Issue(true, $"'{prop.name}'에 충돌체가 없어 조준할 수 없습니다.", prop));
         }
     }
 }

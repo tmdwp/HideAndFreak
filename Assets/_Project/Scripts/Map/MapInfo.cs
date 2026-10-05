@@ -9,7 +9,7 @@ namespace GuardVsMannequin.Map
     /// 맵 단위 정보.
     /// - 천장 높이가 가드 히트스캔 사거리보다 낮은지 검증한다. (천장에 붙은 마네킹도 맞출 수 있어야 하기 때문)
     /// - 맵별 캐릭터 외형: 비워 두면 프리팹의 기본 외형을 쓴다. 마네킹 외형을 바꾸면 가짜 마네킹도 같이 바뀐다.
-    /// - 맵별 변신 사물 목록: 비워 두면 마네킹 프리팹의 기본 목록을 쓴다.
+    /// - 변신 사물: 맵에 놓인 TransformableProp을 그대로 복사하므로 따로 지정할 것이 없다.
     /// 씬에 하나만 둔다.
     /// </summary>
     public class MapInfo : MonoBehaviour
@@ -25,9 +25,6 @@ namespace GuardVsMannequin.Map
         [Tooltip("이 맵에서 가드가 쓸 외형. 비우면 프리팹의 기본 외형.")]
         [SerializeField] private CharacterSkin guardSkin;
 
-        [Tooltip("이 맵의 변신 가능 사물 목록. 비우면 마네킹 프리팹의 기본 목록.")]
-        [SerializeField] private PropDatabase propDatabase;
-
         /// <summary>현재 씬의 맵 정보. 없으면 null.</summary>
         public static MapInfo Current { get; private set; }
 
@@ -35,7 +32,6 @@ namespace GuardVsMannequin.Map
         public float CeilingHeight => ceilingHeight;
         public CharacterSkin MannequinSkin => mannequinSkin;
         public CharacterSkin GuardSkin => guardSkin;
-        public PropDatabase PropDatabase => propDatabase;
 
         /// <summary>
         /// 역할이 이 맵에서 쓸 외형. 지정하지 않았거나 외형이 없는 역할이면 null. (호출한 쪽이 기본 외형을 쓴다)

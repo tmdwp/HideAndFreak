@@ -365,8 +365,8 @@ namespace GuardVsMannequin.Editor
                 StaticEditorFlags flags = GameObjectUtility.GetStaticEditorFlags(target.gameObject);
                 flags |= StaticEditorFlags.OccludeeStatic;
 
-                // 변신 사물은 외곽선 표시가 원래 메시를 써야 하므로 정적 배칭에서 뺀다.
-                if (target.GetComponent<TransformableProp>() == null)
+                // 변신 사물(자식 조각 포함)은 변신할 때 원래 메시를 복사하고 외곽선도 원래 메시로 그리므로 정적 배칭에서 뺀다.
+                if (target.GetComponentInParent<TransformableProp>(true) == null)
                     flags |= StaticEditorFlags.BatchingStatic;
                 else
                     flags &= ~StaticEditorFlags.BatchingStatic;

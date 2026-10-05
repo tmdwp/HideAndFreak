@@ -4,25 +4,22 @@ using UnityEngine;
 namespace GuardVsMannequin.Player.Mannequin
 {
     /// <summary>
-    /// 조준 광선으로 변신할 수 있는 사물을 찾는다. (변신 사거리 안, 현재 사물 목록에 있는 것만)
+    /// 조준 광선으로 변신할 수 있는 사물을 찾는다. (변신 사거리 안, 번호가 있고 너무 크지 않은 것만)
     /// 변신 요청(<see cref="MannequinTransformer"/>)과 외곽선 표시(<see cref="PropHighlighter"/>)가 같은 판정을 쓴다.
     /// </summary>
     public sealed class PropTargetFinder
     {
         private readonly Transform owner;
         private readonly IAimProvider aimProvider;
-        private readonly IPropDatabaseSource databaseSource;
         private readonly float range;
 
         /// <param name="owner">아바타 트랜스폼. (자기 몸은 무시하고, 사거리는 몸에서 잰다)</param>
         /// <param name="aimProvider">조준 광선.</param>
-        /// <param name="databaseSource">현재 사물 목록.</param>
         /// <param name="range">몸에서 사물까지의 최대 거리(m).</param>
-        public PropTargetFinder(Transform owner, IAimProvider aimProvider, IPropDatabaseSource databaseSource, float range)
+        public PropTargetFinder(Transform owner, IAimProvider aimProvider, float range)
         {
             this.owner = owner;
             this.aimProvider = aimProvider;
-            this.databaseSource = databaseSource;
             this.range = range;
         }
 
@@ -42,8 +39,7 @@ namespace GuardVsMannequin.Player.Mannequin
                 return false;
 
             TransformableProp candidate = hit.collider.GetComponentInParent<TransformableProp>();
-            PropDatabase database = databaseSource.Database;
-            if (candidate == null || database == null || !database.IsValid(candidate.PropId))
+            if (candidate == null || !candidate.CanDisguiseAs)
                 return false;
 
             prop = candidate;

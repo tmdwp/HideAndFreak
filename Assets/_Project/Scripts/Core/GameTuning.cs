@@ -52,6 +52,9 @@ namespace GuardVsMannequin.Core
         /// <summary>변신 대상을 지정할 수 있는 최대 거리(m).</summary>
         public static float TransformRange => Get(nameof(TransformRange), 8f);
 
+        /// <summary>변신할 수 있는 사물의 최대 크기(가장 긴 변, m). 이보다 큰 사물은 조준해도 변신할 수 없다.</summary>
+        public static float DisguiseMaxSize => Get(nameof(DisguiseMaxSize), 3f);
+
         /// <summary>변신 해제 후 다시 변신할 수 있을 때까지의 시간(초).</summary>
         public static float UntransformCooldown => Get(nameof(UntransformCooldown), 5f);
 

@@ -46,8 +46,8 @@ namespace GuardVsMannequin.Editor
         /// </summary>
         private static string GetViolation(TransformableProp prop, GeneratorSpawnPoint[] generatorPoints)
         {
-            if (prop.PropId < 0)
-                return "PropId가 지정되지 않았습니다.";
+            if (prop.Index == TransformableProp.None)
+                return "사물 번호가 없습니다. 씬을 저장하면 자동으로 매겨집니다.";
 
             if (prop.GetComponentInChildren<Light>() != null)
                 return "조명 기구는 변신 대상이 될 수 없습니다.";

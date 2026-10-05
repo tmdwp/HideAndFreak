@@ -49,7 +49,7 @@ Assets/_Project/
 │  │  ├─ Guard/
 │  │  └─ Mannequin/
 │  ├─ Tools/         # 총, 수류탄, 손전등
-│  ├─ Props/         # 변신 가능 사물, PropDatabase
+│  ├─ Props/         # 변신 가능 사물(TransformableProp), 외형 복사(PropAppearance), 번호 조회(PropRegistry)
 │  ├─ Objectives/    # 전원 장치
 │  ├─ AI/            # 가짜 마네킹
 │  ├─ Map/           # 스폰 지점·가드 스폰 선택, 조명 제어
@@ -174,7 +174,7 @@ public interface ITransformable { int PropId { get; } }
 - [x] 문이 닫혀 있는 동안 물리적으로 통과 불가 (콜라이더)
 
 #### 1-B. 변신 시스템
-- [x] `PropDatabase` (ScriptableObject): PropId ↔ 메시/머티리얼/콜라이더 크기 매핑
+- [x] `PropDatabase` (ScriptableObject): PropId ↔ 메시/머티리얼/콜라이더 크기 매핑 → (2026-10-05) 맵 물체 번호 + 외형 복사 방식으로 교체 (Phase 7-A 구현 결과 참고)
 - [x] `TransformableProp` 컴포넌트: 변신 가능한 사물에 부착, PropId 보유
 - [x] 변신 불가 대상 처리: 천장, 바닥, 조명 기구, 전원 장치, 전원 장치 주변 구조물에는 `TransformableProp`을 **붙이지 않음** (에디터 검증 툴로 확인)
 - [x] 벽 변신: 벽에서는 **고정 크기 벽 조각** PropId로 변신
@@ -408,7 +408,7 @@ public interface ITransformable { int PropId { get; } }
   - 외형·무기 모델은 메뉴 `GuardVsMannequin > 캐릭터·무기 에셋 생성`(테스트 환경 생성에 포함)이 만든다: 원본에서 스크립트·충돌체를 빼고, 발을 원점에 맞추고 키를 맞추고(사람 1.8m, 슬라임 1.3m, 유령 1.6m), 머티리얼을 URP Lit으로 변환해 `Assets/_Project/Art/Skins`에 저장. 휴머노이드(더미·Ethan)는 Kevin Iglesias 8방향 걷기·달리기 2D 블렌드 컨트롤러를 공유한다.
   - 새 외형 추가: `Create > GuardVsMannequin > Character Skin`으로 에셋을 만들고 모델 프리팹(발 원점, 정면 +Z)과 컨트롤러를 지정 → 맵의 `MapInfo`에 넣는다. 정면이 다르면 `yawOffset`으로 보정.
 - **가드 총**: `GuardWeaponView`가 소유자에게는 카메라 앞 1인칭 리볼버, 다른 플레이어에게는 오른손 위치에서 조준 방향을 향하는 3인칭 리볼버를 보여준다(휴머노이드는 `HandAimIK`로 오른손을 조준 방향으로 뻗음). 판정은 그대로 서버 히트스캔이고, `ShotTracerView`가 보는 사람 기준 총구에서 총알 이펙트(`BulletEffect`)를 끝점까지 날리고 명중·총구 화염 이펙트를 재생한다. (MasterStylizedProjectiles의 OrangeGunShot)
-- **맵 자동 생성** (`GuardVsMannequin > 맵 생성`, `MapCatalog`의 순서 = 맵 번호): 원본 데모 씬을 가져와 정리(프리팹 연결 해제, 카메라·UI·에셋 스크립트 제거, 물리 고정) → 머티리얼 URP 변환(`UrpMaterialConverter`, 원본 에셋 머티리얼을 직접 바꿈) → 충돌체 없는 메시에 MeshCollider → 크기·이름 규칙으로 변신 사물/벽 조각 지정(맵 전용 `PropDatabase_<씬>`) → 임시 NavMesh로 플레이 가능한 바닥(실내 맵은 천장 있는 곳, 가장 넓게 이어진 영역)을 분석해 마네킹 스폰 10·전원 장치 후보 12·가드 출발 지점 5를 고르게 배치 → 조명을 실시간 MapLight로 바꾸고 부족하면 추가 → 투명 경계·천장, 맵 아래 닫힌 대기실 → 게임 시스템·HUD → 빌드 설정과 RoomState 맵 목록 등록.
+- **맵 자동 생성** (`GuardVsMannequin > 맵 생성`, `MapCatalog`의 순서 = 맵 번호): 원본 데모 씬을 가져와 정리(프리팹 연결 해제, 카메라·UI·에셋 스크립트 제거, 물리 고정) → 머티리얼 URP 변환(`UrpMaterialConverter`, 원본 에셋 머티리얼을 직접 바꿈) → 충돌체 없는 메시에 MeshCollider → 크기·이름 규칙으로 변신 사물/벽 조각 지정(`TransformableProp`, 벽 조건이어도 정점 100개 초과·변신 가능 크기면 가구로 보고 그대로 복사) → 임시 NavMesh로 플레이 가능한 바닥(실내 맵은 천장 있는 곳, 가장 넓게 이어진 영역)을 분석해 마네킹 스폰 10·전원 장치 후보 12·가드 출발 지점 5를 고르게 배치 → 조명을 실시간 MapLight로 바꾸고 부족하면 추가 → 투명 경계·천장, 맵 아래 닫힌 대기실 → 게임 시스템·HUD → 빌드 설정과 RoomState 맵 목록 등록.
   - (Phase 7-A에서 대기실·출발 지점을 없애고 가드 스폰 후보 + `GuardSpawnSelector`로 바꿨다.)
   - 빌드 설정에 없는 맵을 고르면 `RoomState`가 테스트 맵으로 대신한다.
 - **UI 프리팹과 맵 제작 도구**: 사용법은 `Docs/UiAndMapGuide.md`. UI는 `Prefabs/UI`의 프리팹(설정·크레딧 패널은 중첩 프리팹)으로 관리되어 씬 생성 도구를 다시 실행해도 직접 수정한 내용이 유지된다(`UiPrefabLibrary`). 맵은 "맵 제작 도우미" 창(`MapMakerWindow`)에서 새 맵 뼈대 생성 → 등록(`PropRegistrar` 공용) → 지점 배치 → 경계 → 검사(`MapValidator`) → 최적화 → 맵 목록 갱신(`MapRegistrySync`: 빌드 설정·RoomState·strings.csv·game_settings.csv) 순서로 만든다. 직접 만든 맵은 `Scenes/Custom`에 두면 자동 생성 맵 뒤 번호로 붙는다.
@@ -441,7 +441,7 @@ public interface ITransformable { int PropId { get; } }
   - **역할 정의**: 역할별 값(이름·안내 문구 key, 승리 진영, 사냥 시간 속도 배율, 설정에서 체력·속도·피해량 고르기)은 `RoleDefinitions`/`RoleStats` 한곳에 있다. `PlayerSpawner`의 아바타 프리팹은 역할별 목록(`rolePrefabs`), 맵 외형은 `MapInfo.GetSkin(role)`. Phase 7의 맵별 스탯은 `RoleStats`를 고르는 곳에 맵 값을 덧씌우면 된다.
   - 설정 기본값은 `GameServices.CurrentSettingsOrDefault`(없으면 `DefaultGameSettings.Cached`) 한곳에서 읽는다. 코드 곳곳의 `?? 2f`, `?? 10f` 같은 기본값을 없앴다.
   - 도구 공통: 쿨타임 `ToolCooldown`(로컬/서버, 허용 오차 0.15초), 조준 원점 검증 `AimRaycaster.SanitizeOrigin`.
-  - `MannequinTransformer`는 입력·서버 검증·동기화만 하고, 조준한 사물 찾기는 `PropTargetFinder`, 사물 목록 결정은 `IPropDatabaseSource`(`MapPropDatabaseSource`)가 맡는다.
+  - `MannequinTransformer`는 입력·서버 검증·동기화만 하고, 조준한 사물 찾기는 `PropTargetFinder`, 번호로 사물 찾기는 `PropRegistry`, 외형 복사·적용은 `PropAppearance`/`PropDisguiseView`가 맡는다. (2026-10-05 교체 전에는 `IPropDatabaseSource`)
   - `CharacterSkinView`는 외형 적용만 하고, 이동 애니메이션 값은 `LocomotionAnimatorDriver`, 파라미터 확인은 `AnimatorParameterSet`이 맡는다.
   - 승패 판정은 순수 함수 `MatchJudge`(값만 받아 `MatchVerdict` 반환)이고, `MatchRules`가 결과를 기록한다.
   - `FakeMannequinSpawner`는 씬 전체 검색 대신 `SpawnPointRegistry`를 쓴다. 게임 시작 실패 문구는 `strings.csv` key로 바꿨다.
@@ -524,6 +524,13 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 - 수류탄 외곽선은 "상대 진영의 살아 있는 플레이어"에게만 보인다(`RoleDefinition.Side` 비교). 맞은 마네킹에게는 HUD 하단 문구로 알린다. (화면 가장자리 효과는 보류)
 - 출발 보호 남은 시간은 HUD 도구 쿨타임 칸에 표시한다(총·수류탄의 `CooldownRemaining`).
 - 가드 스폰 보강(2026-10-05): 후보(가드 스폰 지점 + NavMesh 무작위 60개)를 `SpawnCandidateFilter`로 먼저 거른다 — 마네킹 스폰 지점까지 NavMesh 경로가 이어진 곳(투명 천장·지붕 위, 경계 밖, 막힌 방 제외), 서 있을 공간이 있는 곳만. `GuardSpawnSelector`는 거리 조건에 더해 **마네킹 스폰 지점이 직접 보이지 않는 곳**(`GuardSpawnSightDistance` 40m 안, 벽·사물이 가리면 안 보임)을 고른다. 조건을 다 만족하는 곳이 없으면 안 보이는 곳 → 먼 곳 순으로 고른다. 최소 거리 기본값 15 → 20m(가짜 마네킹 흩뿌리기 4m 포함).
+- **변신 외형 복사(2026-10-05)**: 예전에는 맵 생성 때 저장한 사물 목록(`PropDatabase_<맵>`)의 번호를 동기화해, 맵을 고친 뒤에는 크기·머티리얼이 어긋나고 벽 조건에 걸린 가구(책장·옷장)가 상자로 변신했다. 이제는 다음과 같이 동작한다.
+  - 번호: `TransformableProp`마다 씬 안 번호를 매긴다(`PropIndexer`: 씬 저장 때 + 빌드·플레이 모드 씬 처리 때, 계층 순서라 결정적). 서버는 번호만 동기화한다(`MannequinTransformer.currentPropIndex`). **Protocol p4 → p5.**
+  - 외형: 각 PC가 번호로 사물을 찾아(`PropRegistry`) 메시·머티리얼·실제 크기·기울기를 자식 조각까지 그대로 복사한다(`PropAppearance`, 하위 LOD·다른 변신 사물의 자식 제외). 좌우 방향은 마네킹이 바라보는 방향을 따른다.
+  - 벽: `TransformableProp.isWall`이 켜진 사물은 예전처럼 고정 크기 벽 조각(1.2×2×0.25m, 첫 머티리얼).
+  - 제한: 가장 긴 변이 `DisguiseMaxSize`(3m)를 넘으면 변신 불가. 서버는 사물 경계까지의 거리도 검증한다(변신 사거리 + 1.5m).
+  - 도구: 맵 제작 도우미의 "변신 사물로 등록"은 **선택한 오브젝트(부모) 단위**로 자식 조각까지 합친다. 맵 검사는 충돌체·메시 없음(오류), 너무 큼·파티클/조명/스킨 메시 포함·정적 배칭(경고)을 알린다(`PropCopyChecks`). 맵 최적화는 변신 사물의 자식 조각도 정적 배칭에서 뺀다.
+  - 이전(완료, 2026-10-05): 일회용 메뉴로 기존 맵 5개의 벽 조각 여부를 옮기고(가구로 보이는 것은 복사로 전환) 번호를 매긴 뒤, 이전 도구와 `PropDatabase`·`PropDefinition`·에셋 `ScriptableObjects/PropDatabase_*`를 삭제했다.
 - 사냥 시간 밝기(2026-10-05): 맵 환경광은 `HuntingLightingController`의 색조 × `game_tuning.csv`의 `HuntAmbientBrightness`, 손전등 밝기는 `FlashlightIntensity`.
 - 기존 에셋 이전(완료, 2026-10-04): 일회용 메뉴로 외곽선 기능 설치(PC·Mobile 렌더러), 탐지기 → 수류탄, 마네킹 효과 컴포넌트, 맵 5개 대기실 제거, 룸 설정 줄 이름을 바꾼 뒤, 이전 도구와 예전 대기실·탐지기 스크립트, `PropOutline` 셰이더를 삭제했다.
 
@@ -560,7 +567,7 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 **지원 항목별 설계**
 1. **캐릭터 외형·애니메이션**: 번들 안의 `CharacterSkin` 에셋(모델 + 애니메이터 컨트롤러 + 무기 손잡이 값)을 그대로 쓴다. 애니메이션 파라미터 규칙(`CharacterAnimatorParameters`)이 이미 "있는 것만 쓰는" 방식이라 모드 컨트롤러에 그대로 적용된다. SDK에 휴머노이드 8방향 이동 컨트롤러 템플릿과 외형 검사 도구(발 원점·키·정면·파라미터)를 넣는다. 외형은 지금처럼 맵의 `MapInfo`가 고르며, 다른 모드의 외형을 ID로 참조할 수 있다(`mod.json` 의존성).
 2. **맵 설정**: 맵 씬을 번들에 넣고, SDK의 "맵 제작 도우미"(`MapMakerWindow`, `MapValidator`)를 그대로 쓴다. `map.json`에 플레이 인원(최소·최대), 가드 수·전원 장치 수·목표 횟수·시간의 기본값과 최소·최대를 적는다. 게임의 `game_settings.csv` 범위와 겹치는 구간만 허용한다(전원 장치 수 최대 ≤ 맵의 후보 수는 검사 도구가 확인).
-3. **변신 가능 물체**: 맵 모드는 자기 `PropDatabase`를 번들에 포함한다(지금의 맵 전용 `PropDatabase_<씬>`과 같음). 별도의 사물 팩 모드(`type: props`)는 `PropDatabase`만 담고, 맵 모드가 ID로 참조해 자기 씬에 배치한다. PropId는 맵 안 번호이므로 네트워크 형식은 바뀌지 않는다.
+3. **변신 가능 물체** (2026-10-05 변경): 맵 제작자는 변신시킬 물체(여러 조각이면 부모)에 `TransformableProp`만 붙인다. 외형은 게임 중에 그 물체에서 그대로 복사하고, 번호는 "모드 내보내기"(씬 저장·빌드 처리와 같은 `PropIndexer`)가 매긴다. 같은 모드만 입장하므로 모든 PC의 번호가 같다. 사물 팩 모드(`type: props`)는 `TransformableProp`이 붙은 **프리팹 묶음**이고, 맵 모드가 그 프리팹을 자기 씬에 배치한다. 검사 도구(`PropCopyChecks`)가 너무 큰 물체, 복사되지 않는 요소(파티클·조명·스킨 메시), 충돌체 없음을 알린다.
 4. **캐릭터 스탯 (맵별)**: `map.json`의 `stats`에 역할별 체력·이동 속도·피해량·공격 범위·도구 쿨타임의 기본값과 최소·최대를 적는다. 없는 항목은 게임 기본값(`default_game_settings.json`, `game_settings.csv`)을 쓴다. 서버의 `GameSettingsValidator`가 "게임 범위 ∩ 맵 범위"로 보정한다.
 
 **구현 단계**
@@ -622,4 +629,4 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 ## 5. 추후 확장 (1차 개발 범위 제외)
 
 - 커스텀 맵 모드: 에셋번들 로딩, 변신 가능 사물 태깅 규칙, 맵 제작 에디터 툴
-- 1차 개발 중에도 확장을 고려해 **맵 데이터(`MapInfo`)와 변신 가능 사물 정보(`PropDatabase`)는 씬과 분리된 데이터로 관리**합니다.
+- 1차 개발 중에도 확장을 고려해 **맵 데이터(`MapInfo`)는 씬과 분리된 데이터로 관리**합니다. 변신 가능 사물은 씬의 물체에 `TransformableProp`을 붙이는 것만으로 정의됩니다(외형은 실행 중 복사).

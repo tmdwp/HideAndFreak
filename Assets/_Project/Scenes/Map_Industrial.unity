@@ -4118,7 +4118,6 @@ MonoBehaviour:
   ceilingHeight: 31.03204
   mannequinSkin: {fileID: 11400000, guid: c27012141a81a7842ad367d626e37925, type: 2}
   guardSkin: {fileID: 0}
-  propDatabase: {fileID: 11400000, guid: 308d73ffa5b742b4986d7612415d3a59, type: 2}
 --- !u!4 &792488439
 Transform:
   m_ObjectHideFlags: 0
@@ -5265,7 +5264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Map.HuntingLightingController
   noiseLibrary: {fileID: 11400000, guid: ee319f26cc7916e48ba986d566c211df, type: 2}
   maxOffDelay: 0.5
-  huntingAmbient: {r: 0.02, g: 0.02, b: 0.03, a: 1}
+  huntingAmbientTint: {r: 0.67, g: 0.67, b: 1, a: 1}
 --- !u!1 &1577710482
 GameObject:
   m_ObjectHideFlags: 0
@@ -44839,7 +44838,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 49
+  isWall: 0
 --- !u!64 &64000012443507847
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -44874,7 +44874,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 2
+  index: 34
+  isWall: 0
 --- !u!64 &64000012473950887
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -45107,7 +45108,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 52
+  isWall: 0
 --- !u!64 &64000012787210936
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -45208,7 +45210,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 16
+  isWall: 1
 --- !u!64 &64000012966693453
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -45309,7 +45312,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 30
+  isWall: 1
 --- !u!64 &64000013128223874
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -45410,7 +45414,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 17
+  isWall: 1
 --- !u!64 &64000013267560573
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -45511,7 +45516,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 50
+  isWall: 0
 --- !u!64 &64000013533378013
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -45810,7 +45816,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 2
+  index: 33
+  isWall: 0
 --- !u!64 &64000014121335006
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -45845,7 +45852,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 3
+  index: 51
+  isWall: 0
 --- !u!64 &64000014126108596
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -46033,7 +46041,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 35
+  isWall: 0
 --- !u!65 &65000009297776954
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46088,7 +46097,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 14
+  isWall: 1
 --- !u!65 &65000009306745337
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46248,7 +46258,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 10
+  isWall: 1
 --- !u!65 &65000009489979883
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46345,7 +46356,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 38
+  isWall: 1
 --- !u!65 &65000009575030905
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46379,7 +46391,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 7
+  isWall: 1
 --- !u!65 &65000009583705994
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46434,7 +46447,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 11
+  isWall: 1
 --- !u!65 &65000009589071288
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46468,7 +46482,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 32
+  isWall: 0
 --- !u!65 &65000009634814867
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46502,7 +46517,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 53
+  isWall: 0
 --- !u!65 &65000009644729407
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46536,7 +46552,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 40
+  isWall: 0
 --- !u!65 &65000009652319356
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46570,7 +46587,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 23
+  isWall: 1
 --- !u!65 &65000009674498777
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46604,7 +46622,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 24
+  isWall: 1
 --- !u!65 &65000009715754735
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46722,7 +46741,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 45
+  isWall: 0
 --- !u!65 &65000009798363373
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46756,7 +46776,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 3
+  isWall: 1
 --- !u!65 &65000009851761336
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46790,7 +46811,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 29
+  isWall: 0
 --- !u!65 &65000009877631422
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46845,7 +46867,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 5
+  isWall: 1
 --- !u!65 &65000009893519859
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46879,7 +46902,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 1
+  isWall: 1
 --- !u!65 &65000009894156168
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46913,7 +46937,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 26
+  isWall: 1
 --- !u!65 &65000009972772328
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46947,7 +46972,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 43
+  isWall: 0
 --- !u!65 &65000010017793326
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47023,7 +47049,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 39
+  isWall: 1
 --- !u!65 &65000010040275756
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47057,7 +47084,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 44
+  isWall: 0
 --- !u!65 &65000010044355875
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47112,7 +47140,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 0
+  isWall: 1
 --- !u!65 &65000010137422558
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47146,7 +47175,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 41
+  isWall: 0
 --- !u!65 &65000010146800757
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47180,7 +47210,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 21
+  isWall: 1
 --- !u!65 &65000010179511435
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47277,7 +47308,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 25
+  isWall: 1
 --- !u!65 &65000010209768605
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47311,7 +47343,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 4
+  isWall: 1
 --- !u!65 &65000010254365633
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47408,7 +47441,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 48
+  isWall: 0
 --- !u!65 &65000010416199348
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47463,7 +47497,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 9
+  isWall: 1
 --- !u!65 &65000010492870564
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47497,7 +47532,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 28
+  isWall: 0
 --- !u!65 &65000010568514487
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47531,7 +47567,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 37
+  isWall: 1
 --- !u!65 &65000010576088919
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47586,7 +47623,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 56
+  isWall: 0
 --- !u!65 &65000010643243036
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47620,7 +47658,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 55
+  isWall: 0
 --- !u!65 &65000010644537024
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47654,7 +47693,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 13
+  isWall: 1
 --- !u!65 &65000010669643795
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47730,7 +47770,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 59
+  isWall: 0
 --- !u!65 &65000010690660986
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47848,7 +47889,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 31
+  isWall: 0
 --- !u!65 &65000010793952174
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47903,7 +47945,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 36
+  isWall: 0
 --- !u!65 &65000010809294555
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -47979,7 +48022,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 15
+  isWall: 1
 --- !u!65 &65000010878769728
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48013,7 +48057,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 54
+  isWall: 0
 --- !u!65 &65000010902777808
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48047,7 +48092,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 12
+  isWall: 1
 --- !u!65 &65000010933669348
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48123,7 +48169,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 18
+  isWall: 1
 --- !u!65 &65000010987427539
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48220,7 +48267,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 42
+  isWall: 0
 --- !u!65 &65000011032803696
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48275,7 +48323,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 58
+  isWall: 0
 --- !u!65 &65000011059848053
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48309,7 +48358,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 19
+  isWall: 1
 --- !u!65 &65000011062021229
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48364,7 +48414,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 27
+  isWall: 1
 --- !u!65 &65000011097817809
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48398,7 +48449,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 2
+  isWall: 1
 --- !u!65 &65000011170766158
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48432,7 +48484,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 46
+  isWall: 0
 --- !u!65 &65000011172647704
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48466,7 +48519,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 57
+  isWall: 0
 --- !u!65 &65000011194312526
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48542,7 +48596,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 6
+  isWall: 1
 --- !u!65 &65000011268116203
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48597,7 +48652,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 20
+  isWall: 1
 --- !u!65 &65000011384519652
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48631,7 +48687,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 8
+  isWall: 1
 --- !u!65 &65000011387749938
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48686,7 +48743,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 0
+  index: 22
+  isWall: 1
 --- !u!65 &65000011399860184
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -48720,7 +48778,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9333f459f261e274691ac12c3ee3ed97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuardVsMannequin.Runtime::GuardVsMannequin.Props.TransformableProp
-  propId: 1
+  index: 47
+  isWall: 0
 --- !u!65 &65000011444984251
 BoxCollider:
   m_ObjectHideFlags: 0
