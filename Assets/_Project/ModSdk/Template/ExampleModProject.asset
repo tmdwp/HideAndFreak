@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a380f4a33d79488484099cc7aff9ead2, type: 3}
+  m_Name: ExampleModProject
+  m_EditorClassIdentifier: GuardVsMannequin.Content.Editor::GuardVsMannequin.Editor.ModProject
+  modId: example.template
+  modName: Example Template
+  version: 1.0.0
+  author: Hide&Freak
+  description: "\uBAA8\uB4DC SDK \uC608\uC81C \uB9F5. \uC774 \uC124\uC815\uC744 \uBCF5\uC0AC\uD574
+    \uC790\uAE30 \uBAA8\uB4DC\uB97C \uB9CC\uB4DC\uC138\uC694."
+  minGameVersion: 0.4.0
+  dependencies: []
+  maps:
+  - scene: {fileID: 102900000, guid: aa22ba81947d66c4292edbedb1567294, type: 3}
+    mapKey: example
+    displayName: Example Map
+    minPlayers: 0
+    maxPlayers: 0
+    settings:
+    - id: GuardCount
+      value: 1
+      min: 1
+      max: 2
+  sharedAssets: []
+  strings: {fileID: 4900000, guid: 9f1abb135f1b58c4c984fb13766c2910, type: 3}
+  copyToModsFolder: 

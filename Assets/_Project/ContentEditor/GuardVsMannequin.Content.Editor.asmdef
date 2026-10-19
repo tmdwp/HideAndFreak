@@ -1,0 +1,19 @@
+{
+    "name": "GuardVsMannequin.Content.Editor",
+    "rootNamespace": "GuardVsMannequin.Editor",
+    "references": [
+        "GuardVsMannequin.Content",
+        "Unity.AI.Navigation"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
