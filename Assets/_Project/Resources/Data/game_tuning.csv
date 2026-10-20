@@ -5,7 +5,7 @@
 id,value,설명
 
 # 이동
-MannequinHuntSpeedMultiplier,0.8,사냥 시간 마네킹 이동 속도 배율 (룸 설정의 마네킹 속도 × 이 값)
+MannequinHuntSpeedMultiplier,0.875,"사냥 시간(구울) 이동 속도 배율 (마네킹 기본 속도 × 이 값, 2.4 × 0.875 = 2.1)"
 SprintSpeedMultiplier,1.6,달리기(Shift) 속도 배율
 StaminaSprintSeconds,5,스태미나가 가득 찼을 때 쉬지 않고 달릴 수 있는 시간(초)
 StaminaRecoverSeconds,8,스태미나가 바닥에서 가득 찰 때까지 시간(초)

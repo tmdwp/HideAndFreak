@@ -17,6 +17,7 @@ namespace GuardVsMannequin.Network
     /// - 클라이언트: 접속하자마자 게임 버전(<see cref="GameVersion"/>)과 입력한 방 암호를 서버에 보낸다.
     /// - 서버:
     ///   1. 버전이 호스트와 다르거나, 정해진 시간 안에 버전을 보내지 않으면(옛 빌드) 거부. 방 암호가 있으면 암호도 확인
+    ///      모드 지문이 다르면 호스트 모드 구성을 보내 맞추게 하고, 그래도 다르면(호스트 모드가 없음) 거부
     ///   2. Steam 방: Steam 접속은 로비 멤버만, IP 접속은 호스트 자신(루프백)만 허용
     ///   3. 판이 진행 중이면 거부 (Steam 로비의 참가 차단을 우회한 접속 방지)
     ///   4. 인원이 가득 찼으면 거부
@@ -30,6 +31,9 @@ namespace GuardVsMannequin.Network
 
         // 클라이언트가 버전을 보낼 때까지 기다리는 시간
         private const float VersionWaitSeconds = 10f;
+
+        // 클라이언트가 호스트 모드 구성에 맞춘 뒤 참가 요청을 다시 보낼 때까지 기다리는 시간 (모드 폴더를 다시 읽음)
+        private const float ModMatchWaitSeconds = 10f;
 
         private readonly Dictionary<int, JoinRequestBroadcast> receivedRequests = new();
         private ISessionService session;
@@ -55,6 +59,7 @@ namespace GuardVsMannequin.Network
             NetworkManager.ServerManager.RegisterBroadcast<JoinRequestBroadcast>(OnJoinRequest, false);
             NetworkManager.ServerManager.OnRemoteConnectionState += OnRemoteConnectionState;
             NetworkManager.ClientManager.OnClientConnectionState += OnClientConnectionState;
+            NetworkManager.ClientManager.RegisterBroadcast<ModSetRequiredBroadcast>(OnModSetRequired);
         }
 
         /// <summary>
@@ -67,6 +72,7 @@ namespace GuardVsMannequin.Network
             NetworkManager.ServerManager.UnregisterBroadcast<JoinRequestBroadcast>(OnJoinRequest);
             NetworkManager.ServerManager.OnRemoteConnectionState -= OnRemoteConnectionState;
             NetworkManager.ClientManager.OnClientConnectionState -= OnClientConnectionState;
+            NetworkManager.ClientManager.UnregisterBroadcast<ModSetRequiredBroadcast>(OnModSetRequired);
         }
 
         /// <summary>
@@ -74,9 +80,25 @@ namespace GuardVsMannequin.Network
         /// </summary>
         private void OnClientConnectionState(ClientConnectionStateArgs args)
         {
-            if (args.ConnectionState != LocalConnectionState.Started)
-                return;
+            if (args.ConnectionState == LocalConnectionState.Started)
+                SendJoinRequest();
+        }
 
+        /// <summary>
+        /// 클라이언트: 호스트의 모드 구성에 맞춘 뒤 참가 요청을 다시 보낸다.
+        /// 맞출 수 없으면(호스트 모드가 없거나 다름) 지문이 그대로라 서버가 거부 이유와 함께 끊는다.
+        /// </summary>
+        private void OnModSetRequired(ModSetRequiredBroadcast message, Channel channel)
+        {
+            ModService.Instance.TryMatchHost(message.hostMods, message.hostModHash);
+            SendJoinRequest();
+        }
+
+        /// <summary>
+        /// 클라이언트: 버전·암호·모드 지문을 담은 참가 요청을 보낸다.
+        /// </summary>
+        private void SendJoinRequest()
+        {
             NetworkManager.ClientManager.Broadcast(new JoinRequestBroadcast
             {
                 version = GameVersion.Current,
@@ -135,10 +157,28 @@ namespace GuardVsMannequin.Network
             }
 
             // 1-1. 모드 확인 (켜진 모드와 맵 목록이 같아야 맵 번호·사물 번호가 같은 것을 가리킨다)
-            if (request.modHash != ModService.Instance.ModSetHash)
+            // 다르면 호스트 구성을 알려 주고, 접속자가 맞춘 뒤 다시 보낸 요청을 기다린다. (접속자만 켠 모드는 접속 동안 꺼짐)
+            string hostModHash = ModService.Instance.ModSetHash;
+            if (request.modHash != hostModHash)
             {
-                Reject(connection, ConnectionRejectReason.ModMismatch, $"모드 불일치 (호스트 {ModService.Instance.ModSetHash}, 접속자 {request.modHash})");
-                yield break;
+                receivedRequests.Remove(connection.ClientId);
+                NetworkManager.ServerManager.Broadcast(connection, new ModSetRequiredBroadcast
+                {
+                    hostMods = ModService.Instance.ModSetDescription,
+                    hostModHash = hostModHash
+                }, false);
+
+                float modWaitEnd = Time.unscaledTime + ModMatchWaitSeconds;
+                while (connection.IsActive && !receivedRequests.ContainsKey(connection.ClientId) && Time.unscaledTime < modWaitEnd)
+                    yield return new WaitForSecondsRealtime(PollInterval);
+
+                if (!connection.IsActive)
+                    yield break;
+                if (!receivedRequests.TryGetValue(connection.ClientId, out request) || request.modHash != hostModHash)
+                {
+                    Reject(connection, ConnectionRejectReason.ModMismatch, $"모드 불일치 (호스트 {hostModHash}, 접속자 {(request.modHash ?? "응답 없음")})");
+                    yield break;
+                }
             }
 
             // 1-2. 암호 확인 (암호를 정한 방만)

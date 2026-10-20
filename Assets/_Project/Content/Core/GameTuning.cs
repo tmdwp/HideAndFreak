@@ -25,7 +25,7 @@ namespace GuardVsMannequin.Core
         #region 이동
 
         /// <summary>사냥 시간 마네킹 이동 속도 배율. (호스트 설정의 마네킹 속도 × 이 값)</summary>
-        public static float MannequinHuntSpeedMultiplier => Get(nameof(MannequinHuntSpeedMultiplier), 0.8f);
+        public static float MannequinHuntSpeedMultiplier => Get(nameof(MannequinHuntSpeedMultiplier), 0.875f);
 
         /// <summary>달리기 중 이동 속도 배율.</summary>
         public static float SprintSpeedMultiplier => Get(nameof(SprintSpeedMultiplier), 1.6f);

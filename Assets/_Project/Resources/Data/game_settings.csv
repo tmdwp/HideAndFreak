@@ -2,6 +2,7 @@
 # id: 코드의 GameSettingId 이름 (바꾸지 마세요) / step: -,+ 한 번에 바뀌는 양 / min, max: 룸에서 고를 수 있는 범위
 # unit: 단위 문구의 key (strings.csv). 비우면 단위 없음. 이름 문구는 strings.csv의 setting.<id>
 # 인원에 따라 달라지는 최종 범위(가드 수, 목표 수 등)는 게임이 다시 보정합니다.
+# MannequinAttackRange, GuardMoveSpeed, MannequinMoveSpeed는 룸 UI에 표시하지 않습니다. (값은 default_game_settings.json)
 id,step,min,max,unit
 Map,1,0,4,
 HuntDelay,5,10,120,unit.seconds

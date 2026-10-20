@@ -12,9 +12,9 @@
     "guardMaxHealth": 3,
     "mannequinMaxHealth": 1,
     "huntHealthMultiplier": 10,
-    "mannequinAttackRange": 2,
-    "guardMoveSpeed": 2,
-    "mannequinMoveSpeed": 1.5,
+    "mannequinAttackRange": 3,
+    "guardMoveSpeed": 2.2,
+    "mannequinMoveSpeed": 2.4,
     "gunDamage": 1,
     "mannequinAttackDamage": 1
 }

@@ -106,9 +106,9 @@ Waiting ─▶ Preparation ─▶ Playing ─▶ Hunting ─▶ Ended
 | `guardMaxHealth` | int | 3 | |
 | `mannequinMaxHealth` | int | 1 | |
 | `huntHealthMultiplier` | float | 10 | 사냥 시간 마네킹 체력 배율 |
-| `mannequinAttackRange` | float | 2 | |
-| `guardMoveSpeed` | float | 2 | 가드 이동 속도(m/s) |
-| `mannequinMoveSpeed` | float | 1.5 | 마네킹 기본 이동 속도(m/s). 사냥 시간에는 × 0.8 (`GameTuning.MannequinHuntSpeedMultiplier`) |
+| `mannequinAttackRange` | float | 3 | 구울(사냥 시간) 공격 사거리(m). 룸 UI에 표시하지 않음 |
+| `guardMoveSpeed` | float | 2.2 | 가드 이동 속도(m/s). 룸 UI에 표시하지 않음 |
+| `mannequinMoveSpeed` | float | 2.4 | 마네킹 기본 이동 속도(m/s). 사냥 시간(구울)에는 × 0.875 = 2.1 (`GameTuning.MannequinHuntSpeedMultiplier`). 룸 UI에 표시하지 않음 |
 
 - 기본값은 `Resources/Data/default_game_settings.json`에, 룸에서 조정하는 단위·범위·표시 순서는 `Resources/Data/game_settings.csv`에 둡니다. 런타임 값은 `SyncVar`로 동기화하는 구조체로 관리합니다.
 - 값 검증(범위 제한)은 `GameSettingsValidator`가 담당합니다 (SRP).
@@ -586,6 +586,7 @@ Phase 7은 **A. 게임플레이 개편**(7-A1~7-A5)을 먼저 하고 **B. 모드
 - [x] B4. 맵별 설정·스탯 범위 (7-3): `map.json`의 기본값·범위 → 맵을 바꾸면 서버가 기본값을 적용하고 "게임 범위 ∩ 맵 범위"로 보정, 룸 UI 표시 범위도 갱신.
 - [x] B5. 모드 로더 (7-4): 두 `Mods` 폴더 검색, `mod.json` 검사(형식·게임 버전·Unity 버전·의존성), 외형 번들은 시작 때, 맵 번들은 FishNet 씬 처리기 확장으로 씬을 불러오기 직전에 로드하고 판이 끝나면 해제. 실패한 모드는 건너뛰고 로비에 안내.
 - [x] B6. 모드 일치 확인 (7-5): 켜진 모드 목록 해시를 접속 요청·Steam 로비 데이터에 넣고, 불일치 시 필요한 모드 목록과 함께 거부. → `GameVersion.Protocol` +1
+  - 2026-10-20 변경: 해시가 다르면 서버가 `ModSetRequiredBroadcast`로 호스트 모드 구성을 보내고, 접속자는 `ModService.TryMatchHost`로 이번 접속 동안만 그 구성으로 켜고 끈 뒤 참가 요청을 다시 보낸다(Steam 방은 로비 데이터로 입장 전에 맞춤). 호스트가 켜지 않은 모드를 켠 접속자도 들어갈 수 있고, 호스트 모드가 없거나 다를 때만 거부. 방을 나가면 `ClearSessionMods`로 원래 설정 복귀. → `GameVersion.Protocol` +1
 - [x] B7. 모드 SDK (7-6): 콘텐츠 어셈블리 소스 + 맵 제작 도우미·검사 도구 + "모드 내보내기"(번들 빌드 + `mod.json`)를 담은 `.unitypackage` 생성 메뉴. 문서 `Docs/ModdingGuide.md`.
 - [x] B8. 로비 "모드" 화면 (7-7): 설치된 모드 목록, 켜기/끄기, 오류 표시.
 - [ ] B9. 예제 모드로 전체 검증: 내장 맵 하나를 모드로 내보내 2PC에서 플레이.

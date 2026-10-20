@@ -15,10 +15,17 @@ namespace GuardVsMannequin.UI
         [SerializeField] private SettingRowView[] settingRows;
 
         /// <summary>
-        /// 설정 줄의 조정 동작을 연결한다.
+        /// 룸에서 숨기는 항목의 줄을 끄고(이전에 만든 프리팹 대비), 남은 줄의 조정 동작을 연결한다.
         /// </summary>
         private void Start()
         {
+            foreach (SettingRowView row in settingRows)
+            {
+                if (!GameSettingDefinitions.IsShownInRoom(row.SettingId))
+                    row.gameObject.SetActive(false);
+            }
+            settingRows = System.Array.FindAll(settingRows, row => row.gameObject.activeSelf);
+
             foreach (SettingRowView row in settingRows)
                 row.Bind(OnAdjustSetting, OnSetSettingValue);
         }

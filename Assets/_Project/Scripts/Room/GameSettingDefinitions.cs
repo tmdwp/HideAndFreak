@@ -92,7 +92,25 @@ namespace GuardVsMannequin.Room
             new(GameSettingId.MannequinAttackDamage, 1f, 1f, 500f, string.Empty)
         };
 
+        /// <summary>
+        /// 룸 UI에 보이지 않고 호스트가 바꿀 수 없는 항목. 값은 default_game_settings.json(과 맵 기본값)으로만 정해진다.
+        /// </summary>
+        private static readonly HashSet<GameSettingId> hiddenInRoom = new()
+        {
+            GameSettingId.MannequinAttackRange,
+            GameSettingId.GuardMoveSpeed,
+            GameSettingId.MannequinMoveSpeed
+        };
+
         private static List<Definition> definitions;
+
+        /// <summary>
+        /// 룸 UI에 표시하고 호스트가 조정할 수 있는 항목인지 여부.
+        /// </summary>
+        public static bool IsShownInRoom(GameSettingId id)
+        {
+            return !hiddenInRoom.Contains(id);
+        }
 
         /// <summary>표시 순서대로 나열한 모든 설정 항목. (처음 사용할 때 CSV를 읽음)</summary>
         public static IReadOnlyList<Definition> All

@@ -165,7 +165,7 @@ namespace GuardVsMannequin.Editor
         #region 로비 UI
 
         /// <summary>
-        /// 로비 캔버스에 없는 영역(왼쪽 아래 버전 표시, "모드" 화면)만 만들어 붙인다. 이미 있는 프리팹을 고치지 않고 더할 때도 쓴다.
+        /// 로비 캔버스에 없는 영역(왼쪽 아래 버전 표시, "모드" 화면, 모드 불일치 경고 창)만 만들어 붙인다. 이미 있는 프리팹을 고치지 않고 더할 때도 쓴다.
         /// </summary>
         /// <returns>새로 추가한 영역 수.</returns>
         public static int AddMissingLobbySections(GameObject canvas)
@@ -184,7 +184,51 @@ namespace GuardVsMannequin.Editor
                 CreateModsScreen(canvas);
                 added++;
             }
+            if (canvas.GetComponent<LobbyModMismatchPopup>() == null && canvas.GetComponent<LobbyView>() != null)
+            {
+                CreateModMismatchPopup(canvas);
+                added++;
+            }
             return added;
+        }
+
+        /// <summary>
+        /// 모드가 달라 입장이 거부됐을 때 뜨는 경고 창(어두운 배경 + 경고문, 부족한 모드 목록, 모드 화면 열기 / 닫기)을 만든다.
+        /// 다른 화면 위에 그려지도록 캔버스 맨 뒤에 둔다.
+        /// </summary>
+        private static void CreateModMismatchPopup(GameObject canvas)
+        {
+            RectTransform dim = EditorUiFactory.CreatePanel(canvas.transform, "ModMismatchPopup", Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.65f));
+
+            RectTransform box = EditorUiFactory.CreatePanel(dim, "Box", new Vector2(0.3f, 0.22f), new Vector2(0.7f, 0.78f), EditorUiFactory.PanelColor);
+            EditorUiFactory.AddVerticalLayout(box, 12f, 28);
+
+            Text title = EditorUiFactory.CreateText(box, "Title", "lobby.modMismatch.title", 34, TextAnchor.MiddleCenter, EditorUiFactory.NoticeColor);
+            title.fontStyle = FontStyle.Bold;
+            EditorUiFactory.SetHeight(title, 48f);
+            Text warning = EditorUiFactory.CreateText(box, "Warning", "lobby.modMismatch.warning", 22, TextAnchor.MiddleCenter, EditorUiFactory.TextColor);
+            EditorUiFactory.SetHeight(warning, 70f);
+            Text listHeader = EditorUiFactory.CreateText(box, "ListHeader", "lobby.modMismatch.listHeader", 22, TextAnchor.MiddleLeft, EditorUiFactory.AccentColor);
+            EditorUiFactory.SetHeight(listHeader, 32f);
+
+            // 부족한 모드가 많아도 넘치지 않도록 스크롤한다.
+            Text list = EditorUiFactory.CreateScrollText(box, "MissingList", string.Empty, 22, TextAnchor.UpperLeft, EditorUiFactory.TextColor);
+            EditorUiFactory.FillRemainingHeight(list.transform.parent, 140f);
+
+            RectTransform buttons = EditorUiFactory.CreateRow(box, "Buttons", 56f, 12f);
+            Button openMods = EditorUiFactory.CreateButton(buttons, "OpenModsButton", "lobby.modMismatch.openMods", EditorUiFactory.ButtonColor);
+            Button close = EditorUiFactory.CreateButton(buttons, "CloseButton", "lobby.modMismatch.close", EditorUiFactory.AccentColor);
+            EditorUiFactory.SetFlexibleWidth(openMods);
+            EditorUiFactory.SetFlexibleWidth(close);
+
+            dim.SetAsLastSibling();
+            dim.gameObject.SetActive(false);
+
+            LobbyModMismatchPopup popup = canvas.AddComponent<LobbyModMismatchPopup>();
+            TestEnvironmentSetupTool.SetField(popup, "popupPanel", dim.gameObject);
+            TestEnvironmentSetupTool.SetField(popup, "missingListText", list);
+            TestEnvironmentSetupTool.SetField(popup, "closeButton", close);
+            TestEnvironmentSetupTool.SetField(popup, "openModsButton", openMods);
         }
 
         /// <summary>
@@ -494,7 +538,9 @@ namespace GuardVsMannequin.Editor
             // 설정 항목이 많아 패널을 넘치면 스크롤한다.
             RectTransform settingList = EditorUiFactory.CreateScrollList(right, "SettingList", 4f);
             EditorUiFactory.FillRemainingHeight(settingList, 200f);
-            SettingRowView[] rows = GameSettingDefinitions.All.Select(definition => CreateSettingRow(settingList, definition.id)).ToArray();
+            SettingRowView[] rows = GameSettingDefinitions.All
+                .Where(definition => GameSettingDefinitions.IsShownInRoom(definition.id))
+                .Select(definition => CreateSettingRow(settingList, definition.id)).ToArray();
 
             // 하단: 상태, 나가기, 시작/준비
             RectTransform bottom = EditorUiFactory.CreatePanel(canvas.transform, "BottomBar", new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.13f), EditorUiFactory.PanelColor);

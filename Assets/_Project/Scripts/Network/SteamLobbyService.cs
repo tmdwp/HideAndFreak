@@ -1,6 +1,5 @@
 using System;
 using GuardVsMannequin.Core;
-using GuardVsMannequin.Localization;
 using GuardVsMannequin.Mods;
 using Steamworks;
 using UnityEngine;
@@ -193,11 +192,12 @@ namespace GuardVsMannequin.Network
                 return;
             }
 
-            // 켜진 모드가 다르면 접속하지 않고 나온다.
-            if (SteamMatchmaking.GetLobbyData(lobby, ModsKey) != ModService.Instance.ModSetHash)
+            // 켜진 모드가 다르면 이번 접속 동안 호스트 구성에 맞춘다. 호스트 모드가 없거나 달라 맞출 수 없으면 접속하지 않고 나온다.
+            string hostMods = SteamMatchmaking.GetLobbyData(lobby, ModListKey);
+            if (!ModService.Instance.TryMatchHost(hostMods, SteamMatchmaking.GetLobbyData(lobby, ModsKey)))
             {
-                string hostMods = SteamMatchmaking.GetLobbyData(lobby, ModListKey);
-                Failed?.Invoke("notice.rejected.mods", string.IsNullOrEmpty(hostMods) ? Loc.Get("notice.mods.none") : hostMods);
+                // 원문 목록을 넘긴다. (SessionService가 안내 문구로 바꾸고, 로비 팝업이 부족한 모드를 계산)
+                Failed?.Invoke(SessionService.ModRejectedNoticeKey, hostMods ?? string.Empty);
                 LeaveLobby();
                 return;
             }

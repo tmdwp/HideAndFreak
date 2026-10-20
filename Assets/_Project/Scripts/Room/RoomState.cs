@@ -165,7 +165,7 @@ namespace GuardVsMannequin.Room
         [Server]
         public void AdjustSetting(GameSettingId id, int direction)
         {
-            if (isInGame.Value)
+            if (isInGame.Value || !GameSettingDefinitions.IsShownInRoom(id))
                 return;
 
             GameSettings adjusted = GameSettingDefinitions.Adjust(settings.Value, id, direction);
@@ -181,7 +181,7 @@ namespace GuardVsMannequin.Room
         [Server]
         public void SetSettingValue(GameSettingId id, float value)
         {
-            if (isInGame.Value || id == GameSettingId.Map)
+            if (isInGame.Value || id == GameSettingId.Map || !GameSettingDefinitions.IsShownInRoom(id))
                 return;
             ApplySettings(GameSettingDefinitions.SetClamped(settings.Value, id, value));
         }

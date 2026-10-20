@@ -64,9 +64,9 @@ namespace GuardVsMannequin.Core
                 guardMaxHealth = 3,
                 mannequinMaxHealth = 1,
                 huntHealthMultiplier = 10f,
-                mannequinAttackRange = 2f,
-                guardMoveSpeed = 2f,
-                mannequinMoveSpeed = 1.5f,
+                mannequinAttackRange = 3f,
+                guardMoveSpeed = 2.2f,
+                mannequinMoveSpeed = 2.4f,
                 gunDamage = GameConstants.Damage,
                 mannequinAttackDamage = GameConstants.Damage
             };

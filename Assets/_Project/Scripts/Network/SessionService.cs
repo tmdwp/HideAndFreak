@@ -16,6 +16,9 @@ namespace GuardVsMannequin.Network
     /// </summary>
     public class SessionService : MonoBehaviour, ISessionService
     {
+        /// <summary>모드가 달라 입장할 수 없을 때의 안내 key. (Steam 로비 확인도 같은 key로 실패를 알린다)</summary>
+        public const string ModRejectedNoticeKey = "notice.rejected.mods";
+
         [SerializeField] private TransportConnector connector;
         [SerializeField] private SteamLobbyService steamLobby;
 
@@ -25,6 +28,10 @@ namespace GuardVsMannequin.Network
         // 호스트가 알려 준 접속 거부 이유 (연결이 끊길 때 안내에 사용)
         private string rejectNoticeKey;
         private string rejectNoticeDetail;
+
+        // 모드가 달라 거부됐을 때 호스트 모드 목록 (거부 직후: 연결이 끊길 때 확정, 확정 후: 로비 팝업이 꺼내 감)
+        private string pendingModRejection;
+        private string modRejection;
 
         // 안내 문구는 key와 끼워 넣을 값으로 보관하고, 읽을 때 현재 언어로 만든다. (언어를 바꾸면 바로 반영)
         private string noticeKey = string.Empty;
@@ -119,9 +126,18 @@ namespace GuardVsMannequin.Network
                 ConnectionRejectReason.InGame => ("notice.rejected.inGame", string.Empty),
                 ConnectionRejectReason.NotLobbyMember => ("notice.rejected.notMember", string.Empty),
                 ConnectionRejectReason.WrongPassword => ("notice.rejected.password", string.Empty),
-                ConnectionRejectReason.ModMismatch => ("notice.rejected.mods", DescribeMods(message.hostMods)),
+                ConnectionRejectReason.ModMismatch => (ModRejectedNoticeKey, DescribeMods(message.hostMods)),
                 _ => ("notice.rejected.version", $"{message.hostVersion} ≠ {GameVersion.Current}")
             };
+            pendingModRejection = message.reason == ConnectionRejectReason.ModMismatch ? message.hostMods ?? string.Empty : null;
+        }
+
+        /// <inheritdoc />
+        public bool TryTakeModRejection(out string hostMods)
+        {
+            hostMods = modRejection;
+            modRejection = null;
+            return hostMods != null;
         }
 
         /// <summary>
@@ -287,7 +303,11 @@ namespace GuardVsMannequin.Network
             isLeaving = false;
             rejectNoticeKey = null;
             rejectNoticeDetail = null;
+            pendingModRejection = null;
+            modRejection = null;
             SetNotice(string.Empty);
+            // 지난 접속에서 따르던 호스트 모드 구성이 남아 있으면 내 설정으로 돌린다.
+            ModService.Instance.ClearSessionMods();
             return true;
         }
 
@@ -317,6 +337,7 @@ namespace GuardVsMannequin.Network
             if (hasPassword && JoinPassword.Length == 0)
             {
                 IsBusy = false;
+                ModService.Instance.ClearSessionMods();
                 steamLobby.LeaveLobby();
                 SetNotice("notice.passwordRequired");
                 PasswordRequired?.Invoke(lobbyId.ToString());
@@ -327,6 +348,7 @@ namespace GuardVsMannequin.Network
             if (!connector.StartSteamClient(hostSteamId))
             {
                 IsBusy = false;
+                ModService.Instance.ClearSessionMods();
                 SetNotice("notice.hostConnectFailed");
                 steamLobby.LeaveLobby();
             }
@@ -353,6 +375,14 @@ namespace GuardVsMannequin.Network
         private void OnLobbyFailed(string reasonKey, string detail)
         {
             IsBusy = false;
+            ModService.Instance.ClearSessionMods();
+
+            // Steam 로비에서 모드를 맞출 수 없었으면 detail은 호스트 모드 목록 원문이다. (팝업이 부족한 모드를 계산)
+            if (reasonKey == ModRejectedNoticeKey)
+            {
+                modRejection = detail ?? string.Empty;
+                detail = DescribeMods(detail);
+            }
             SetNotice(reasonKey, detail);
         }
 
@@ -375,6 +405,8 @@ namespace GuardVsMannequin.Network
             bool wasConnecting = IsBusy;
             IsBusy = false;
             steamLobby.LeaveLobby();
+            // 접속 동안 따르던 호스트 모드 구성을 버리고 내 설정으로 돌아간다.
+            ModService.Instance.ClearSessionMods();
 
             // 호스트가 이유를 알려 줬으면(버전 불일치 등) 그 이유로 안내한다.
             if (!string.IsNullOrEmpty(rejectNoticeKey))
@@ -383,6 +415,9 @@ namespace GuardVsMannequin.Network
                 SetNotice(wasConnecting ? "notice.joinFailed" : "notice.hostDisconnected");
             rejectNoticeKey = null;
             rejectNoticeDetail = null;
+            // 모드가 달라 거부됐으면 로비 팝업이 부족한 모드를 보여주도록 남긴다.
+            modRejection = pendingModRejection;
+            pendingModRejection = null;
 
             // 호스트가 아닌 경우에만 여기서 정리한다. (호스트는 Leave에서 서버까지 정리)
             if (!connector.IsServerRunning)

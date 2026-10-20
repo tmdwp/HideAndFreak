@@ -17,6 +17,19 @@ namespace GuardVsMannequin.Network
     }
 
     /// <summary>
+    /// 서버 → 클라이언트: 모드 지문이 달라 호스트의 모드 구성을 알린다. (인증 전)
+    /// 클라이언트는 이번 접속 동안 그 구성으로 맞춘 뒤 참가 요청을 다시 보낸다.
+    /// </summary>
+    public struct ModSetRequiredBroadcast : IBroadcast
+    {
+        /// <summary>호스트가 켠 모드 목록. (ModService.ModSetDescription)</summary>
+        public string hostMods;
+
+        /// <summary>호스트의 모드 지문. (ModService.ModSetHash)</summary>
+        public string hostModHash;
+    }
+
+    /// <summary>
     /// 서버 → 클라이언트: 접속을 거부한 이유. 클라이언트는 로비에 안내 문구로 보여준다.
     /// </summary>
     public struct ConnectionRejectedBroadcast : IBroadcast
@@ -53,7 +66,7 @@ namespace GuardVsMannequin.Network
         /// <summary>방 암호가 틀림.</summary>
         WrongPassword,
 
-        /// <summary>켜진 모드(또는 맵 목록)가 호스트와 다름.</summary>
+        /// <summary>호스트가 켠 모드가 없거나 버전·파일이 다름. (접속자만 켠 모드는 접속 동안 꺼서 맞추므로 해당 없음)</summary>
         ModMismatch
     }
 }

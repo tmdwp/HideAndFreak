@@ -32,6 +32,13 @@ namespace GuardVsMannequin.Network
         /// </summary>
         event System.Action<string> PasswordRequired;
 
+        /// <summary>
+        /// 모드가 달라 입장이 거부된 기록을 꺼낸다. 꺼내면 지워진다. (로비 씬을 다시 불러와도 남도록 상태로 보관)
+        /// </summary>
+        /// <param name="hostMods">호스트가 켠 모드 목록 설명. (없으면 빈 문자열)</param>
+        /// <returns>보여줄 거부 기록이 있었는지 여부.</returns>
+        bool TryTakeModRejection(out string hostMods);
+
         /// <summary>Steam 방을 만든다. 암호를 비우면 암호 없는 방이 된다.</summary>
         void HostSteamRoom(string password);
 

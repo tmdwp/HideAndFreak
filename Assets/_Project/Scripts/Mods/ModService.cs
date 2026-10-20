@@ -13,7 +13,9 @@ namespace GuardVsMannequin.Mods
     /// 설치된 모드를 관리한다.
     /// 1. 모드 폴더를 읽고(<see cref="ModScanner"/>), ID 중복·켜기/끄기·의존성을 정한다.
     /// 2. 켜진 모드의 맵을 등록소(<see cref="ContentRegistry"/>)에, 문장을 <see cref="Loc"/>에 더한다.
-    /// 3. 켜진 모드 목록의 지문(<see cref="ModSetHash"/>)을 만든다. 호스트와 지문이 다르면 방에 들어갈 수 없다.
+    /// 3. 켜진 모드 목록의 지문(<see cref="ModSetHash"/>)을 만든다. 방에 들어가려면 호스트와 지문이 같아야 한다.
+    ///    접속자는 <see cref="TryMatchHost"/>로 이번 접속 동안만 호스트가 켠 모드 구성을 따른다.
+    ///    (호스트가 끈 모드는 잠시 끄고, 내가 끈 모드라도 호스트가 켰으면 잠시 켠다. 저장된 켜기/끄기 설정은 바꾸지 않는다)
     /// 게임 시작 때 한 번 읽고, 로비 "모드" 화면에서 켜고 끌 때 다시 읽는다. (방에 있는 동안은 바꾸지 않는다)
     /// </summary>
     public sealed class ModService
@@ -21,6 +23,9 @@ namespace GuardVsMannequin.Mods
         private static ModService instance;
 
         private readonly List<ModInfo> mods = new();
+
+        // 이번 접속 동안 켤 모드 ID(호스트의 구성). null이면 플레이어의 켜기/끄기 설정을 따른다.
+        private HashSet<string> sessionModIds;
 
         /// <summary>게임 전체가 쓰는 모드 관리자.</summary>
         public static ModService Instance => instance ??= new ModService();
@@ -79,7 +84,60 @@ namespace GuardVsMannequin.Mods
         public void SetEnabled(string modId, bool enabled)
         {
             ModPreferences.SetEnabled(modId, enabled);
+            sessionModIds = null;
             Refresh();
+        }
+
+        /// <summary>
+        /// 호스트가 켠 모드 구성에 맞춘다. 지문이 이미 같으면 그대로 두고,
+        /// 다르면 이번 접속 동안만 호스트의 모드 ID 목록대로 켜고 끈 뒤 지문을 다시 비교한다.
+        /// 호스트의 모드가 없거나 버전·파일이 달라 지문이 맞지 않으면 원래 구성으로 되돌리고 false.
+        /// </summary>
+        /// <param name="hostModList">호스트의 <see cref="ModSetDescription"/>. (예: "author.maps@1.0.0#ab12cd34, ...")</param>
+        /// <param name="hostModHash">호스트의 <see cref="ModSetHash"/>.</param>
+        public bool TryMatchHost(string hostModList, string hostModHash)
+        {
+            if (hostModHash == ModSetHash)
+                return true;
+
+            sessionModIds = ParseModIds(hostModList);
+            Refresh();
+            if (ModSetHash == hostModHash)
+            {
+                Debug.Log($"[ModService] 이번 접속 동안 호스트의 모드 구성을 따릅니다: {(hostModList?.Length > 0 ? hostModList : "없음")}");
+                return true;
+            }
+
+            ClearSessionMods();
+            return false;
+        }
+
+        /// <summary>
+        /// 접속 동안 쓰던 호스트 모드 구성을 버리고 플레이어의 켜기/끄기 설정으로 돌아간다. (방을 나가거나 접속에 실패했을 때)
+        /// </summary>
+        public void ClearSessionMods()
+        {
+            if (sessionModIds == null)
+                return;
+            sessionModIds = null;
+            Refresh();
+        }
+
+        /// <summary>
+        /// 호스트가 켠 모드 중 내 PC에서 맞출 수 없는 모드(없음, 버전·파일 다름, 오류)를 찾는다. (접속 거부 안내용)
+        /// </summary>
+        /// <param name="hostModList">호스트의 <see cref="ModSetDescription"/>.</param>
+        public List<MissingMod> FindMissingFor(string hostModList)
+        {
+            return ModSetComparer.FindMissing(hostModList, id => TryGet(id, out ModInfo mod) ? mod : null);
+        }
+
+        /// <summary>
+        /// 모드 목록 설명("id@버전#지문, ...")에서 모드 ID만 뽑는다.
+        /// </summary>
+        private static HashSet<string> ParseModIds(string modList)
+        {
+            return new HashSet<string>(ModSetComparer.Parse(modList).Select(entry => entry.id), StringComparer.Ordinal);
         }
 
         /// <summary>
@@ -107,10 +165,20 @@ namespace GuardVsMannequin.Mods
         }
 
         /// <summary>
-        /// 플레이어가 끈 모드를 꺼진 상태로 둔다.
+        /// 플레이어가 끈 모드를 꺼진 상태로 둔다. 호스트 구성을 따르는 중이면 호스트가 켜지 않은 모드를 끈다.
         /// </summary>
         private void ApplyPreferences()
         {
+            if (sessionModIds != null)
+            {
+                foreach (ModInfo mod in mods)
+                {
+                    if (!sessionModIds.Contains(mod.Id))
+                        mod.MarkDisabled();
+                }
+                return;
+            }
+
             HashSet<string> disabled = ModPreferences.LoadDisabled();
             foreach (ModInfo mod in mods)
             {

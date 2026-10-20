@@ -30,7 +30,7 @@ lobby.credits,크레딧,Credits
 lobby.quit,종료,Quit
 lobby.menu.mods,모드,Mods
 lobby.mods.title,모드,Mods
-lobby.mods.hint,줄을 누르면 켜고 끕니다. 같은 모드를 켠 사람끼리만 함께 플레이할 수 있습니다.,Click a row to turn a mod on or off. Only players with the same mods enabled can play together.
+lobby.mods.hint,줄을 누르면 켜고 끕니다. 내가 만든 방에 적용되며, 다른 방에 들어가면 호스트가 켠 모드를 따릅니다.,Click a row to turn a mod on or off. Applies to rooms you host; when joining, the host's mods are used.
 lobby.mods.empty,설치된 모드가 없습니다. 모드 폴더에 모드를 넣고 '다시 읽기'를 누르세요.,No mods installed. Put mods in the Mods folder and press Reload.
 lobby.mods.summary,켜진 모드 {0}개 / 설치 {1}개\n모드 폴더: {2},Enabled {0} / Installed {1}\nMods folder: {2}
 lobby.mods.refresh,다시 읽기,Reload
@@ -38,6 +38,16 @@ lobby.mods.openFolder,모드 폴더 열기,Open folder
 lobby.mods.state.active,[켜짐],[ON]
 lobby.mods.state.disabled,[꺼짐],[OFF]
 lobby.mods.state.error,[오류],[ERROR]
+lobby.modMismatch.title,모드가 맞지 않아 입장할 수 없습니다,Can't join: mods don't match
+lobby.modMismatch.warning,호스트가 켠 모드가 내 PC에 없거나 버전·파일이 다릅니다. 아래 모드를 호스트와 같은 파일로 설치한 뒤 다시 참가하세요.,Some of the host's mods are missing or differ on your PC. Install the mods below (same files as the host) and try again.
+lobby.modMismatch.listHeader,부족한 모드,Missing mods
+lobby.modMismatch.reason.notInstalled,설치되지 않음,Not installed
+lobby.modMismatch.reason.version,버전이 다름 (내 버전 {0}),Different version (yours: {0})
+lobby.modMismatch.reason.files,파일 내용이 다름 (다시 받아 설치),Different files (reinstall)
+lobby.modMismatch.reason.error,사용할 수 없음: {0},Unusable: {0}
+lobby.modMismatch.unknown,"모드 목록은 같지만 파일 크기나 내장 맵 목록이 호스트와 다릅니다. 모드 파일을 다시 받아 설치하고, 게임 데이터 파일(maps.json)이 같은지 확인하세요.","The mod list matches, but file sizes or the built-in map list differ from the host. Reinstall the mods and check that your game data (maps.json) matches."
+lobby.modMismatch.openMods,모드 화면 열기,Open Mods
+lobby.modMismatch.close,닫기,Close
 lobby.noService,네트워크 서비스를 찾을 수 없습니다.,Network service not found.
 
 # 연결 안내
@@ -58,7 +68,7 @@ notice.lobbyEnterFailed,방에 들어갈 수 없습니다. (방이 가득 찼거
 notice.lobbyDataInvalid,방 정보를 읽을 수 없습니다.,Could not read the room information.
 notice.rejected.version,호스트와 게임 버전이 달라 들어갈 수 없습니다. 같은 버전으로 맞춰 주세요. (호스트 ≠ 내 게임: {0}),Your game version doesn't match the host's. Please use the same version. (host ≠ yours: {0})
 notice.rejected.full,방이 가득 찼습니다.,The room is full.
-notice.rejected.mods,호스트와 켜진 모드가 달라 들어갈 수 없습니다. 로비의 '모드' 화면에서 같은 모드만 켜 주세요. (호스트의 모드: {0}),Your enabled mods don't match the host's. Enable the same mods in the lobby 'Mods' screen. (Host mods: {0})
+notice.rejected.mods,호스트가 켠 모드가 없거나 버전·파일이 달라 들어갈 수 없습니다. 같은 모드를 설치해 주세요. (호스트의 모드: {0}),You're missing some of the host's mods or have a different version. Install the same mods. (Host mods: {0})
 notice.mods.none,없음,none
 notice.rejected.password,암호가 틀렸습니다.,Wrong password.
 notice.passwordRequired,암호가 필요한 방입니다. 암호를 입력하고 입장을 누르세요.,This room needs a password. Enter it and press Join.

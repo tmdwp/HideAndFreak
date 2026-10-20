@@ -26,6 +26,9 @@ namespace GuardVsMannequin.UI
         [SerializeField] private Button increaseButton;
 
         private Action<GameSettingId, float> onSetValue;
+
+        /// <summary>이 줄이 다루는 설정 항목.</summary>
+        public GameSettingId SettingId => settingId;
         private GameSettings lastSettings;
         private bool wasFocused;
 
